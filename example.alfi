@@ -1,0 +1,67 @@
+# Set label of window
+= window label "Example window"
+
+# A header and some text
++ header label "What a wonderful world"
++ text label "This is some text."
++ subheader label "This is a subheader"
++ text label "Below is a form."
+
+# Basic form elements
++ field id field1 type regular label "Username"
++ field id field2 type password label "Password"
++ select id select1 range 1 1 label "Select"
++ choice in select1 id choice1 label "Option 1"
++ choice in select1 id choice2 label "Option 2"
++ choice in select1 id choice3 label "Option 3"
++ button id submit label "Submit"
+
+# Two nested lists
++ list id list1
++ text in list1 label "Item 1-1"
++ text in list1 label "Item 1-2"
++ list in list1 id list2
++ text in list2 label "Item 2-1"
++ text in list2 label "Item 2-2"
+
+# A row of images
++ hstack id gallery halign left valign top
++ image in gallery link "data/image6.jpg" "image/jpeg"
++ image in gallery link "data/image6.jpg" "image/jpeg"
++ image in gallery link "data/image6.jpg" "image/jpeg"
++ image in gallery link "data/image6.jpg" "image/jpeg"
+
+# Add some items to the previous list
++ text in list1 label "Item 1-3"
++ text in list2 label "Item 2-3"
+
+# Under construction
+# tab id tab1 label "Tab1"
+# tab id tab2 label "Tab2"
+# tab id tab3 label "Tab3"
+
+# A divider
++ divider label "There is a table below"
+
+# A table
++ table id table1 grid 24 0 0 0 6 0
++ text in table1 label "Cell 0-0"
++ text in table1 label "Cell 0-1"
++ text in table1 label "Cell 0-2"
++ text in table1 label "Cell 0-3"
++ text in table1 label "Cell 1-0"
++ text in table1 label "Cell 1-1"
++ image in table1 link "data/image6.jpg" "image/jpeg"
++ text in table1 label "Cell 1-3"
++ text in table1 label "Cell 2-0"
++ text in table1 label "Cell 2-1"
++ text in table1 label "Cell 2-2"
++ text in table1 label "Cell 2-3"
++ text in table1 label "Cell 3-0"
++ text in table1 label "Cell 3-1"
+
++ divider
+
+# Add some text and then modify the text at once
++ text id extra2 label "This text will be replaced."
+= extra2 label "This is even more text!"

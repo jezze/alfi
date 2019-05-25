@@ -1,0 +1,1174 @@
+#include <stdlib.h>
+#include <string.h>
+#include "list.h"
+#include "box.h"
+#include "widgets.h"
+#include "parser.h"
+
+struct tokword
+{
+
+    unsigned int token;
+    char *word;
+
+};
+
+static unsigned int readword(struct parser *parser, char *result)
+{
+
+    unsigned int i = 0;
+
+    for (; parser->expr.offset < parser->expr.count; parser->expr.offset++)
+    {
+
+        char c = parser->expr.data[parser->expr.offset];
+
+        switch (c)
+        {
+
+        case '\0':
+        case '\n':
+            parser->expr.line++;
+            parser->expr.linebreak = 1;
+            parser->expr.offset++;
+            result[i] = '\0';
+
+            return i;
+
+        case ' ':
+            if (parser->expr.inside)
+            {
+
+                result[i] = c;
+                i++;
+
+            }
+            
+            else
+            {
+
+                result[i] = '\0';
+
+                if (i == 0)
+                    continue;
+
+                parser->expr.offset++;
+
+                return i;
+
+            }
+
+            break;
+
+        case '"':
+            parser->expr.inside = !parser->expr.inside;
+
+            break;
+
+        default:
+            result[i] = c;
+            i++;
+
+            break;
+
+        }
+
+    }
+
+    return 0;
+
+}
+
+static unsigned int parsetoken(struct parser *parser, const struct tokword *items, unsigned int nitems)
+{
+
+    char word[4096];
+    unsigned int count = readword(parser, word);
+    unsigned int i;
+
+    for (i = 0; i < nitems; i++)
+    {
+
+        if (!memcmp(word, items[i].word, count + 1))
+            return items[i].token;
+
+    }
+
+    return 0;
+
+}
+
+static unsigned int parseuint(struct parser *parser, unsigned int base)
+{
+
+    char word[4096];
+    unsigned int count = readword(parser, word);
+    unsigned int value = 0;
+    unsigned int i;
+
+    for (i = 0; i < count; i++)
+    {
+
+        switch (word[i])
+        {
+
+        case '0':
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+        case '7':
+        case '8':
+        case '9':
+            value = value * base + (word[i] - '0');
+
+            break;
+
+        case 'A':
+        case 'B':
+        case 'C':
+        case 'D':
+        case 'E':
+        case 'F':
+            value = value * base + (word[i] - 'A' + 10);
+
+            break;
+
+        case 'a':
+        case 'b':
+        case 'c':
+        case 'd':
+        case 'e':
+        case 'f':
+            value = value * base + (word[i] - 'a' + 10);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+    return value;
+
+}
+
+static char *parsestring(struct parser *parser)
+{
+
+    char word[4096];
+    unsigned int count = readword(parser, word);
+    char *current = parser->string.data + parser->string.offset;
+
+    parser->string.offset += count + 1;
+
+    return memcpy(current, word, count + 1);
+
+}
+
+static unsigned int getattribute(struct parser *parser)
+{
+
+    static const struct tokword items[] = {
+        {ALFI_ATTRIBUTE_NONE, ""},
+        {ALFI_ATTRIBUTE_GRID, "grid"},
+        {ALFI_ATTRIBUTE_HALIGN, "halign"},
+        {ALFI_ATTRIBUTE_ICON, "icon"},
+        {ALFI_ATTRIBUTE_ID, "id"},
+        {ALFI_ATTRIBUTE_IN, "in"},
+        {ALFI_ATTRIBUTE_LABEL, "label"},
+        {ALFI_ATTRIBUTE_LINK, "link"},
+        {ALFI_ATTRIBUTE_RANGE, "range"},
+        {ALFI_ATTRIBUTE_TYPE, "type"},
+        {ALFI_ATTRIBUTE_VALIGN, "valign"}
+    };
+
+    return parsetoken(parser, items, 11);
+
+}
+
+static unsigned int getcommand(struct parser *parser)
+{
+
+    static const struct tokword items[] = {
+        {ALFI_COMMAND_NONE, ""},
+        {ALFI_COMMAND_COMMENT, "#"},
+        {ALFI_COMMAND_DELETE, "-"},
+        {ALFI_COMMAND_INSERT, "+"},
+        {ALFI_COMMAND_UPDATE, "="}
+    };
+
+    return parsetoken(parser, items, 5);
+
+}
+
+static unsigned int gethalign(struct parser *parser)
+{
+
+    static const struct tokword items[] = {
+        {ALFI_HALIGN_LEFT, "left"},
+        {ALFI_HALIGN_CENTER, "center"},
+        {ALFI_HALIGN_RIGHT, "right"}
+    };
+
+    return parsetoken(parser, items, 3);
+
+}
+
+static unsigned int geticon(struct parser *parser)
+{
+
+    static const struct tokword items[] = {
+        {ALFI_ICON_BURGER, "burger"},
+        {ALFI_ICON_SEARCH, "search"}
+    };
+
+    return parsetoken(parser, items, 2);
+
+}
+
+static unsigned int gettype(struct parser *parser)
+{
+
+    static const struct tokword items[] = {
+        {ALFI_TYPE_REGULAR, "regular"},
+        {ALFI_TYPE_PASSWORD, "password"}
+    };
+
+    return parsetoken(parser, items, 2);
+
+}
+
+static unsigned int getvalign(struct parser *parser)
+{
+
+    static const struct tokword items[] = {
+        {ALFI_VALIGN_TOP, "top"},
+        {ALFI_VALIGN_MIDDLE, "middle"},
+        {ALFI_VALIGN_BOTTOM, "bottom"}
+    };
+
+    return parsetoken(parser, items, 3);
+
+}
+
+static unsigned int getwidget(struct parser *parser)
+{
+
+    static const struct tokword items[] = {
+        {ALFI_WIDGET_BUTTON, "button"},
+        {ALFI_WIDGET_CHOICE, "choice"},
+        {ALFI_WIDGET_DIVIDER, "divider"},
+        {ALFI_WIDGET_FIELD, "field"},
+        {ALFI_WIDGET_HEADER, "header"},
+        {ALFI_WIDGET_SUBHEADER, "subheader"},
+        {ALFI_WIDGET_HSTACK, "hstack"},
+        {ALFI_WIDGET_IMAGE, "image"},
+        {ALFI_WIDGET_LIST, "list"},
+        {ALFI_WIDGET_SELECT, "select"},
+        {ALFI_WIDGET_TAB, "tab"},
+        {ALFI_WIDGET_TABLE, "table"},
+        {ALFI_WIDGET_TEXT, "text"},
+        {ALFI_WIDGET_VSTACK, "vstack"},
+        {ALFI_WIDGET_WINDOW, "window"}
+    };
+
+    return parsetoken(parser, items, 15);
+
+}
+
+static void parse_attribute_grid(struct parser *parser, struct alfi_attribute_grid *grid)
+{
+
+    grid->csize = parseuint(parser, 10);
+    grid->rsize = parseuint(parser, 10);
+    grid->coffset = parseuint(parser, 10);
+    grid->roffset = parseuint(parser, 10);
+    grid->clength = parseuint(parser, 10);
+    grid->rlength = parseuint(parser, 10);
+
+}
+
+static void parse_attribute_halign(struct parser *parser, struct alfi_attribute_halign *halign)
+{
+
+    halign->direction = gethalign(parser);
+
+}
+
+static void parse_attribute_icon(struct parser *parser, struct alfi_attribute_icon *icon)
+{
+
+    icon->type = geticon(parser);
+
+}
+
+static void parse_attribute_id(struct parser *parser, struct alfi_attribute_id *id)
+{
+
+    id->name = parsestring(parser);
+
+}
+
+static void parse_attribute_in(struct parser *parser, struct alfi_attribute_in *in)
+{
+
+    in->name = parsestring(parser);
+
+}
+
+static void parse_attribute_label(struct parser *parser, struct alfi_attribute_label *label)
+{
+
+    label->content = parsestring(parser);
+
+}
+
+static void parse_attribute_link(struct parser *parser, struct alfi_attribute_link *link)
+{
+
+    link->url = parsestring(parser);
+    link->mime = parsestring(parser);
+
+}
+
+static void parse_attribute_range(struct parser *parser, struct alfi_attribute_range *range)
+{
+
+    range->min = parseuint(parser, 10);
+    range->max = parseuint(parser, 10);
+
+}
+
+static void parse_attribute_type(struct parser *parser, struct alfi_attribute_type *type)
+{
+
+    type->type = gettype(parser);
+
+}
+
+static void parse_attribute_valign(struct parser *parser, struct alfi_attribute_valign *valign)
+{
+
+    valign->direction = getvalign(parser);
+
+}
+
+static void parse_widget_button(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ICON:
+            parse_attribute_icon(parser, &widget->data.button.icon);
+
+            break;
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &widget->data.button.label);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_choice(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &widget->data.choice.label);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_divider(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &widget->data.divider.label);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_field(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ICON:
+            parse_attribute_icon(parser, &widget->data.field.icon);
+
+            break;
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &widget->data.field.label);
+
+            break;
+
+        case ALFI_ATTRIBUTE_TYPE:
+            parse_attribute_type(parser, &widget->data.field.type);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_header(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &widget->data.header.label);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_hstack(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_GRID:
+            parse_attribute_grid(parser, &widget->data.hstack.grid);
+
+            break;
+
+        case ALFI_ATTRIBUTE_HALIGN:
+            parse_attribute_halign(parser, &widget->data.hstack.halign);
+
+            break;
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_VALIGN:
+            parse_attribute_valign(parser, &widget->data.hstack.valign);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_image(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LINK:
+            parse_attribute_link(parser, &widget->data.image.link);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_list(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_select(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &widget->data.select.label);
+
+            break;
+
+        case ALFI_ATTRIBUTE_RANGE:
+            parse_attribute_range(parser, &widget->data.select.range);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_subheader(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &widget->data.subheader.label);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_tab(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &widget->data.tab.label);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_table(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_GRID:
+            parse_attribute_grid(parser, &widget->data.table.grid);
+
+            break;
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_text(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &widget->data.text.label);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_vstack(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_GRID:
+            parse_attribute_grid(parser, &widget->data.vstack.grid);
+
+            break;
+
+        case ALFI_ATTRIBUTE_HALIGN:
+            parse_attribute_halign(parser, &widget->data.vstack.halign);
+
+            break;
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_VALIGN:
+            parse_attribute_valign(parser, &widget->data.vstack.valign);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_window(struct parser *parser, struct alfi_widget *widget)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &widget->data.window.label);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_command_comment(struct parser *parser, unsigned int group)
+{
+
+    char word[4096];
+
+    while (!parser->expr.linebreak)
+        readword(parser, word);
+
+}
+
+static void parse_command_delete(struct parser *parser, unsigned int group)
+{
+
+    struct alfi_widget *widget = parser->find(parsestring(parser), group);
+
+    if (!widget)
+        parser->fail(parser->expr.line + 1);
+
+    parser->destroy(widget);
+
+}
+
+static void parse_command_insert(struct parser *parser, unsigned int group, char *in)
+{
+
+    struct alfi_widget *widget = parser->create(getwidget(parser), group, in);
+
+    if (!widget)
+        parser->fail(parser->expr.line + 1);
+
+    switch (widget->type)
+    {
+
+    case ALFI_WIDGET_BUTTON:
+        parse_widget_button(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_CHOICE:
+        parse_widget_choice(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_DIVIDER:
+        parse_widget_divider(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_FIELD:
+        parse_widget_field(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_HEADER:
+        parse_widget_header(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_HSTACK:
+        parse_widget_hstack(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_IMAGE:
+        parse_widget_image(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_LIST:
+        parse_widget_list(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_SELECT:
+        parse_widget_select(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_SUBHEADER:
+        parse_widget_subheader(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_TAB:
+        parse_widget_tab(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_TABLE:
+        parse_widget_table(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_TEXT:
+        parse_widget_text(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_VSTACK:
+        parse_widget_vstack(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_WINDOW:
+        parse_widget_window(parser, widget);
+
+        break;
+
+    default:
+        parser->fail(parser->expr.line + 1);
+
+        break;
+
+    }
+
+}
+
+static void parse_command_update(struct parser *parser, unsigned int group)
+{
+
+    struct alfi_widget *widget = parser->find(parsestring(parser), group);
+
+    if (!widget)
+        parser->fail(parser->expr.line + 1);
+
+    switch (widget->type)
+    {
+
+    case ALFI_WIDGET_BUTTON:
+        parse_widget_button(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_CHOICE:
+        parse_widget_choice(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_DIVIDER:
+        parse_widget_divider(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_FIELD:
+        parse_widget_field(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_HEADER:
+        parse_widget_header(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_HSTACK:
+        parse_widget_hstack(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_IMAGE:
+        parse_widget_image(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_LIST:
+        parse_widget_list(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_SELECT:
+        parse_widget_select(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_SUBHEADER:
+        parse_widget_subheader(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_TAB:
+        parse_widget_tab(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_TABLE:
+        parse_widget_table(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_TEXT:
+        parse_widget_text(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_VSTACK:
+        parse_widget_vstack(parser, widget);
+
+        break;
+
+    case ALFI_WIDGET_WINDOW:
+        parse_widget_window(parser, widget);
+
+        break;
+
+    default:
+        parser->fail(parser->expr.line + 1);
+
+        break;
+
+    }
+
+}
+
+void parse(struct parser *parser, unsigned int group, char *in)
+{
+
+    while (parser->expr.offset < parser->expr.count)
+    {
+
+        parser->expr.linebreak = 0;
+
+        switch (getcommand(parser))
+        {
+
+        case ALFI_COMMAND_NONE:
+            break;
+
+        case ALFI_COMMAND_COMMENT:
+            parse_command_comment(parser, group);
+
+            break;
+
+        case ALFI_COMMAND_DELETE:
+            parse_command_delete(parser, group);
+
+            break;
+
+        case ALFI_COMMAND_INSERT:
+            parse_command_insert(parser, group, in);
+
+            break;
+
+        case ALFI_COMMAND_UPDATE:
+            parse_command_update(parser, group);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
