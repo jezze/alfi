@@ -163,12 +163,10 @@ static char *parsestring(struct parser *parser)
 {
 
     char word[4096];
-    unsigned int count = readword(parser, word);
-    char *current = parser->string.data + parser->string.offset;
+    unsigned int length = readword(parser, word);
+    char *data = parser->createstring(length + 1);
 
-    parser->string.offset += count + 1;
-
-    return memcpy(current, word, count + 1);
+    return memcpy(data, word, length + 1);
 
 }
 
@@ -177,6 +175,7 @@ static unsigned int getattribute(struct parser *parser)
 
     static const struct tokword items[] = {
         {ALFI_ATTRIBUTE_NONE, ""},
+        {ALFI_ATTRIBUTE_DATA, "data"},
         {ALFI_ATTRIBUTE_GRID, "grid"},
         {ALFI_ATTRIBUTE_HALIGN, "halign"},
         {ALFI_ATTRIBUTE_ICON, "icon"},
@@ -189,7 +188,7 @@ static unsigned int getattribute(struct parser *parser)
         {ALFI_ATTRIBUTE_VALIGN, "valign"}
     };
 
-    return parsetoken(parser, items, 11);
+    return parsetoken(parser, items, 12);
 
 }
 
@@ -262,6 +261,7 @@ static unsigned int getwidget(struct parser *parser)
 {
 
     static const struct tokword items[] = {
+        {ALFI_WIDGET_ANCHOR, "anchor"},
         {ALFI_WIDGET_BUTTON, "button"},
         {ALFI_WIDGET_CHOICE, "choice"},
         {ALFI_WIDGET_DIVIDER, "divider"},
@@ -279,7 +279,16 @@ static unsigned int getwidget(struct parser *parser)
         {ALFI_WIDGET_WINDOW, "window"}
     };
 
-    return parsetoken(parser, items, 15);
+    return parsetoken(parser, items, 16);
+
+}
+
+static void parse_attribute_data(struct parser *parser, struct alfi_attribute_data *data)
+{
+
+    data->total = ALFI_DATASIZE;
+    data->content = parser->createstring(data->total);
+    data->offset = readword(parser, data->content);
 
 }
 
@@ -360,7 +369,7 @@ static void parse_attribute_valign(struct parser *parser, struct alfi_attribute_
 
 }
 
-static void parse_widget_button(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_button(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_button *button)
 {
 
     while (!parser->expr.linebreak)
@@ -370,7 +379,7 @@ static void parse_widget_button(struct parser *parser, struct alfi_widget *widge
         {
 
         case ALFI_ATTRIBUTE_ICON:
-            parse_attribute_icon(parser, &widget->data.button.icon);
+            parse_attribute_icon(parser, &button->icon);
 
             break;
 
@@ -385,7 +394,7 @@ static void parse_widget_button(struct parser *parser, struct alfi_widget *widge
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &widget->data.button.label);
+            parse_attribute_label(parser, &button->label);
 
             break;
 
@@ -400,7 +409,7 @@ static void parse_widget_button(struct parser *parser, struct alfi_widget *widge
 
 }
 
-static void parse_widget_choice(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_choice(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_choice *choice)
 {
 
     while (!parser->expr.linebreak)
@@ -420,7 +429,7 @@ static void parse_widget_choice(struct parser *parser, struct alfi_widget *widge
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &widget->data.choice.label);
+            parse_attribute_label(parser, &choice->label);
 
             break;
 
@@ -435,7 +444,7 @@ static void parse_widget_choice(struct parser *parser, struct alfi_widget *widge
 
 }
 
-static void parse_widget_divider(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_divider(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_divider *divider)
 {
 
     while (!parser->expr.linebreak)
@@ -455,7 +464,7 @@ static void parse_widget_divider(struct parser *parser, struct alfi_widget *widg
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &widget->data.divider.label);
+            parse_attribute_label(parser, &divider->label);
 
             break;
 
@@ -470,7 +479,7 @@ static void parse_widget_divider(struct parser *parser, struct alfi_widget *widg
 
 }
 
-static void parse_widget_field(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_field(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_field *field)
 {
 
     while (!parser->expr.linebreak)
@@ -478,9 +487,14 @@ static void parse_widget_field(struct parser *parser, struct alfi_widget *widget
 
         switch (getattribute(parser))
         {
+
+        case ALFI_ATTRIBUTE_DATA:
+            parse_attribute_data(parser, &field->data);
+
+            break;
 
         case ALFI_ATTRIBUTE_ICON:
-            parse_attribute_icon(parser, &widget->data.field.icon);
+            parse_attribute_icon(parser, &field->icon);
 
             break;
 
@@ -495,7 +509,7 @@ static void parse_widget_field(struct parser *parser, struct alfi_widget *widget
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &widget->data.field.label);
+            parse_attribute_label(parser, &field->label);
 
             break;
 
@@ -515,7 +529,7 @@ static void parse_widget_field(struct parser *parser, struct alfi_widget *widget
 
 }
 
-static void parse_widget_header(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_header(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_header *header)
 {
 
     while (!parser->expr.linebreak)
@@ -535,7 +549,7 @@ static void parse_widget_header(struct parser *parser, struct alfi_widget *widge
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &widget->data.header.label);
+            parse_attribute_label(parser, &header->label);
 
             break;
 
@@ -550,7 +564,7 @@ static void parse_widget_header(struct parser *parser, struct alfi_widget *widge
 
 }
 
-static void parse_widget_hstack(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_hstack(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_hstack *hstack)
 {
 
     while (!parser->expr.linebreak)
@@ -560,12 +574,12 @@ static void parse_widget_hstack(struct parser *parser, struct alfi_widget *widge
         {
 
         case ALFI_ATTRIBUTE_GRID:
-            parse_attribute_grid(parser, &widget->data.hstack.grid);
+            parse_attribute_grid(parser, &hstack->grid);
 
             break;
 
         case ALFI_ATTRIBUTE_HALIGN:
-            parse_attribute_halign(parser, &widget->data.hstack.halign);
+            parse_attribute_halign(parser, &hstack->halign);
 
             break;
 
@@ -580,7 +594,7 @@ static void parse_widget_hstack(struct parser *parser, struct alfi_widget *widge
             break;
 
         case ALFI_ATTRIBUTE_VALIGN:
-            parse_attribute_valign(parser, &widget->data.hstack.valign);
+            parse_attribute_valign(parser, &hstack->valign);
 
             break;
 
@@ -595,7 +609,7 @@ static void parse_widget_hstack(struct parser *parser, struct alfi_widget *widge
 
 }
 
-static void parse_widget_image(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_image(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_image *image)
 {
 
     while (!parser->expr.linebreak)
@@ -615,7 +629,7 @@ static void parse_widget_image(struct parser *parser, struct alfi_widget *widget
             break;
 
         case ALFI_ATTRIBUTE_LINK:
-            parse_attribute_link(parser, &widget->data.image.link);
+            parse_attribute_link(parser, &image->link);
 
             break;
 
@@ -630,37 +644,7 @@ static void parse_widget_image(struct parser *parser, struct alfi_widget *widget
 
 }
 
-static void parse_widget_list(struct parser *parser, struct alfi_widget *widget)
-{
-
-    while (!parser->expr.linebreak)
-    {
-
-        switch (getattribute(parser))
-        {
-
-        case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
-
-            break;
-
-        case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
-
-            break;
-
-        default:
-            parser->fail(parser->expr.line + 1);
-
-            break;
-
-        }
-
-    }
-
-}
-
-static void parse_widget_select(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_anchor(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_anchor *anchor)
 {
 
     while (!parser->expr.linebreak)
@@ -680,12 +664,87 @@ static void parse_widget_select(struct parser *parser, struct alfi_widget *widge
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &widget->data.select.label);
+            parse_attribute_label(parser, &anchor->label);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LINK:
+            parse_attribute_link(parser, &anchor->link);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_list(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_list *list)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        default:
+            parser->fail(parser->expr.line + 1);
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_widget_select(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_select *select)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_DATA:
+            parse_attribute_data(parser, &select->data);
+
+            break;
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &widget->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &widget->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &select->label);
 
             break;
 
         case ALFI_ATTRIBUTE_RANGE:
-            parse_attribute_range(parser, &widget->data.select.range);
+            parse_attribute_range(parser, &select->range);
 
             break;
 
@@ -700,7 +759,7 @@ static void parse_widget_select(struct parser *parser, struct alfi_widget *widge
 
 }
 
-static void parse_widget_subheader(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_subheader(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_subheader *subheader)
 {
 
     while (!parser->expr.linebreak)
@@ -720,7 +779,7 @@ static void parse_widget_subheader(struct parser *parser, struct alfi_widget *wi
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &widget->data.subheader.label);
+            parse_attribute_label(parser, &subheader->label);
 
             break;
 
@@ -735,7 +794,7 @@ static void parse_widget_subheader(struct parser *parser, struct alfi_widget *wi
 
 }
 
-static void parse_widget_tab(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_tab(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_tab *tab)
 {
 
     while (!parser->expr.linebreak)
@@ -755,7 +814,7 @@ static void parse_widget_tab(struct parser *parser, struct alfi_widget *widget)
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &widget->data.tab.label);
+            parse_attribute_label(parser, &tab->label);
 
             break;
 
@@ -770,7 +829,7 @@ static void parse_widget_tab(struct parser *parser, struct alfi_widget *widget)
 
 }
 
-static void parse_widget_table(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_table(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_table *table)
 {
 
     while (!parser->expr.linebreak)
@@ -780,7 +839,7 @@ static void parse_widget_table(struct parser *parser, struct alfi_widget *widget
         {
 
         case ALFI_ATTRIBUTE_GRID:
-            parse_attribute_grid(parser, &widget->data.table.grid);
+            parse_attribute_grid(parser, &table->grid);
 
             break;
 
@@ -805,7 +864,7 @@ static void parse_widget_table(struct parser *parser, struct alfi_widget *widget
 
 }
 
-static void parse_widget_text(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_text(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_text *text)
 {
 
     while (!parser->expr.linebreak)
@@ -825,7 +884,7 @@ static void parse_widget_text(struct parser *parser, struct alfi_widget *widget)
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &widget->data.text.label);
+            parse_attribute_label(parser, &text->label);
 
             break;
 
@@ -840,7 +899,7 @@ static void parse_widget_text(struct parser *parser, struct alfi_widget *widget)
 
 }
 
-static void parse_widget_vstack(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_vstack(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_vstack *vstack)
 {
 
     while (!parser->expr.linebreak)
@@ -850,12 +909,12 @@ static void parse_widget_vstack(struct parser *parser, struct alfi_widget *widge
         {
 
         case ALFI_ATTRIBUTE_GRID:
-            parse_attribute_grid(parser, &widget->data.vstack.grid);
+            parse_attribute_grid(parser, &vstack->grid);
 
             break;
 
         case ALFI_ATTRIBUTE_HALIGN:
-            parse_attribute_halign(parser, &widget->data.vstack.halign);
+            parse_attribute_halign(parser, &vstack->halign);
 
             break;
 
@@ -870,7 +929,7 @@ static void parse_widget_vstack(struct parser *parser, struct alfi_widget *widge
             break;
 
         case ALFI_ATTRIBUTE_VALIGN:
-            parse_attribute_valign(parser, &widget->data.vstack.valign);
+            parse_attribute_valign(parser, &vstack->valign);
 
             break;
 
@@ -885,7 +944,7 @@ static void parse_widget_vstack(struct parser *parser, struct alfi_widget *widge
 
 }
 
-static void parse_widget_window(struct parser *parser, struct alfi_widget *widget)
+static void parse_widget_window(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_window *window)
 {
 
     while (!parser->expr.linebreak)
@@ -900,7 +959,7 @@ static void parse_widget_window(struct parser *parser, struct alfi_widget *widge
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &widget->data.window.label);
+            parse_attribute_label(parser, &window->label);
 
             break;
 
@@ -948,78 +1007,83 @@ static void parse_command_insert(struct parser *parser, unsigned int group, char
     switch (widget->type)
     {
 
+    case ALFI_WIDGET_ANCHOR:
+        parse_widget_anchor(parser, widget, &widget->data.anchor);
+
+        break;
+
     case ALFI_WIDGET_BUTTON:
-        parse_widget_button(parser, widget);
+        parse_widget_button(parser, widget, &widget->data.button);
 
         break;
 
     case ALFI_WIDGET_CHOICE:
-        parse_widget_choice(parser, widget);
+        parse_widget_choice(parser, widget, &widget->data.choice);
 
         break;
 
     case ALFI_WIDGET_DIVIDER:
-        parse_widget_divider(parser, widget);
+        parse_widget_divider(parser, widget, &widget->data.divider);
 
         break;
 
     case ALFI_WIDGET_FIELD:
-        parse_widget_field(parser, widget);
+        parse_widget_field(parser, widget, &widget->data.field);
 
         break;
 
     case ALFI_WIDGET_HEADER:
-        parse_widget_header(parser, widget);
+        parse_widget_header(parser, widget, &widget->data.header);
 
         break;
 
     case ALFI_WIDGET_HSTACK:
-        parse_widget_hstack(parser, widget);
+        parse_widget_hstack(parser, widget, &widget->data.hstack);
 
         break;
 
     case ALFI_WIDGET_IMAGE:
-        parse_widget_image(parser, widget);
+        parse_widget_image(parser, widget, &widget->data.image);
 
         break;
 
     case ALFI_WIDGET_LIST:
-        parse_widget_list(parser, widget);
+        parse_widget_list(parser, widget, &widget->data.list);
 
         break;
 
     case ALFI_WIDGET_SELECT:
-        parse_widget_select(parser, widget);
+        parse_widget_select(parser, widget, &widget->data.select);
 
         break;
 
     case ALFI_WIDGET_SUBHEADER:
-        parse_widget_subheader(parser, widget);
+        parse_widget_subheader(parser, widget, &widget->data.subheader);
 
         break;
 
     case ALFI_WIDGET_TAB:
-        parse_widget_tab(parser, widget);
+        parse_widget_tab(parser, widget, &widget->data.tab);
 
         break;
 
     case ALFI_WIDGET_TABLE:
-        parse_widget_table(parser, widget);
+        parse_widget_table(parser, widget, &widget->data.table);
 
         break;
 
     case ALFI_WIDGET_TEXT:
-        parse_widget_text(parser, widget);
+        parse_widget_text(parser, widget, &widget->data.text);
 
         break;
 
     case ALFI_WIDGET_VSTACK:
-        parse_widget_vstack(parser, widget);
+        parse_widget_vstack(parser, widget, &widget->data.vstack);
 
         break;
 
     case ALFI_WIDGET_WINDOW:
-        parse_widget_window(parser, widget);
+        parse_widget_window(parser, widget, &widget->data.window);
 
         break;
 
@@ -1043,78 +1107,83 @@ static void parse_command_update(struct parser *parser, unsigned int group)
     switch (widget->type)
     {
 
+    case ALFI_WIDGET_ANCHOR:
+        parse_widget_anchor(parser, widget, &widget->data.anchor);
+
+        break;
+
     case ALFI_WIDGET_BUTTON:
-        parse_widget_button(parser, widget);
+        parse_widget_button(parser, widget, &widget->data.button);
 
         break;
 
     case ALFI_WIDGET_CHOICE:
-        parse_widget_choice(parser, widget);
+        parse_widget_choice(parser, widget, &widget->data.choice);
 
         break;
 
     case ALFI_WIDGET_DIVIDER:
-        parse_widget_divider(parser, widget);
+        parse_widget_divider(parser, widget, &widget->data.divider);
 
         break;
 
     case ALFI_WIDGET_FIELD:
-        parse_widget_field(parser, widget);
+        parse_widget_field(parser, widget, &widget->data.field);
 
         break;
 
     case ALFI_WIDGET_HEADER:
-        parse_widget_header(parser, widget);
+        parse_widget_header(parser, widget, &widget->data.header);
 
         break;
 
     case ALFI_WIDGET_HSTACK:
-        parse_widget_hstack(parser, widget);
+        parse_widget_hstack(parser, widget, &widget->data.hstack);
 
         break;
 
     case ALFI_WIDGET_IMAGE:
-        parse_widget_image(parser, widget);
+        parse_widget_image(parser, widget, &widget->data.image);
 
         break;
 
     case ALFI_WIDGET_LIST:
-        parse_widget_list(parser, widget);
+        parse_widget_list(parser, widget, &widget->data.list);
 
         break;
 
     case ALFI_WIDGET_SELECT:
-        parse_widget_select(parser, widget);
+        parse_widget_select(parser, widget, &widget->data.select);
 
         break;
 
     case ALFI_WIDGET_SUBHEADER:
-        parse_widget_subheader(parser, widget);
+        parse_widget_subheader(parser, widget, &widget->data.subheader);
 
         break;
 
     case ALFI_WIDGET_TAB:
-        parse_widget_tab(parser, widget);
+        parse_widget_tab(parser, widget, &widget->data.tab);
 
         break;
 
     case ALFI_WIDGET_TABLE:
-        parse_widget_table(parser, widget);
+        parse_widget_table(parser, widget, &widget->data.table);
 
         break;
 
     case ALFI_WIDGET_TEXT:
-        parse_widget_text(parser, widget);
+        parse_widget_text(parser, widget, &widget->data.text);
 
         break;
 
     case ALFI_WIDGET_VSTACK:
-        parse_widget_vstack(parser, widget);
+        parse_widget_vstack(parser, widget, &widget->data.vstack);
 
         break;
 
     case ALFI_WIDGET_WINDOW:
-        parse_widget_window(parser, widget);
+        parse_widget_window(parser, widget, &widget->data.window);
 
         break;
 
@@ -1127,7 +1196,7 @@ static void parse_command_update(struct parser *parser, unsigned int group)
 
 }
 
-void parse(struct parser *parser, unsigned int group, char *in)
+void parser_parse(struct parser *parser, unsigned int group, char *in)
 {
 
     while (parser->expr.offset < parser->expr.count)
@@ -1169,6 +1238,32 @@ void parse(struct parser *parser, unsigned int group, char *in)
         }
 
     }
+
+}
+
+void parser_parsedata(struct parser *parser, unsigned int group, char *in, unsigned int count, void *data)
+{
+
+    parser->expr.data = data;
+    parser->expr.count = count;
+    parser->expr.offset = 0;
+    parser->expr.line = 0;
+    parser->expr.linebreak = 0;
+    parser->expr.inside = 0;
+
+    parser_parse(parser, group, in);
+
+}
+
+void parser_init(struct parser *parser, void (*fail)(unsigned int line), struct alfi_widget *(*find)(char *name, unsigned int group), struct alfi_widget *(*create)(unsigned int type, unsigned int group, char *in), void (*destroy)(struct alfi_widget *widget), char *(*createstring)(unsigned int size), void (*destroystring)(char *string))
+{
+
+    parser->fail = fail;
+    parser->find = find;
+    parser->create = create;
+    parser->destroy = destroy;
+    parser->createstring = createstring;
+    parser->destroystring = destroystring;
 
 }
 

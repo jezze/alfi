@@ -1,0 +1,76 @@
+#!/bin/sh
+
+browsedir() {
+    echo "= window label \"Index of $1\""
+    echo "+ header label \"Index of $1\""
+    echo "+ divider"
+    echo "+ table id table1 grid 24 0 0 0 8 0"
+    echo "+ subheader in table1 label \"Name\""
+    echo "+ subheader in table1 label \"Size\""
+    echo "+ subheader in table1 label \"Modified\""
+
+    find $1 -mindepth 1 -maxdepth 1 -type d | while read entry
+    do
+        name=$(stat --printf="%n" "$entry")
+        name=$(basename "$name")
+        size=$(stat --printf="%s" "$entry")
+        size=$(numfmt --to=si $size)
+        modified=$(stat --printf="%Y" "$entry")
+        modified=$(date -d @$modified)
+
+        echo "+ anchor in table1 label \"$name/\" link \"file://$entry\" \"text/alfi\""
+        echo "+ text in table1 label \"$size\""
+        echo "+ text in table1 label \"$modified\""
+    done
+
+    find $1 -mindepth 1 -maxdepth 1 -type f | while read entry
+    do
+        name=$(stat --printf="%n" "$entry")
+        name=$(basename "$name")
+        size=$(stat --printf="%s" "$entry")
+        size=$(numfmt --to=si $size)
+        modified=$(stat --printf="%Y" "$entry")
+        modified=$(date -d @$modified)
+
+        echo "+ text in table1 label \"$name\""
+        echo "+ text in table1 label \"$size\""
+        echo "+ text in table1 label \"$modified\""
+    done
+}
+
+resolve_file() {
+    path=${1#file://}
+
+    if test -z $path
+    then
+        path=$(pwd)
+    fi
+
+    if test -d $path
+    then
+        browsedir $path
+    elif test -f $path
+    then
+        cat $path
+    fi
+}
+
+resolve_http() {
+    curl -A "Navi/1.0" $1
+}
+
+if [ $# -eq 1 ]
+then
+    case "$1" in
+    file://*)
+        resolve_file $1
+        ;;
+    http://*)
+        resolve_http $1
+        ;;
+    https://*)
+        resolve_http $1
+        ;;
+    esac
+fi
+

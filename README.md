@@ -21,8 +21,8 @@ renders widgets in OpenGL. It is currently very much under development.
 
 ## Building / Installing
 
-You need to have the glfw3 and nanovg libraries installed in order to be able to
-build NAVI. Installing these depends on your distribution of choice.
+You need to have the glfw3 libraries installed in order to build NAVI from
+soure. How you install those depends on your distribution of choice.
 
 Build:
 

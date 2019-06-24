@@ -1,6 +1,17 @@
+#include <stdlib.h>
 #include <math.h>
 #include "list.h"
 #include "box.h"
+
+float flerp(float t, float c, float u)
+{
+
+    if (fabs(t - c) < 1.0)
+        return t;
+    else
+        return c + (t - c) * u;
+
+}
 
 void box_init(struct alfi_box *box, float x, float y, float w, float h)
 {
@@ -9,6 +20,16 @@ void box_init(struct alfi_box *box, float x, float y, float w, float h)
     box->y = y;
     box->w = w;
     box->h = h;
+
+}
+
+void box_clone(struct alfi_box *box, struct alfi_box *target)
+{
+
+    box->x = target->x;
+    box->y = target->y;
+    box->w = target->w;
+    box->h = target->h;
 
 }
 
@@ -25,6 +46,24 @@ void box_scale(struct alfi_box *box, float w, float h)
 
     box->w = w;
     box->h = h;
+
+}
+
+void box_translate(struct alfi_box *box, float x, float y)
+{
+
+    box->x += x;
+    box->y += y;
+
+}
+
+void box_pad(struct alfi_box *box, float px, float py)
+{
+
+    box->x += px;
+    box->y += py;
+    box->w -= px * 2;
+    box->h -= py * 2;
 
 }
 
@@ -101,10 +140,17 @@ void box_expand(struct alfi_box *box, float x, float y, float w, float h)
 void box_lerp(struct alfi_box *box, float x, float y, float w, float h, float u)
 {
 
-    box->x += (int)((x - box->x) * u);
-    box->y += (int)((y - box->y) * u);
-    box->w += (int)((w - box->w) * u);
-    box->h += (int)((h - box->h) * u);
+    box->x = flerp(x, box->x, u);
+    box->y = flerp(y, box->y, u);
+    box->w = flerp(w, box->w, u);
+    box->h = flerp(h, box->h, u);
+
+}
+
+void box_lerpfrom(struct alfi_box *box, struct alfi_box *from, float u)
+{
+
+    box_lerp(box, from->x, from->y, from->w, from->h, u);
 
 }
 
@@ -118,29 +164,57 @@ void color_init(struct alfi_color *color, unsigned char r, unsigned char g, unsi
 
 }
 
-void color_lerp(struct alfi_color *color, float r, float g, float b, float a, float u)
+void color_clone(struct alfi_color *color, struct alfi_color *target)
 {
 
-    color->r += (char)((r - color->r) * u);
-    color->g += (char)((g - color->g) * u);
-    color->b += (char)((b - color->b) * u);
-    color->a += (char)((a - color->a) * u);
+    color->r = target->r;
+    color->g = target->g;
+    color->b = target->b;
+    color->a = target->a;
 
 }
 
-void font_init(struct alfi_font *font, int face, float size, int align)
+void color_lerp(struct alfi_color *color, float r, float g, float b, float a, float u)
+{
+
+    color->r = flerp(r, color->r, u);
+    color->g = flerp(g, color->g, u);
+    color->b = flerp(b, color->b, u);
+    color->a = flerp(a, color->a, u);
+
+}
+
+void color_lerpfrom(struct alfi_color *color, struct alfi_color *from, float u)
+{
+
+    color_lerp(color, from->r, from->g, from->b, from->a, u);
+
+}
+
+void font_init(struct alfi_font *font, int face, float size, float height, int align)
 {
 
     font->face = face;
     font->size = size;
+    font->height = height;
     font->align = align;
 
 }
 
-void font_lerp(struct alfi_font *font, float size, float u)
+void font_lerp(struct alfi_font *font, int face, float size, float height, int align, float u)
 {
 
-    font->size += (int)((size - font->size) * u);
+    font->face = face;
+    font->size = flerp(size, font->size, u);
+    font->height = flerp(height, font->height, u);
+    font->align = align;
+
+}
+
+void font_lerpfrom(struct alfi_font *font, struct alfi_font *from, float u)
+{
+
+    font_lerp(font, from->face, from->size, from->height, from->align, u);
 
 }
 
