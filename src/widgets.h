@@ -34,14 +34,17 @@
 #define ALFI_ATTRIBUTE_LABEL            7
 #define ALFI_ATTRIBUTE_LINK             8
 #define ALFI_ATTRIBUTE_RANGE            9
-#define ALFI_ATTRIBUTE_TYPE             10
-#define ALFI_ATTRIBUTE_VALIGN           11
+#define ALFI_ATTRIBUTE_TARGET           10
+#define ALFI_ATTRIBUTE_TYPE             11
+#define ALFI_ATTRIBUTE_VALIGN           12
 #define ALFI_HALIGN_LEFT                1
 #define ALFI_HALIGN_CENTER              2
 #define ALFI_HALIGN_RIGHT               3
 #define ALFI_VALIGN_TOP                 1
 #define ALFI_VALIGN_MIDDLE              2
 #define ALFI_VALIGN_BOTTOM              3
+#define ALFI_TARGET_SELF                0
+#define ALFI_TARGET_BLANK               1
 #define ALFI_TYPE_REGULAR               0
 #define ALFI_TYPE_PASSWORD              1
 #define ALFI_STATE_NORMAL               0
@@ -128,6 +131,13 @@ struct alfi_attribute_range
 
     int min;
     int max;
+
+};
+
+struct alfi_attribute_target
+{
+
+    int type;
 
 };
 
@@ -261,6 +271,7 @@ struct alfi_widget_anchor
 
     struct alfi_attribute_label label;
     struct alfi_attribute_link link;
+    struct alfi_attribute_target target;
     struct alfi_frame_anchor frame;
 
 };

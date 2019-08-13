@@ -3,7 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include "list.h"
-#include "box.h"
+#include "style.h"
 #include "widgets.h"
 #include "parser.h"
 #include "call.h"
@@ -18,10 +18,15 @@ static struct alfi_widget *parser_find(char *name, unsigned int group)
 
 }
 
-static char *parser_createstring(unsigned int size)
+static char *parser_createstring(unsigned int size, unsigned int count, char *content)
 {
 
-    return malloc(size);
+    char *string = malloc(size);
+
+    if (count)
+        memcpy(string, content, count);
+
+    return string;
 
 }
 

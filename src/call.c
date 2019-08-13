@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "list.h"
-#include "box.h"
+#include "style.h"
 #include "widgets.h"
 
 struct call
@@ -70,7 +70,6 @@ void call_onclick(struct alfi_widget *widget)
     calls[widget->type].onclick(widget);
 
 }
-
 
 unsigned int call_getcursor(struct alfi_widget *widget, float x, float y)
 {

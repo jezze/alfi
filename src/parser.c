@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "list.h"
-#include "box.h"
+#include "style.h"
 #include "widgets.h"
 #include "parser.h"
 
@@ -163,10 +163,9 @@ static char *parsestring(struct parser *parser)
 {
 
     char word[4096];
-    unsigned int length = readword(parser, word);
-    char *data = parser->createstring(length + 1);
+    unsigned int count = readword(parser, word);
 
-    return memcpy(data, word, length + 1);
+    return parser->createstring(count + 1, count + 1, word);
 
 }
 
@@ -184,11 +183,12 @@ static unsigned int getattribute(struct parser *parser)
         {ALFI_ATTRIBUTE_LABEL, "label"},
         {ALFI_ATTRIBUTE_LINK, "link"},
         {ALFI_ATTRIBUTE_RANGE, "range"},
+        {ALFI_ATTRIBUTE_TARGET, "target"},
         {ALFI_ATTRIBUTE_TYPE, "type"},
         {ALFI_ATTRIBUTE_VALIGN, "valign"}
     };
 
-    return parsetoken(parser, items, 12);
+    return parsetoken(parser, items, 13);
 
 }
 
@@ -226,6 +226,18 @@ static unsigned int geticon(struct parser *parser)
     static const struct tokword items[] = {
         {ALFI_ICON_BURGER, "burger"},
         {ALFI_ICON_SEARCH, "search"}
+    };
+
+    return parsetoken(parser, items, 2);
+
+}
+
+static unsigned int gettarget(struct parser *parser)
+{
+
+    static const struct tokword items[] = {
+        {ALFI_TARGET_SELF, "self"},
+        {ALFI_TARGET_BLANK, "blank"}
     };
 
     return parsetoken(parser, items, 2);
@@ -287,7 +299,7 @@ static void parse_attribute_data(struct parser *parser, struct alfi_attribute_da
 {
 
     data->total = ALFI_DATASIZE;
-    data->content = parser->createstring(data->total);
+    data->content = parser->createstring(data->total, 0, 0);
     data->offset = readword(parser, data->content);
 
 }
@@ -352,6 +364,13 @@ static void parse_attribute_range(struct parser *parser, struct alfi_attribute_r
 
     range->min = parseuint(parser, 10);
     range->max = parseuint(parser, 10);
+
+}
+
+static void parse_attribute_target(struct parser *parser, struct alfi_attribute_target *target)
+{
+
+    target->type = gettarget(parser);
 
 }
 
@@ -670,6 +689,11 @@ static void parse_widget_anchor(struct parser *parser, struct alfi_widget *widge
 
         case ALFI_ATTRIBUTE_LINK:
             parse_attribute_link(parser, &anchor->link);
+
+            break;
+
+        case ALFI_ATTRIBUTE_TARGET:
+            parse_attribute_target(parser, &anchor->target);
 
             break;
 
@@ -1255,7 +1279,7 @@ void parser_parsedata(struct parser *parser, unsigned int group, char *in, unsig
 
 }
 
-void parser_init(struct parser *parser, void (*fail)(unsigned int line), struct alfi_widget *(*find)(char *name, unsigned int group), struct alfi_widget *(*create)(unsigned int type, unsigned int group, char *in), void (*destroy)(struct alfi_widget *widget), char *(*createstring)(unsigned int size), void (*destroystring)(char *string))
+void parser_init(struct parser *parser, void (*fail)(unsigned int line), struct alfi_widget *(*find)(char *name, unsigned int group), struct alfi_widget *(*create)(unsigned int type, unsigned int group, char *in), void (*destroy)(struct alfi_widget *widget), char *(*createstring)(unsigned int size, unsigned int count, char *content), void (*destroystring)(char *string))
 {
 
     parser->fail = fail;

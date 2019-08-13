@@ -5,6 +5,7 @@ struct alfi_box
     float y;
     float w;
     float h;
+    float r;
 
 };
 
@@ -34,22 +35,22 @@ struct alfi_style
     struct alfi_box box;
     struct alfi_color color;
     struct alfi_font font;
-    float radius;
 
 };
 
 float flerp(float t, float c, float u);
-void box_init(struct alfi_box *box, float x, float y, float w, float h);
+void box_init(struct alfi_box *box, float x, float y, float w, float h, float r);
 void box_clone(struct alfi_box *box, struct alfi_box *target);
 void box_move(struct alfi_box *box, float x, float y);
 void box_scale(struct alfi_box *box, float w, float h);
 void box_translate(struct alfi_box *box, float x, float y);
+void box_resize(struct alfi_box *box, float w, float h);
 void box_pad(struct alfi_box *box, float px, float py);
 float box_halign(struct alfi_box *box, float x, float w, int align);
 float box_valign(struct alfi_box *box, float y, float h, int align);
 unsigned int box_istouching(struct alfi_box *box, float x, float y);
-void box_expand(struct alfi_box *box, float x, float y, float w, float h);
-void box_lerp(struct alfi_box *box, float x, float y, float w, float h, float u);
+void box_expand2(struct alfi_box *box, float x, float y, float w, float h);
+void box_lerp(struct alfi_box *box, float x, float y, float w, float h, float r, float u);
 void box_lerpfrom(struct alfi_box *box, struct alfi_box *from, float u);
 void color_init(struct alfi_color *color, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 void color_clone(struct alfi_color *color, struct alfi_color *target);

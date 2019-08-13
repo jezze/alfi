@@ -31,7 +31,7 @@
 + text in list2 label "Item 2-2"
 
 # An anchor link to another site
-+ anchor label "This is a link" link "http://www.blunder.se/" "text/alfi"
++ anchor label "This is a link" link "http://www.blunder.se/" "text/alfi" target blank
 
 # A row of images
 + hstack id gallery halign left valign top

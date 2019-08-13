@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "list.h"
-#include "box.h"
+#include "style.h"
 #include "widgets.h"
 #include "call.h"
 

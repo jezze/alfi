@@ -1,25 +1,23 @@
 #include <stdlib.h>
 #include <math.h>
 #include "list.h"
-#include "box.h"
+#include "style.h"
 
 float flerp(float t, float c, float u)
 {
 
-    if (fabs(t - c) < 1.0)
-        return t;
-    else
-        return c + (t - c) * u;
+    return c + roundf((t - c) * u);
 
 }
 
-void box_init(struct alfi_box *box, float x, float y, float w, float h)
+void box_init(struct alfi_box *box, float x, float y, float w, float h, float r)
 {
 
     box->x = x;
     box->y = y;
     box->w = w;
     box->h = h;
+    box->r = r;
 
 }
 
@@ -30,6 +28,7 @@ void box_clone(struct alfi_box *box, struct alfi_box *target)
     box->y = target->y;
     box->w = target->w;
     box->h = target->h;
+    box->r = target->r;
 
 }
 
@@ -57,6 +56,14 @@ void box_translate(struct alfi_box *box, float x, float y)
 
 }
 
+void box_resize(struct alfi_box *box, float w, float h)
+{
+
+    box->w += w;
+    box->h += h;
+
+}
+
 void box_pad(struct alfi_box *box, float px, float py)
 {
 
@@ -64,6 +71,12 @@ void box_pad(struct alfi_box *box, float px, float py)
     box->y += py;
     box->w -= px * 2;
     box->h -= py * 2;
+
+    if (box->w < 0)
+        box->w = 0;
+
+    if (box->h < 0)
+        box->h = 0;
 
 }
 
@@ -126,7 +139,7 @@ unsigned int box_istouching(struct alfi_box *box, float x, float y)
 
 }
 
-void box_expand(struct alfi_box *box, float x, float y, float w, float h)
+void box_expand2(struct alfi_box *box, float x, float y, float w, float h)
 {
 
     if (box->x + box->w < x + w)
@@ -137,20 +150,21 @@ void box_expand(struct alfi_box *box, float x, float y, float w, float h)
 
 }
 
-void box_lerp(struct alfi_box *box, float x, float y, float w, float h, float u)
+void box_lerp(struct alfi_box *box, float x, float y, float w, float h, float r, float u)
 {
 
     box->x = flerp(x, box->x, u);
     box->y = flerp(y, box->y, u);
     box->w = flerp(w, box->w, u);
     box->h = flerp(h, box->h, u);
+    box->r = flerp(r, box->r, u);
 
 }
 
 void box_lerpfrom(struct alfi_box *box, struct alfi_box *from, float u)
 {
 
-    box_lerp(box, from->x, from->y, from->w, from->h, u);
+    box_lerp(box, from->x, from->y, from->w, from->h, from->r, u);
 
 }
 

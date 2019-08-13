@@ -1,36 +1,15 @@
-#define NVG_PI 3.14159265358979323846264338327f
-#define NVG_MAX_FONTIMAGES 4
-#define NVG_MAX_STATES 32
+#define NVG_COMMANDSSIZE 256
+#define NVG_POINTSSIZE 128
+#define NVG_PATHSSIZE 16
+#define NVG_VERTSSIZE 2048
 
-struct nvg_color
+enum nvg_codepointtype
 {
 
-    union
-    {
-
-        float rgba[4];
-
-        struct
-        {
-
-            float r, g, b, a;
-
-        };
-
-    };
-
-};
-
-struct nvg_paint
-{
-
-    float xform[6];
-    float extent[2];
-    float radius;
-    float feather;
-    struct nvg_color innerColor;
-    struct nvg_color outerColor;
-    int image;
+    NVG_SPACE,
+    NVG_NEWLINE,
+    NVG_CHAR,
+    NVG_CJK_CHAR,
 
 };
 
@@ -38,7 +17,7 @@ enum nvg_winding
 {
 
     NVG_CCW = 1,
-    NVG_CW = 2,
+    NVG_CW = 2
 
 };
 
@@ -46,7 +25,7 @@ enum nvg_solidity
 {
 
     NVG_SOLID = 1,
-    NVG_HOLE = 2,
+    NVG_HOLE = 2
 
 };
 
@@ -57,37 +36,7 @@ enum nvg_linecap
     NVG_ROUND,
     NVG_SQUARE,
     NVG_BEVEL,
-    NVG_MITER,
-
-};
-
-enum nvg_align
-{
-
-    NVG_ALIGN_LEFT = 1 << 0,
-    NVG_ALIGN_CENTER = 1 << 1,
-    NVG_ALIGN_RIGHT = 1 << 2,
-    NVG_ALIGN_TOP = 1 << 3,
-    NVG_ALIGN_MIDDLE = 1 << 4,
-    NVG_ALIGN_BOTTOM = 1 << 5,
-    NVG_ALIGN_BASELINE = 1 << 6,
-
-};
-
-enum nvg_blendfactor
-{
-
-    NVG_ZERO = 1 << 0,
-    NVG_ONE = 1 << 1,
-    NVG_SRC_COLOR = 1 << 2,
-    NVG_ONE_MINUS_SRC_COLOR = 1 << 3,
-    NVG_DST_COLOR = 1 << 4,
-    NVG_ONE_MINUS_DST_COLOR = 1 << 5,
-    NVG_SRC_ALPHA = 1 << 6,
-    NVG_ONE_MINUS_SRC_ALPHA = 1 << 7,
-    NVG_DST_ALPHA = 1 << 8,
-    NVG_ONE_MINUS_DST_ALPHA = 1 << 9,
-    NVG_SRC_ALPHA_SATURATE = 1 << 10,
+    NVG_MITER
 
 };
 
@@ -104,7 +53,63 @@ enum nvg_compositeoperation
     NVG_DESTINATION_ATOP,
     NVG_LIGHTER,
     NVG_COPY,
-    NVG_XOR,
+    NVG_XOR
+
+};
+
+enum nvg_imageflags
+{
+
+    NVG_IMAGE_GENERATE_MIPMAPS = 1 << 0,
+    NVG_IMAGE_REPEATX = 1 << 1,
+    NVG_IMAGE_REPEATY = 1 << 2,
+    NVG_IMAGE_FLIPY = 1 << 3,
+    NVG_IMAGE_PREMULTIPLIED = 1 << 4,
+    NVG_IMAGE_NEAREST = 1 << 5
+
+};
+
+enum nvg_commands
+{
+
+    NVG_MOVETO = 0,
+    NVG_LINETO = 1,
+    NVG_BEZIERTO = 2,
+    NVG_CLOSE = 3,
+    NVG_WINDING = 4
+
+};
+
+enum nvg_pointflags
+{
+
+    NVG_PT_CORNER = 0x01,
+    NVG_PT_LEFT = 0x02,
+    NVG_PT_BEVEL = 0x04,
+    NVG_PR_INNERBEVEL = 0x08
+
+};
+
+struct nvg_color
+{
+
+    float r;
+    float g;
+    float b;
+    float a;
+
+};
+
+struct nvg_paint
+{
+
+    float xform[6];
+    float extent[2];
+    float radius;
+    float feather;
+    struct nvg_color innerColor;
+    struct nvg_color outerColor;
+    int image;
 
 };
 
@@ -138,26 +143,6 @@ struct nvg_textrow
 
 };
 
-enum nvg_imageflags
-{
-
-    NVG_IMAGE_GENERATE_MIPMAPS = 1 << 0,
-    NVG_IMAGE_REPEATX = 1 << 1,
-    NVG_IMAGE_REPEATY = 1 << 2,
-    NVG_IMAGE_FLIPY = 1 << 3,
-    NVG_IMAGE_PREMULTIPLIED = 1 << 4,
-    NVG_IMAGE_NEAREST = 1 << 5,
-
-};
-
-enum nvg_texture
-{
-
-    NVG_TEXTURE_ALPHA = 0x01,
-    NVG_TEXTURE_RGBA = 0x02,
-
-};
-
 struct nvg_scissor
 {
 
@@ -169,7 +154,10 @@ struct nvg_scissor
 struct nvg_vertex
 {
 
-    float x, y, u, v;
+    float x;
+    float y;
+    float u;
+    float v;
 
 };
 
@@ -189,27 +177,6 @@ struct nvg_path
 
 };
 
-enum nvg_commands
-{
-
-    NVG_MOVETO = 0,
-    NVG_LINETO = 1,
-    NVG_BEZIERTO = 2,
-    NVG_CLOSE = 3,
-    NVG_WINDING = 4,
-
-};
-
-enum nvg_pointflags
-{
-
-    NVG_PT_CORNER = 0x01,
-    NVG_PT_LEFT = 0x02,
-    NVG_PT_BEVEL = 0x04,
-    NVG_PR_INNERBEVEL = 0x08,
-
-};
-
 struct nvg_point
 {
 
@@ -224,36 +191,13 @@ struct nvg_point
 struct nvg_pathcache
 {
 
-    struct nvg_point *points;
+    struct nvg_point points[NVG_POINTSSIZE];
     int npoints;
-    int cpoints;
-    struct nvg_path *paths;
+    struct nvg_path paths[NVG_PATHSSIZE];
     int npaths;
-    int cpaths;
-    struct nvg_vertex *verts;
+    struct nvg_vertex verts[NVG_VERTSSIZE];
     int nverts;
-    int cverts;
     float bounds[4];
-
-};
-
-struct nvg_params
-{
-
-    void *userPtr;
-    int edgeAntiAlias;
-    int (*renderCreate)(void *uptr);
-    int (*renderCreateTexture)(void *uptr, int type, int w, int h, int imageFlags, const unsigned char *data);
-    int (*renderDeleteTexture)(void *uptr, int image);
-    int (*renderUpdateTexture)(void *uptr, int image, int x, int y, int w, int h, const unsigned char *data);
-    int (*renderGetTextureSize)(void *uptr, int image, int *w, int *h);
-    void (*renderViewport)(void *uptr, float width, float height, float devicePixelRatio);
-    void (*renderCancel)(void *uptr);
-    void (*renderFlush)(void *uptr);
-    void (*renderFill)(void *uptr, struct nvg_paint *paint, struct nvg_compositeoperationstate compositeoperation, struct nvg_scissor *scissor, float fringe, const float *bounds, const struct nvg_path *paths, int npaths);
-    void (*renderStroke)(void *uptr, struct nvg_paint *paint, struct nvg_compositeoperationstate compositeoperation, struct nvg_scissor *scissor, float fringe, float strokeWidth, const struct nvg_path *paths, int npaths);
-    void (*renderTriangles)(void *uptr, struct nvg_paint *paint, struct nvg_compositeoperationstate compositeoperation, struct nvg_scissor *scissor, const struct nvg_vertex *verts, int nverts);
-    void (*renderDelete)(void *uptr);
 
 };
 
@@ -270,32 +214,20 @@ struct nvg_state
     int linecap;
     float xform[6];
     struct nvg_scissor scissor;
-    float fontSize;
-    float letterSpacing;
-    float fontBlur;
-    int textAlign;
-    int fontId;
 
 };
 
 struct nvg_context
 {
 
-    struct nvg_params params;
-    float *commands;
-    int ccommands;
+    float commands[NVG_COMMANDSSIZE];
     int ncommands;
     float commandx, commandy;
-    struct nvg_state states[NVG_MAX_STATES];
-    int nstates;
-    struct nvg_pathcache *cache;
+    struct nvg_state state;
+    struct nvg_pathcache cache;
     float tessTol;
     float distTol;
     float fringeWidth;
-    float devicePxRatio;
-    struct FONScontext *fs;
-    int fontImages[NVG_MAX_FONTIMAGES];
-    int fontImageIdx;
     int drawCallCount;
     int fillTriCount;
     int strokeTriCount;
@@ -303,10 +235,6 @@ struct nvg_context
 
 };
 
-void nvgBeginFrame(struct nvg_context *ctx, float windowWidth, float windowHeight, float devicePixelRatio);
-void nvgCancelFrame(struct nvg_context *ctx);
-void nvgEndFrame(struct nvg_context *ctx);
-void nvgGlobalCompositeOperation(struct nvg_context *ctx, int op);
 void nvgGlobalCompositeBlendFunc(struct nvg_context *ctx, int sfactor, int dfactor);
 void nvgGlobalCompositeBlendFuncSeparate(struct nvg_context *ctx, int srcRGB, int dstRGB, int srcAlpha, int dstAlpha);
 struct nvg_color nvgRGB(unsigned char r, unsigned char g, unsigned char b);
@@ -318,26 +246,16 @@ struct nvg_color nvgTransRGBA(struct nvg_color c0, unsigned char a);
 struct nvg_color nvgTransRGBAf(struct nvg_color c0, float a);
 struct nvg_color nvgHSL(float h, float s, float l);
 struct nvg_color nvgHSLA(float h, float s, float l, unsigned char a);
-void nvgSave(struct nvg_context *ctx);
-void nvgRestore(struct nvg_context *ctx);
-void nvgReset(struct nvg_context *ctx);
-void nvgShapeAntiAlias(struct nvg_context *ctx, int enabled);
-void nvgStrokeColor(struct nvg_context *ctx, struct nvg_color color);
-void nvgStrokePaint(struct nvg_context *ctx, struct nvg_paint paint);
-void nvgFillColor(struct nvg_context *ctx, struct nvg_color color);
-void nvgFillPaint(struct nvg_context *ctx, struct nvg_paint paint);
-void nvgMiterLimit(struct nvg_context *ctx, float limit);
-void nvgStrokeWidth(struct nvg_context *ctx, float size);
-void nvgLineCap(struct nvg_context *ctx, int cap);
-void nvgLineJoin(struct nvg_context *ctx, int join);
-void nvgResetTransform(struct nvg_context *ctx);
+void nvg_setstrokecolor(struct nvg_context *ctx, struct nvg_color color);
+void nvg_setstrokepaint(struct nvg_context *ctx, struct nvg_paint paint);
+void nvg_setfillcolor(struct nvg_context *ctx, struct nvg_color color);
+void nvg_setfillpaint(struct nvg_context *ctx, struct nvg_paint paint);
 void nvgTransform(struct nvg_context *ctx, float a, float b, float c, float d, float e, float f);
 void nvgTranslate(struct nvg_context *ctx, float x, float y);
 void nvgRotate(struct nvg_context *ctx, float angle);
 void nvgSkewX(struct nvg_context *ctx, float angle);
 void nvgSkewY(struct nvg_context *ctx, float angle);
 void nvgScale(struct nvg_context *ctx, float x, float y);
-void nvgCurrentTransform(struct nvg_context *ctx, float *xform);
 void nvgTransformIdentity(float *dst);
 void nvgTransformTranslate(float *dst, float tx, float ty);
 void nvgTransformScale(float *dst, float sx, float sy);
@@ -350,16 +268,10 @@ int nvgTransformInverse(float *dst, const float *src);
 void nvgTransformPoint(float *dstx, float *dsty, const float *xform, float srcx, float srcy);
 float nvgDegToRad(float deg);
 float nvgRadToDeg(float rad);
-int nvgCreateImage(struct nvg_context *ctx, const char *filename, int imageFlags);
-int nvgCreateImageMem(struct nvg_context *ctx, int imageFlags, unsigned char *data, int ndata);
-int nvgCreateImageRGBA(struct nvg_context *ctx, int w, int h, int imageFlags, const unsigned char *data);
-void nvgUpdateImage(struct nvg_context *ctx, int image, const unsigned char *data);
-void nvgImageSize(struct nvg_context *ctx, int image, int *w, int *h);
-void nvgDeleteImage(struct nvg_context *ctx, int image);
-struct nvg_paint nvgLinearGradient(struct nvg_context *ctx, float sx, float sy, float ex, float ey, struct nvg_color icol, struct nvg_color ocol);
-struct nvg_paint nvgBoxGradient(struct nvg_context *ctx, float x, float y, float w, float h, float r, float f, struct nvg_color icol, struct nvg_color ocol);
-struct nvg_paint nvgRadialGradient(struct nvg_context *ctx, float cx, float cy, float inr, float outr, struct nvg_color icol, struct nvg_color ocol);
-struct nvg_paint nvgImagePattern(struct nvg_context *ctx, float ox, float oy, float ex, float ey, float angle, int image, float alpha);
+void nvgLinearGradient(struct nvg_paint *paint, float sx, float sy, float ex, float ey, struct nvg_color icol, struct nvg_color ocol);
+void nvgBoxGradient(struct nvg_paint *paint, float x, float y, float w, float h, float r, float f, struct nvg_color icol, struct nvg_color ocol);
+void nvgRadialGradient(struct nvg_paint *paint, float cx, float cy, float inr, float outr, struct nvg_color icol, struct nvg_color ocol);
+void nvgImagePattern(struct nvg_paint *paint, float ox, float oy, float ex, float ey, float angle, int image, float alpha);
 void nvgScissor(struct nvg_context *ctx, float x, float y, float w, float h);
 void nvgIntersectScissor(struct nvg_context *ctx, float x, float y, float w, float h);
 void nvgResetScissor(struct nvg_context *ctx);
@@ -377,18 +289,8 @@ void nvgRoundedRect(struct nvg_context *ctx, float x, float y, float w, float h,
 void nvgRoundedRectVarying(struct nvg_context *ctx, float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft);
 void nvgEllipse(struct nvg_context *ctx, float cx, float cy, float rx, float ry);
 void nvgCircle(struct nvg_context *ctx, float cx, float cy, float r);
-void nvgFill(struct nvg_context *ctx);
-void nvgStroke(struct nvg_context *ctx);
-int nvgCreateFont(struct nvg_context *ctx, const char *name, const char *filename);
-int nvgCreateFontMem(struct nvg_context *ctx, const char *name, unsigned char *data, int ndata, int freeData);
-void nvgFontSize(struct nvg_context *ctx, float size);
-void nvgFontBlur(struct nvg_context *ctx, float blur);
-void nvgTextLetterSpacing(struct nvg_context *ctx, float spacing);
-void nvgTextAlign(struct nvg_context *ctx, int align);
-void nvgFontFaceId(struct nvg_context *ctx, int font);
-float nvgText(struct nvg_context *ctx, float x, float y, const char *string, const char *end);
-int nvgTextGlyphPositions(struct nvg_context *ctx, float x, float y, const char *string, const char *end, struct nvg_glyphposition *positions, int maxPositions);
-void nvgTextMetrics(struct nvg_context *ctx, float *ascender, float *descender, float *lineh);
-int nvgTextBreakLines(struct nvg_context *ctx, const char *string, const char *end, float breakRowWidth, struct nvg_textrow *rows, int maxRows);
-struct nvg_context *nvgCreateInternal(struct nvg_params *params);
-void nvgDeleteInternal(struct nvg_context *ctx);
+int nvg_expand_fill(struct nvg_context *ctx, float w, int linejoin, float miterLimit);
+int nvg_expand_stroke(struct nvg_context *ctx, float w, float fringe, int linecap, int linejoin, float miterLimit);
+void nvg_flatten_paths(struct nvg_context *ctx);
+struct nvg_vertex *nvg_allocverts(struct nvg_context *ctx, int nverts);
+void nvg_init(struct nvg_context *ctx);
