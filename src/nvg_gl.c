@@ -1811,21 +1811,7 @@ float nvg_gl_text(struct nvg_gl_context *glctx, struct nvg_context *ctx, struct 
     }
 
     if (fonsValidateTexture(fsctx, dirty))
-    {
-
-        if (glctx->fontImages[glctx->fontImageIdx])
-        {
-
-            int x = dirty[0];
-            int y = dirty[1];
-            int w = dirty[2] - dirty[0];
-            int h = dirty[3] - dirty[1];
-
-            renderUpdateTexture(glctx, glctx->fontImages[glctx->fontImageIdx], x, y, w, h, fsctx->texData);
-
-        }
-
-    }
+        renderUpdateTexture(glctx, glctx->fontImages[glctx->fontImageIdx], dirty[0], dirty[1], dirty[2] - dirty[0], dirty[3] - dirty[1], fsctx->texData);
 
     state->fill.image = glctx->fontImages[glctx->fontImageIdx];
 
