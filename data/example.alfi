@@ -35,10 +35,10 @@
 
 # A row of images
 + hstack id gallery halign left valign top
-+ image in gallery link "data/image6.jpg" "image/jpeg"
-+ image in gallery link "data/image6.jpg" "image/jpeg"
-+ image in gallery link "data/image6.jpg" "image/jpeg"
-+ image in gallery link "data/image6.jpg" "image/jpeg"
++ image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
++ image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
++ image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
++ image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
 
 # Add some items to the previous list
 + text in list1 label "Item 1-3"
@@ -60,7 +60,7 @@
 + text in table1 label "Cell 0-3"
 + text in table1 label "Cell 1-0"
 + text in table1 label "Cell 1-1"
-+ image in table1 link "data/image6.jpg" "image/jpeg"
++ image in table1 link "file:///usr/share/navi/image6.jpg" "image/jpeg"
 + text in table1 label "Cell 1-3"
 + text in table1 label "Cell 2-0"
 + text in table1

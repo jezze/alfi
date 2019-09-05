@@ -29,45 +29,22 @@ static struct alfi_widget *next(struct list *list, struct alfi_widget *widget)
 
 }
 
-struct alfi_widget *pool_nextingroup(struct alfi_widget *widget, unsigned int group)
+struct alfi_widget *pool_next(struct alfi_widget *widget)
 {
 
-    while ((widget = next(&usedlist, widget)))
-    {
-
-        if (group == 0 || group == widget->group)
-            return widget;
-
-    }
-
-    return 0;
+    return next(&usedlist, widget);
 
 }
 
-struct alfi_widget *pool_nextingroupoftype(struct alfi_widget *widget, unsigned int group, unsigned int type)
-{
-
-    while ((widget = pool_nextingroup(widget, group)))
-    {
-
-        if (widget->type == type)
-            return widget;
-
-    }
-
-    return 0;
-
-}
-
-struct alfi_widget *pool_findbyname(unsigned int group, char *name)
+struct alfi_widget *pool_findbyname(char *name)
 {
 
     struct alfi_widget *widget = 0;
 
-    while ((widget = pool_nextingroup(widget, group)))
+    while ((widget = pool_next(widget)))
     {
 
-        if (!widget->id.name)
+        if (!strlen(widget->id.name))
             continue;
 
         if (!strcmp(widget->id.name, name))
@@ -82,10 +59,10 @@ struct alfi_widget *pool_findbyname(unsigned int group, char *name)
 struct alfi_widget *pool_nextchild(struct alfi_widget *widget, struct alfi_widget *parent)
 {
 
-    while ((widget = pool_nextingroup(widget, parent->group)))
+    while ((widget = pool_next(widget)))
     {
 
-        if (pool_findbyname(widget->group, widget->in.name) == parent)
+        if (pool_findbyname(widget->in.name) == parent)
             return widget;
 
     }

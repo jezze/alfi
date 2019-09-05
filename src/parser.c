@@ -13,7 +13,7 @@ struct tokword
 
 };
 
-static unsigned int readword(struct parser *parser, char *result)
+static unsigned int readword(struct parser *parser, char *result, unsigned int count)
 {
 
     unsigned int i = 0;
@@ -83,7 +83,7 @@ static unsigned int parsetoken(struct parser *parser, const struct tokword *item
 {
 
     char word[4096];
-    unsigned int count = readword(parser, word);
+    unsigned int count = readword(parser, word, 4096);
     unsigned int i;
 
     for (i = 0; i < nitems; i++)
@@ -102,7 +102,7 @@ static unsigned int parseuint(struct parser *parser, unsigned int base)
 {
 
     char word[4096];
-    unsigned int count = readword(parser, word);
+    unsigned int count = readword(parser, word, 4096);
     unsigned int value = 0;
     unsigned int i;
 
@@ -159,13 +159,13 @@ static unsigned int parseuint(struct parser *parser, unsigned int base)
 
 }
 
-static char *parsestring(struct parser *parser)
+static char *parsestring(char *string, struct parser *parser)
 {
 
     char word[4096];
-    unsigned int count = readword(parser, word);
+    unsigned int count = readword(parser, word, 4096);
 
-    return parser->createstring(count + 1, count + 1, word);
+    return parser->allocate(string, count + 1, count + 1, word);
 
 }
 
@@ -299,8 +299,8 @@ static void parse_attribute_data(struct parser *parser, struct alfi_attribute_da
 {
 
     data->total = ALFI_DATASIZE;
-    data->content = parser->createstring(data->total, 0, 0);
-    data->offset = readword(parser, data->content);
+    data->content = parser->allocate(data->content, data->total, 0, 0);
+    data->offset = readword(parser, data->content, data->total);
 
 }
 
@@ -333,29 +333,29 @@ static void parse_attribute_icon(struct parser *parser, struct alfi_attribute_ic
 static void parse_attribute_id(struct parser *parser, struct alfi_attribute_id *id)
 {
 
-    id->name = parsestring(parser);
+    id->name = parsestring(id->name, parser);
 
 }
 
 static void parse_attribute_in(struct parser *parser, struct alfi_attribute_in *in)
 {
 
-    in->name = parsestring(parser);
+    in->name = parsestring(in->name, parser);
 
 }
 
 static void parse_attribute_label(struct parser *parser, struct alfi_attribute_label *label)
 {
 
-    label->content = parsestring(parser);
+    label->content = parsestring(label->content, parser);
 
 }
 
 static void parse_attribute_link(struct parser *parser, struct alfi_attribute_link *link)
 {
 
-    link->url = parsestring(parser);
-    link->mime = parsestring(parser);
+    link->url = parsestring(link->url, parser);
+    link->mime = parsestring(link->mime, parser);
 
 }
 
@@ -998,132 +998,37 @@ static void parse_widget_window(struct parser *parser, struct alfi_widget *widge
 
 }
 
-static void parse_command_comment(struct parser *parser, unsigned int group)
+static void parse_command_comment(struct parser *parser)
 {
 
     char word[4096];
 
     while (!parser->expr.linebreak)
-        readword(parser, word);
+        readword(parser, word, 4096);
 
 }
 
-static void parse_command_delete(struct parser *parser, unsigned int group)
+static void parse_command_delete(struct parser *parser)
 {
 
-    struct alfi_widget *widget = parser->find(parsestring(parser), group);
+    char word[4096];
+    struct alfi_widget *widget;
+
+    readword(parser, word, 4096);
+
+    widget = parser->findwidget(word);
 
     if (!widget)
         parser->fail(parser->expr.line + 1);
 
-    parser->destroy(widget);
+    parser->destroywidget(widget);
 
 }
 
-static void parse_command_insert(struct parser *parser, unsigned int group, char *in)
+static void parse_command_insert(struct parser *parser, char *in)
 {
 
-    struct alfi_widget *widget = parser->create(getwidget(parser), group, in);
-
-    if (!widget)
-        parser->fail(parser->expr.line + 1);
-
-    switch (widget->type)
-    {
-
-    case ALFI_WIDGET_ANCHOR:
-        parse_widget_anchor(parser, widget, &widget->data.anchor);
-
-        break;
-
-    case ALFI_WIDGET_BUTTON:
-        parse_widget_button(parser, widget, &widget->data.button);
-
-        break;
-
-    case ALFI_WIDGET_CHOICE:
-        parse_widget_choice(parser, widget, &widget->data.choice);
-
-        break;
-
-    case ALFI_WIDGET_DIVIDER:
-        parse_widget_divider(parser, widget, &widget->data.divider);
-
-        break;
-
-    case ALFI_WIDGET_FIELD:
-        parse_widget_field(parser, widget, &widget->data.field);
-
-        break;
-
-    case ALFI_WIDGET_HEADER:
-        parse_widget_header(parser, widget, &widget->data.header);
-
-        break;
-
-    case ALFI_WIDGET_HSTACK:
-        parse_widget_hstack(parser, widget, &widget->data.hstack);
-
-        break;
-
-    case ALFI_WIDGET_IMAGE:
-        parse_widget_image(parser, widget, &widget->data.image);
-
-        break;
-
-    case ALFI_WIDGET_LIST:
-        parse_widget_list(parser, widget, &widget->data.list);
-
-        break;
-
-    case ALFI_WIDGET_SELECT:
-        parse_widget_select(parser, widget, &widget->data.select);
-
-        break;
-
-    case ALFI_WIDGET_SUBHEADER:
-        parse_widget_subheader(parser, widget, &widget->data.subheader);
-
-        break;
-
-    case ALFI_WIDGET_TAB:
-        parse_widget_tab(parser, widget, &widget->data.tab);
-
-        break;
-
-    case ALFI_WIDGET_TABLE:
-        parse_widget_table(parser, widget, &widget->data.table);
-
-        break;
-
-    case ALFI_WIDGET_TEXT:
-        parse_widget_text(parser, widget, &widget->data.text);
-
-        break;
-
-    case ALFI_WIDGET_VSTACK:
-        parse_widget_vstack(parser, widget, &widget->data.vstack);
-
-        break;
-
-    case ALFI_WIDGET_WINDOW:
-        parse_widget_window(parser, widget, &widget->data.window);
-
-        break;
-
-    default:
-        parser->fail(parser->expr.line + 1);
-
-        break;
-
-    }
-
-}
-
-static void parse_command_update(struct parser *parser, unsigned int group)
-{
-
-    struct alfi_widget *widget = parser->find(parsestring(parser), group);
+    struct alfi_widget *widget = parser->createwidget(getwidget(parser), in);
 
     if (!widget)
         parser->fail(parser->expr.line + 1);
@@ -1220,7 +1125,112 @@ static void parse_command_update(struct parser *parser, unsigned int group)
 
 }
 
-void parser_parse(struct parser *parser, unsigned int group, char *in)
+static void parse_command_update(struct parser *parser)
+{
+
+    char word[4096];
+    struct alfi_widget *widget;
+
+    readword(parser, word, 4096);
+
+    widget = parser->findwidget(word);
+
+    if (!widget)
+        parser->fail(parser->expr.line + 1);
+
+    switch (widget->type)
+    {
+
+    case ALFI_WIDGET_ANCHOR:
+        parse_widget_anchor(parser, widget, &widget->data.anchor);
+
+        break;
+
+    case ALFI_WIDGET_BUTTON:
+        parse_widget_button(parser, widget, &widget->data.button);
+
+        break;
+
+    case ALFI_WIDGET_CHOICE:
+        parse_widget_choice(parser, widget, &widget->data.choice);
+
+        break;
+
+    case ALFI_WIDGET_DIVIDER:
+        parse_widget_divider(parser, widget, &widget->data.divider);
+
+        break;
+
+    case ALFI_WIDGET_FIELD:
+        parse_widget_field(parser, widget, &widget->data.field);
+
+        break;
+
+    case ALFI_WIDGET_HEADER:
+        parse_widget_header(parser, widget, &widget->data.header);
+
+        break;
+
+    case ALFI_WIDGET_HSTACK:
+        parse_widget_hstack(parser, widget, &widget->data.hstack);
+
+        break;
+
+    case ALFI_WIDGET_IMAGE:
+        parse_widget_image(parser, widget, &widget->data.image);
+
+        break;
+
+    case ALFI_WIDGET_LIST:
+        parse_widget_list(parser, widget, &widget->data.list);
+
+        break;
+
+    case ALFI_WIDGET_SELECT:
+        parse_widget_select(parser, widget, &widget->data.select);
+
+        break;
+
+    case ALFI_WIDGET_SUBHEADER:
+        parse_widget_subheader(parser, widget, &widget->data.subheader);
+
+        break;
+
+    case ALFI_WIDGET_TAB:
+        parse_widget_tab(parser, widget, &widget->data.tab);
+
+        break;
+
+    case ALFI_WIDGET_TABLE:
+        parse_widget_table(parser, widget, &widget->data.table);
+
+        break;
+
+    case ALFI_WIDGET_TEXT:
+        parse_widget_text(parser, widget, &widget->data.text);
+
+        break;
+
+    case ALFI_WIDGET_VSTACK:
+        parse_widget_vstack(parser, widget, &widget->data.vstack);
+
+        break;
+
+    case ALFI_WIDGET_WINDOW:
+        parse_widget_window(parser, widget, &widget->data.window);
+
+        break;
+
+    default:
+        parser->fail(parser->expr.line + 1);
+
+        break;
+
+    }
+
+}
+
+static void parse(struct parser *parser, char *in)
 {
 
     while (parser->expr.offset < parser->expr.count)
@@ -1235,22 +1245,22 @@ void parser_parse(struct parser *parser, unsigned int group, char *in)
             break;
 
         case ALFI_COMMAND_COMMENT:
-            parse_command_comment(parser, group);
+            parse_command_comment(parser);
 
             break;
 
         case ALFI_COMMAND_DELETE:
-            parse_command_delete(parser, group);
+            parse_command_delete(parser);
 
             break;
 
         case ALFI_COMMAND_INSERT:
-            parse_command_insert(parser, group, in);
+            parse_command_insert(parser, in);
 
             break;
 
         case ALFI_COMMAND_UPDATE:
-            parse_command_update(parser, group);
+            parse_command_update(parser);
 
             break;
 
@@ -1265,7 +1275,7 @@ void parser_parse(struct parser *parser, unsigned int group, char *in)
 
 }
 
-void parser_parsedata(struct parser *parser, unsigned int group, char *in, unsigned int count, void *data)
+void parser_parse(struct parser *parser, char *in, unsigned int count, void *data)
 {
 
     parser->expr.data = data;
@@ -1275,17 +1285,18 @@ void parser_parsedata(struct parser *parser, unsigned int group, char *in, unsig
     parser->expr.linebreak = 0;
     parser->expr.inside = 0;
 
-    parser_parse(parser, group, in);
+    parse(parser, in);
 
 }
 
-void parser_init(struct parser *parser, void (*fail)(unsigned int line), struct alfi_widget *(*find)(char *name, unsigned int group), struct alfi_widget *(*create)(unsigned int type, unsigned int group, char *in), void (*destroy)(struct alfi_widget *widget), char *(*createstring)(unsigned int size, unsigned int count, char *content), void (*destroystring)(char *string))
+void parser_init(struct parser *parser, void (*fail)(unsigned int line), struct alfi_widget *(*findwidget)(char *name), struct alfi_widget *(*createwidget)(unsigned int type, char *in), struct alfi_widget *(*destroywidget)(struct alfi_widget *widget), char *(*allocate)(char *string, unsigned int size, unsigned int count, char *content), char *(*createstring)(char *string, char *content), char *(*destroystring)(char *string))
 {
 
     parser->fail = fail;
-    parser->find = find;
-    parser->create = create;
-    parser->destroy = destroy;
+    parser->findwidget = findwidget;
+    parser->createwidget = createwidget;
+    parser->destroywidget = destroywidget;
+    parser->allocate = allocate;
     parser->createstring = createstring;
     parser->destroystring = destroystring;
 

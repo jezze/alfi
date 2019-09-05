@@ -1,21 +1,18 @@
 #define NVG_GL_MAXFONTIMAGES 4
 
-enum nvg_gl_createflags
+enum nvg_imageflags
 {
 
-    NVG_ANTIALIAS = 1 << 0,
-    NVG_STENCIL_STROKES = 1 << 1
+    NVG_IMAGE_GENERATE_MIPMAPS = 1 << 0,
+    NVG_IMAGE_REPEATX = 1 << 1,
+    NVG_IMAGE_REPEATY = 1 << 2,
+    NVG_IMAGE_FLIPY = 1 << 3,
+    NVG_IMAGE_PREMULTIPLIED = 1 << 4,
+    NVG_IMAGE_NEAREST = 1 << 5
 
 };
 
-enum nvg_gl_imageflags
-{
-
-    NVG_IMAGE_NODELETE = 1 << 16,
-
-};
-
-enum nvg_gl_uniformLoc
+enum nvg_gl_uniformloc
 {
 
     NVG_GL_LOC_VIEWSIZE,
@@ -56,7 +53,6 @@ enum nvg_gl_calltype
     NVG_GL_NONE = 0,
     NVG_GL_FILL,
     NVG_GL_CONVEXFILL,
-    NVG_GL_STROKE,
     NVG_GL_TRIANGLES,
 
 };
@@ -111,8 +107,6 @@ struct nvg_gl_path
 
     int fillOffset;
     int fillCount;
-    int strokeOffset;
-    int strokeCount;
 
 };
 
@@ -129,7 +123,6 @@ struct nvg_gl_context
     GLuint vertArr;
     GLuint fragBuf;
     int fragSize;
-    int flags;
     struct nvg_gl_call *calls;
     int ccalls;
     int ncalls;
@@ -142,31 +135,20 @@ struct nvg_gl_context
     unsigned char *uniforms;
     int cuniforms;
     int nuniforms;
-    GLuint boundTexture;
-    GLuint stencilMask;
-    GLenum stencilFunc;
-    GLint stencilFuncRef;
-    GLuint stencilFuncMask;
-    int edgeAntiAlias;
     struct nvg_gl_blend blendFunc;
     int fontImages[NVG_GL_MAXFONTIMAGES];
     int fontImageIdx;
 
 };
 
-void nvg_gl_flush(struct nvg_gl_context *gl);
+void nvg_gl_flush(struct nvg_gl_context *glctx);
 void nvg_gl_beginframe(struct nvg_gl_context *glctx, struct nvg_context *ctx, float windowWidth, float windowHeight);
-void nvg_gl_cancelframe(struct nvg_gl_context *glctx, struct nvg_context *ctx);
-void nvg_gl_endframe(struct nvg_gl_context *glctx, struct nvg_context *ctx);
-int nvg_gl_createimagefile(struct nvg_gl_context *glctx, struct nvg_context *ctx, const char *filename, int imageFlags);
-int nvg_gl_createimagemem(struct nvg_gl_context *glctx, struct nvg_context *ctx, int imageFlags, unsigned char *data, int ndata);
-int nvg_gl_createimagergba(struct nvg_gl_context *glctx, struct nvg_context *ctx, int w, int h, int imageFlags, const unsigned char *data);
+void nvg_gl_endframe(struct nvg_gl_context *glctx);
+int nvg_gl_createimagergba(struct nvg_gl_context *glctx, int w, int h, int imageFlags, const unsigned char *data);
 void nvg_gl_updateimage(struct nvg_gl_context *glctx, int image, const unsigned char *data);
 void nvg_gl_imagesize(struct nvg_gl_context *glctx, int image, int *w, int *h);
 void nvg_gl_deletetexture(struct nvg_gl_context *glctx, int id);
 void nvg_gl_fill(struct nvg_gl_context *glctx, struct nvg_context *ctx, struct nvg_state *state);
-void nvg_gl_stroke(struct nvg_gl_context *glctx, struct nvg_context *ctx, struct nvg_state *state);
 float nvg_gl_text(struct nvg_gl_context *glctx, struct nvg_context *ctx, struct nvg_state *state, struct fons_context *fsctx, float x, float y, const char *string, const char *end);
-void nvg_gl_create(struct nvg_gl_context *glctx, int w, int h, int flags);
+void nvg_gl_create(struct nvg_gl_context *glctx, int w, int h);
 void nvg_gl_delete(struct nvg_gl_context *glctx);
-void nvg_gl_compop(struct nvg_context *ctx, int op);

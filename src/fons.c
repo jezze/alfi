@@ -6,60 +6,6 @@
 #include "stb_truetype.h"
 #include "fons.h"
 
-static int tt_loadFont(struct fons_context *context, struct fons_impl *font, unsigned char *data, int dataSize)
-{
-
-    font->font.userdata = context;
-
-    return stbtt_InitFont(&font->font, data, 0);
-
-}
-
-static void tt_getFontVMetrics(struct fons_impl *font, int *ascent, int *descent, int *lineGap)
-{
-
-    stbtt_GetFontVMetrics(&font->font, ascent, descent, lineGap);
-
-}
-
-static float tt_getPixelHeightScale(struct fons_impl *font, float size)
-{
-
-    return stbtt_ScaleForPixelHeight(&font->font, size);
-
-}
-
-static int tt_getGlyphIndex(struct fons_impl *font, int codepoint)
-{
-
-    return stbtt_FindGlyphIndex(&font->font, codepoint);
-
-}
-
-static int tt_buildGlyphBitmap(struct fons_impl *font, int glyph, float size, float scale, int *advance, int *lsb, int *x0, int *y0, int *x1, int *y1)
-{
-
-    stbtt_GetGlyphHMetrics(&font->font, glyph, advance, lsb);
-    stbtt_GetGlyphBitmapBox(&font->font, glyph, scale, scale, x0, y0, x1, y1);
-
-    return 1;
-
-}
-
-static void tt_renderGlyphBitmap(struct fons_impl *font, unsigned char *output, int outWidth, int outHeight, int outStride, float scaleX, float scaleY, int glyph)
-{
-
-    stbtt_MakeGlyphBitmap(&font->font, output, outWidth, outHeight, outStride, scaleX, scaleY, glyph);
-
-}
-
-static int tt_getGlyphKernAdvance(struct fons_impl *font, int glyph1, int glyph2)
-{
-
-    return stbtt_GetGlyphKernAdvance(&font->font, glyph1, glyph2);
-
-}
-
 static unsigned int hashint(unsigned int a)
 {
 
@@ -332,14 +278,6 @@ void fons_create(struct fons_context *fsctx, int width, int height, unsigned cha
     fsctx->atlas.nodes[0].y = 0;
     fsctx->atlas.nodes[0].width = width;
     fsctx->atlas.nnodes = 1;
-    fsctx->fonts = malloc(sizeof(struct fons_font *) * FONS_INIT_FONTS);
-
-    if (!fsctx->fonts)
-        return;
-
-    memset(fsctx->fonts, 0, sizeof(struct fons_font *) * FONS_INIT_FONTS);
-
-    fsctx->cfonts = FONS_INIT_FONTS;
     fsctx->nfonts = 0;
     fsctx->itw = 1.0f / fsctx->width;
     fsctx->ith = 1.0f / fsctx->height;
@@ -356,53 +294,11 @@ void fons_create(struct fons_context *fsctx, int width, int height, unsigned cha
     fsctx->dirtyRect[3] = 0;
 
     addWhiteRect(fsctx, 2, 2);
-    fonsClearState(fsctx);
+    fons_initstate(fsctx);
 
 }
 
-void fonsSetSize(struct fons_context *fsctx, float size)
-{
-
-    fsctx->state.size = size;
-
-}
-
-void fonsSetColor(struct fons_context *fsctx, unsigned int color)
-{
-
-    fsctx->state.color = color;
-
-}
-
-void fonsSetSpacing(struct fons_context *fsctx, float spacing)
-{
-
-    fsctx->state.spacing = spacing;
-
-}
-
-void fonsSetBlur(struct fons_context *fsctx, float blur)
-{
-
-    fsctx->state.blur = blur;
-
-}
-
-void fonsSetAlign(struct fons_context *fsctx, int align)
-{
-
-    fsctx->state.align = align;
-
-}
-
-void fonsSetFont(struct fons_context *fsctx, int font)
-{
-
-    fsctx->state.font = font;
-
-}
-
-void fonsClearState(struct fons_context *fsctx)
+void fons_initstate(struct fons_context *fsctx)
 {
 
     fsctx->state.size = 12.0f;
@@ -414,52 +310,7 @@ void fonsClearState(struct fons_context *fsctx)
 
 }
 
-static void freeFont(struct fons_font *font)
-{
-
-    if (font->data)
-        free(font->data);
-
-    free(font);
-
-}
-
-static int allocFont(struct fons_context *fsctx)
-{
-
-    struct fons_font *font = 0;
-
-    if (fsctx->nfonts + 1 > fsctx->cfonts)
-    {
-
-        fsctx->cfonts = fsctx->cfonts == 0 ? 8 : fsctx->cfonts * 2;
-        fsctx->fonts = realloc(fsctx->fonts, sizeof(struct fons_font*) * fsctx->cfonts);
-
-        if (!fsctx->fonts)
-            return -1;
-
-    }
-
-    font = malloc(sizeof(struct fons_font));
-
-    if (!font)
-        goto error;
-
-    memset(font, 0, sizeof(struct fons_font));
-
-    font->nglyphs = 0;
-    fsctx->fonts[fsctx->nfonts++] = font;
-
-    return fsctx->nfonts - 1;
-
-error:
-    freeFont(font);
-
-    return -1;
-
-}
-
-int fonsAddFont(struct fons_context *fsctx, const char *path)
+int fons_addfontfile(struct fons_context *fsctx, const char *path)
 {
 
     FILE *fp = 0;
@@ -492,7 +343,7 @@ int fonsAddFont(struct fons_context *fsctx, const char *path)
     if (readed != dataSize)
         goto error;
 
-    return fonsAddFontMem(fsctx, data, dataSize);
+    return fons_addfontmem(fsctx, data, dataSize);
 
 error:
     if (data)
@@ -505,17 +356,13 @@ error:
 
 }
 
-int fonsAddFontMem(struct fons_context *fsctx, unsigned char *data, int dataSize)
+int fons_addfontmem(struct fons_context *fsctx, unsigned char *data, int dataSize)
 {
 
     int i, ascent, descent, fh, lineGap;
-    struct fons_font *font;
-    int idx = allocFont(fsctx);
+    struct fons_font *font = &fsctx->fonts[fsctx->nfonts];
 
-    if (idx == -1)
-        return -1;
-
-    font = fsctx->fonts[idx];
+    font->nglyphs = 0;
 
     for (i = 0; i < FONS_HASH_LUT_SIZE; ++i)
         font->lut[i] = -1;
@@ -523,33 +370,19 @@ int fonsAddFontMem(struct fons_context *fsctx, unsigned char *data, int dataSize
     font->dataSize = dataSize;
     font->data = data;
 
-    if (!tt_loadFont(fsctx, &font->font, data, dataSize))
-        goto error;
+    if (!stbtt_InitFont(&font->font, font->data, 0))
+        return -1;
 
-    tt_getFontVMetrics( &font->font, &ascent, &descent, &lineGap);
+    stbtt_GetFontVMetrics(&font->font, &ascent, &descent, &lineGap);
 
     fh = ascent - descent;
     font->ascender = (float)ascent / (float)fh;
     font->descender = (float)descent / (float)fh;
     font->lineh = (float)(fh + lineGap) / (float)fh;
 
-    return idx;
+    fsctx->nfonts++;
 
-error:
-    freeFont(font);
-
-    fsctx->nfonts--;
-
-    return -1;
-
-}
-
-static struct fons_glyph *allocGlyph(struct fons_font *font)
-{
-
-    font->nglyphs++;
-
-    return &font->glyphs[font->nglyphs - 1];
+    return fsctx->nfonts - 1;
 
 }
 
@@ -659,9 +492,7 @@ static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font 
     struct fons_glyph *glyph = 0;
     unsigned int h;
     int pad, added;
-    unsigned char *bdst;
     unsigned char *dst;
-    struct fons_font *renderFont = font;
 
     if (size < 2)
         return 0;
@@ -692,14 +523,15 @@ static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font 
 
     }
 
-    g = tt_getGlyphIndex(&font->font, codepoint);
+    g = stbtt_FindGlyphIndex(&font->font, codepoint);
 
     if (!g)
         return 0;
 
-    scale = tt_getPixelHeightScale(&renderFont->font, size);
+    scale = stbtt_ScaleForPixelHeight(&font->font, size);
 
-    tt_buildGlyphBitmap(&renderFont->font, g, size, scale, &advance, &lsb, &x0, &y0, &x1, &y1);
+    stbtt_GetGlyphHMetrics(&font->font, g, &advance, &lsb);
+    stbtt_GetGlyphBitmapBox(&font->font, g, scale, scale, &x0, &y0, &x1, &y1);
 
     gw = x1 - x0 + pad * 2;
     gh = y1 - y0 + pad * 2;
@@ -725,13 +557,14 @@ static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font 
     if (!glyph)
     {
 
-        glyph = allocGlyph(font);
+        glyph = &font->glyphs[font->nglyphs];
         glyph->codepoint = codepoint;
         glyph->size = size;
         glyph->blur = blur;
         glyph->next = 0;
         glyph->next = font->lut[h];
-        font->lut[h] = font->nglyphs - 1;
+        font->lut[h] = font->nglyphs;
+        font->nglyphs++;
 
     }
 
@@ -749,7 +582,7 @@ static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font 
 
     dst = &fsctx->texData[(glyph->x0 + pad) + (glyph->y0 + pad) * fsctx->width];
 
-    tt_renderGlyphBitmap(&renderFont->font, dst, gw - pad * 2, gh - pad * 2, fsctx->width, scale, scale, g);
+    stbtt_MakeGlyphBitmap(&font->font, dst, gw - pad * 2, gh - pad * 2, fsctx->width, scale, scale, g);
 
     dst = &fsctx->texData[glyph->x0 + glyph->y0 * fsctx->width];
 
@@ -770,13 +603,7 @@ static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font 
     }
 
     if (blur > 0)
-    {
-
-        bdst = &fsctx->texData[glyph->x0 + glyph->y0 * fsctx->width];
-
-        blurit(bdst, gw, gh, fsctx->width, blur);
-
-    }
+        blurit(&fsctx->texData[glyph->x0 + glyph->y0 * fsctx->width], gw, gh, fsctx->width, blur);
 
     fsctx->dirtyRect[0] = mini(fsctx->dirtyRect[0], glyph->x0);
     fsctx->dirtyRect[1] = mini(fsctx->dirtyRect[1], glyph->y0);
@@ -797,7 +624,7 @@ static void getQuad(struct fons_context *fsctx, struct fons_font *font, int prev
     if (prevGlyphIndex != -1)
     {
 
-        float adv = tt_getGlyphKernAdvance(&font->font, prevGlyphIndex, glyph->index) * scale;
+        float adv = stbtt_GetGlyphKernAdvance(&font->font, prevGlyphIndex, glyph->index) * scale;
 
         *x += (int)(adv + spacing + 0.5f);
 
@@ -813,8 +640,8 @@ static void getQuad(struct fons_context *fsctx, struct fons_font *font, int prev
     if (fsctx->flags & FONS_ZERO_TOPLEFT)
     {
 
-        rx = (float)(int)(*x + xoff);
-        ry = (float)(int)(*y + yoff);
+        rx = (int)(*x + xoff);
+        ry = (int)(*y + yoff);
         q->x0 = rx;
         q->y0 = ry;
         q->x1 = rx + x1 - x0;
@@ -829,8 +656,8 @@ static void getQuad(struct fons_context *fsctx, struct fons_font *font, int prev
     else
     {
 
-        rx = (float)(int)(*x + xoff);
-        ry = (float)(int)(*y - yoff);
+        rx = (int)(*x + xoff);
+        ry = (int)(*y - yoff);
         q->x0 = rx;
         q->y0 = ry;
         q->x1 = rx + x1 - x0;
@@ -881,17 +708,13 @@ static float getVertAlign(struct fons_context *fsctx, struct fons_font *font, in
 
 }
 
-int fonsTextIterInit(struct fons_context *fsctx, struct fons_textiter *iter, float x, float y, const char *str, const char *end, int bitmapOption)
+int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, float x, float y, const char *str, const char *end, int bitmapOption)
 {
 
-    float width;
-
-    memset(iter, 0, sizeof(*iter));
-
-    iter->font = fsctx->fonts[fsctx->state.font];
+    iter->font = &fsctx->fonts[fsctx->state.font];
     iter->size = fsctx->state.size;
     iter->blur = fsctx->state.blur;
-    iter->scale = tt_getPixelHeightScale(&iter->font->font, iter->size);
+    iter->scale = stbtt_ScaleForPixelHeight(&iter->font->font, iter->size);
 
     if (fsctx->state.align & FONS_ALIGN_LEFT)
     {
@@ -901,16 +724,14 @@ int fonsTextIterInit(struct fons_context *fsctx, struct fons_textiter *iter, flo
     else if (fsctx->state.align & FONS_ALIGN_RIGHT)
     {
 
-        width = fonsTextBounds(fsctx, x,y, str, end, 0);
-        x -= width;
+        x -= fons_getwidth(fsctx, x, y, str, end);
 
     }
 
     else if (fsctx->state.align & FONS_ALIGN_CENTER)
     {
 
-        width = fonsTextBounds(fsctx, x,y, str, end, 0);
-        x -= width * 0.5f;
+        x -= fons_getwidth(fsctx, x, y, str, end) * 0.5f;
 
     }
 
@@ -924,15 +745,15 @@ int fonsTextIterInit(struct fons_context *fsctx, struct fons_textiter *iter, flo
     iter->codepoint = 0;
     iter->prevGlyphIndex = -1;
     iter->bitmapOption = bitmapOption;
+    iter->utf8state = 0;
 
     return 1;
 
 }
 
-int fonsTextIterNext(struct fons_context *fsctx, struct fons_textiter *iter, struct fons_quad *quad)
+int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct fons_quad *quad)
 {
 
-    struct fons_glyph *glyph = 0;
     const char *str = iter->next;
 
     iter->str = iter->next;
@@ -943,6 +764,8 @@ int fonsTextIterNext(struct fons_context *fsctx, struct fons_textiter *iter, str
     for (; str != iter->end; str++)
     {
 
+        struct fons_glyph *glyph;
+
         if (decutf8(&iter->utf8state, &iter->codepoint, *(const unsigned char *)str))
             continue;
 
@@ -951,7 +774,7 @@ int fonsTextIterNext(struct fons_context *fsctx, struct fons_textiter *iter, str
         iter->y = iter->nexty;
         glyph = getGlyph(fsctx, iter->font, iter->codepoint, iter->size, iter->blur, iter->bitmapOption);
 
-        if (glyph != 0)
+        if (glyph)
             getQuad(fsctx, iter->font, iter->prevGlyphIndex, glyph, iter->scale, iter->spacing, &iter->nextx, &iter->nexty, quad);
 
         iter->prevGlyphIndex = glyph != 0 ? glyph->index : -1;
@@ -966,150 +789,41 @@ int fonsTextIterNext(struct fons_context *fsctx, struct fons_textiter *iter, str
 
 }
 
-float fonsTextBounds(struct fons_context *fsctx, float x, float y, const char *str, const char *end, float *bounds)
+float fons_getwidth(struct fons_context *fsctx, float x, float y, const char *str, const char *end)
 {
 
-    struct fons_font *font = fsctx->fonts[fsctx->state.font];
-    float scale = tt_getPixelHeightScale(&font->font, fsctx->state.size);
-    unsigned int codepoint;
+    struct fons_font *font = &fsctx->fonts[fsctx->state.font];
+    float scale = stbtt_ScaleForPixelHeight(&font->font, fsctx->state.size);
     unsigned int utf8state = 0;
-    struct fons_quad q;
-    struct fons_glyph *glyph = 0;
     int prevGlyphIndex = -1;
-    float startx, advance;
-    float minx, miny, maxx, maxy;
+    float startx = x;
 
     y += getVertAlign(fsctx, font, fsctx->state.align, fsctx->state.size);
-    minx = maxx = x;
-    miny = maxy = y;
-    startx = x;
 
     for (; str != end; ++str)
     {
+
+        struct fons_glyph *glyph;
+        struct fons_quad q;
+        unsigned int codepoint;
 
         if (decutf8(&utf8state, &codepoint, *(const unsigned char *)str))
             continue;
 
         glyph = getGlyph(fsctx, font, codepoint, fsctx->state.size, fsctx->state.blur, FONS_GLYPH_BITMAP_OPTIONAL);
 
-        if (glyph != 0)
-        {
-
+        if (glyph)
             getQuad(fsctx, font, prevGlyphIndex, glyph, scale, fsctx->state.spacing, &x, &y, &q);
-
-            if (q.x0 < minx)
-                minx = q.x0;
-
-            if (q.x1 > maxx)
-                maxx = q.x1;
-
-            if (fsctx->flags & FONS_ZERO_TOPLEFT)
-            {
-
-                if (q.y0 < miny)
-                    miny = q.y0;
-
-                if (q.y1 > maxy)
-                    maxy = q.y1;
-
-            }
-
-            else
-            {
-
-                if (q.y1 < miny)
-                    miny = q.y1;
-
-                if (q.y0 > maxy)
-                    maxy = q.y0;
-
-            }
-
-        }
 
         prevGlyphIndex = glyph != 0 ? glyph->index : -1;
 
     }
 
-    advance = x - startx;
-
-    if (fsctx->state.align & FONS_ALIGN_LEFT)
-    {
-
-    }
-
-    else if (fsctx->state.align & FONS_ALIGN_RIGHT)
-    {
-
-        minx -= advance;
-        maxx -= advance;
-
-    }
-
-    else if (fsctx->state.align & FONS_ALIGN_CENTER)
-    {
-
-        minx -= advance * 0.5f;
-        maxx -= advance * 0.5f;
-
-    }
-
-    if (bounds)
-    {
-
-        bounds[0] = minx;
-        bounds[1] = miny;
-        bounds[2] = maxx;
-        bounds[3] = maxy;
-
-    }
-
-    return advance;
+    return x - startx;
 
 }
 
-void fonsVertMetrics(struct fons_context *fsctx, float *ascender, float *descender, float *lineh)
-{
-
-    struct fons_font *font = fsctx->fonts[fsctx->state.font];
-
-    if (ascender)
-        *ascender = font->ascender * fsctx->state.size;
-
-    if (descender)
-        *descender = font->descender * fsctx->state.size;
-
-    if (lineh)
-        *lineh = font->lineh * fsctx->state.size;
-
-}
-
-void fonsLineBounds(struct fons_context *fsctx, float y, float *miny, float *maxy)
-{
-
-    struct fons_font *font = fsctx->fonts[fsctx->state.font];
-
-    y += getVertAlign(fsctx, font, fsctx->state.align, fsctx->state.size);
-
-    if (fsctx->flags & FONS_ZERO_TOPLEFT)
-    {
-
-        *miny = y - font->ascender * fsctx->state.size;
-        *maxy = *miny + font->lineh * fsctx->state.size;
-
-    }
-
-    else
-    {
-
-        *maxy = y + font->descender * fsctx->state.size;
-        *miny = *maxy - font->lineh * fsctx->state.size;
-
-    }
-
-}
-
-int fonsValidateTexture(struct fons_context *fsctx, int *dirty)
+int fons_validate(struct fons_context *fsctx, int *dirty)
 {
 
     if (fsctx->dirtyRect[0] < fsctx->dirtyRect[2] && fsctx->dirtyRect[1] < fsctx->dirtyRect[3])
@@ -1138,10 +852,12 @@ void fons_delete(struct fons_context *fsctx)
     int i;
 
     for (i = 0; i < fsctx->nfonts; ++i)
-        freeFont(fsctx->fonts[i]);
+    {
 
-    if (fsctx->fonts)
-        free(fsctx->fonts);
+        if (fsctx->fonts[i].data)
+            free(fsctx->fonts[i].data);
+
+    }
 
     if (fsctx->texData)
         free(fsctx->texData);

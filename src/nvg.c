@@ -22,13 +22,6 @@ static int maxi(int a, int b)
 
 }
 
-static int clampi(int a, int mn, int mx)
-{
-
-    return a < mn ? mn : (a > mx ? mx : a);
-
-}
-
 static float minf(float a, float b)
 {
 
@@ -353,20 +346,6 @@ void nvgTransformPoint(float *dx, float *dy, const float *t, float sx, float sy)
 
 }
 
-float nvgDegToRad(float deg)
-{
-
-    return deg / 180.0f * NVG_PI;
-
-}
-
-float nvgRadToDeg(float rad)
-{
-
-    return rad / NVG_PI * 180.0f;
-
-}
-
 static void setPaintColor(struct nvg_paint *p, struct nvg_color color)
 {
 
@@ -436,22 +415,6 @@ void nvgScale(struct nvg_context *ctx, float x, float y)
 
     nvgTransformScale(t, x, y);
     nvgTransformPremultiply(ctx->state.xform, t);
-
-}
-
-void nvg_setstrokecolor(struct nvg_context *ctx, struct nvg_color color)
-{
-
-    setPaintColor(&ctx->state.stroke, color);
-
-}
-
-void nvg_setstrokepaint(struct nvg_context *ctx, struct nvg_paint paint)
-{
-
-    ctx->state.stroke = paint;
-
-    nvgTransformMultiply(ctx->state.stroke.xform, ctx->state.xform);
 
 }
 
@@ -641,23 +604,6 @@ void nvgResetScissor(struct nvg_context *ctx)
 
 }
 
-void nvgGlobalCompositeBlendFunc(struct nvg_context *ctx, int sfactor, int dfactor)
-{
-
-    nvgGlobalCompositeBlendFuncSeparate(ctx, sfactor, dfactor, sfactor, dfactor);
-
-}
-
-void nvgGlobalCompositeBlendFuncSeparate(struct nvg_context *ctx, int srcRGB, int dstRGB, int srcAlpha, int dstAlpha)
-{
-
-    ctx->state.compositeoperation.srcRGB = srcRGB;
-    ctx->state.compositeoperation.dstRGB = dstRGB;
-    ctx->state.compositeoperation.srcAlpha = srcAlpha;
-    ctx->state.compositeoperation.dstAlpha = dstAlpha;
-
-}
-
 static int ptEquals(float x1, float y1, float x2, float y2, float tol)
 {
 
@@ -761,6 +707,7 @@ static void appendCommands(struct nvg_context *ctx, float *vals, int nvals)
     memcpy(&ctx->commands[ctx->ncommands], vals, nvals * sizeof (float));
 
     ctx->ncommands += nvals;
+
 }
 
 
@@ -805,7 +752,7 @@ static struct nvg_point *lastPoint(struct nvg_context *ctx)
 
 }
 
-static void addPoint(struct nvg_context *ctx, float x, float y, int flags)
+static void addPoint(struct nvg_context *ctx, float x, float y)
 {
 
     struct nvg_path *path = lastPath(ctx);
@@ -819,14 +766,8 @@ static void addPoint(struct nvg_context *ctx, float x, float y, int flags)
 
         pt = lastPoint(ctx);
 
-        if (ptEquals(pt->x,pt->y, x,y, ctx->distTol))
-        {
-
-            pt->flags |= flags;
-
+        if (ptEquals(pt->x, pt->y, x, y, ctx->distTol))
             return;
-
-        }
 
     }
 
@@ -836,7 +777,6 @@ static void addPoint(struct nvg_context *ctx, float x, float y, int flags)
 
     pt->x = x;
     pt->y = y;
-    pt->flags = (unsigned char)flags;
     ctx->cache.npoints++;
     path->count++;
 
@@ -928,7 +868,7 @@ static void vset(struct nvg_vertex *vtx, float x, float y, float u, float v)
 
 }
 
-static void tesselateBezier(struct nvg_context *ctx, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, int level, int type)
+static void tesselateBezier(struct nvg_context *ctx, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, int level)
 {
 
     float x12, y12, x23, y23, x34, y34, x123, y123, x234, y234, x1234, y1234;
@@ -953,7 +893,7 @@ static void tesselateBezier(struct nvg_context *ctx, float x1, float y1, float x
     if ((d2 + d3) * (d2 + d3) < ctx->tessTol * (dx * dx + dy * dy))
     {
 
-        addPoint(ctx, x4, y4, type);
+        addPoint(ctx, x4, y4);
 
         return;
 
@@ -964,8 +904,8 @@ static void tesselateBezier(struct nvg_context *ctx, float x1, float y1, float x
     x1234 = (x123 + x234) * 0.5f;
     y1234 = (y123 + y234) * 0.5f;
 
-    tesselateBezier(ctx, x1, y1, x12, y12, x123, y123, x1234, y1234, level + 1, 0);
-    tesselateBezier(ctx, x1234, y1234, x234, y234, x34, y34, x4, y4, level + 1, type);
+    tesselateBezier(ctx, x1, y1, x12, y12, x123, y123, x1234, y1234, level + 1);
+    tesselateBezier(ctx, x1234, y1234, x234, y234, x34, y34, x4, y4, level + 1);
 
 }
 
@@ -1002,7 +942,7 @@ void nvg_flatten_paths(struct nvg_context *ctx)
 
             p = &ctx->commands[i + 1];
 
-            addPoint(ctx, p[0], p[1], NVG_PT_CORNER);
+            addPoint(ctx, p[0], p[1]);
 
             i += 3;
 
@@ -1011,7 +951,7 @@ void nvg_flatten_paths(struct nvg_context *ctx)
         case NVG_LINETO:
             p = &ctx->commands[i + 1];
 
-            addPoint(ctx, p[0], p[1], NVG_PT_CORNER);
+            addPoint(ctx, p[0], p[1]);
 
             i += 3;
 
@@ -1027,7 +967,7 @@ void nvg_flatten_paths(struct nvg_context *ctx)
                 cp2 = &ctx->commands[i + 3];
                 p = &ctx->commands[i + 5];
 
-                tesselateBezier(ctx, last->x, last->y, cp1[0], cp1[1], cp2[0], cp2[1], p[0], p[1], 0, NVG_PT_CORNER);
+                tesselateBezier(ctx, last->x, last->y, cp1[0], cp1[1], cp2[0], cp2[1], p[0], p[1], 0);
 
             }
 
@@ -1107,554 +1047,13 @@ void nvg_flatten_paths(struct nvg_context *ctx)
 
 }
 
-static int curveDivs(float r, float arc, float tol)
-{
-
-    float da = acosf(r / (r + tol)) * 2.0f;
-
-    return maxi(2, (int)ceilf(arc / da));
-
-}
-
-static void chooseBevel(int bevel, struct nvg_point *p0, struct nvg_point *p1, float w, float *x0, float *y0, float *x1, float *y1)
-{
-
-    if (bevel)
-    {
-
-        *x0 = p1->x + p0->dy * w;
-        *y0 = p1->y - p0->dx * w;
-        *x1 = p1->x + p1->dy * w;
-        *y1 = p1->y - p1->dx * w;
-
-    }
-
-    else
-    {
-
-        *x0 = p1->x + p1->dmx * w;
-        *y0 = p1->y + p1->dmy * w;
-        *x1 = p1->x + p1->dmx * w;
-        *y1 = p1->y + p1->dmy * w;
-
-    }
-
-}
-
-static struct nvg_vertex *roundJoin(struct nvg_vertex *dst, struct nvg_point *p0, struct nvg_point *p1, float lw, float rw, float lu, float ru, int ncap, float fringe)
-{
-
-    int i, n;
-    float dlx0 = p0->dy;
-    float dly0 = -p0->dx;
-    float dlx1 = p1->dy;
-    float dly1 = -p1->dx;
-
-    if (p1->flags & NVG_PT_LEFT)
-    {
-
-        float lx0, ly0, lx1, ly1, a0, a1;
-
-        chooseBevel(p1->flags & NVG_PR_INNERBEVEL, p0, p1, lw, &lx0, &ly0, &lx1, &ly1);
-
-        a0 = atan2f(-dly0, -dlx0);
-        a1 = atan2f(-dly1, -dlx1);
-
-        if (a1 > a0)
-            a1 -= NVG_PI * 2;
-
-        vset(dst, lx0, ly0, lu, 1);
-
-        dst++;
-
-        vset(dst, p1->x - dlx0 * rw, p1->y - dly0 * rw, ru, 1);
-
-        dst++;
-
-        n = clampi((int)ceilf(((a0 - a1) / NVG_PI) * ncap), 2, ncap);
-
-        for (i = 0; i < n; i++)
-        {
-
-            float u = i / (float)(n - 1);
-            float a = a0 + u * (a1-a0);
-            float rx = p1->x + cosf(a) * rw;
-            float ry = p1->y + sinf(a) * rw;
-
-            vset(dst, p1->x, p1->y, 0.5f, 1);
-
-            dst++;
-
-            vset(dst, rx, ry, ru, 1);
-
-            dst++;
-
-        }
-
-        vset(dst, lx1, ly1, lu, 1);
-
-        dst++;
-
-        vset(dst, p1->x - dlx1 * rw, p1->y - dly1 * rw, ru, 1);
-
-        dst++;
-
-    }
-
-    else
-    {
-
-        float rx0, ry0, rx1, ry1, a0, a1;
-
-        chooseBevel(p1->flags & NVG_PR_INNERBEVEL, p0, p1, -rw, &rx0, &ry0, &rx1, &ry1);
-
-        a0 = atan2f(dly0, dlx0);
-        a1 = atan2f(dly1, dlx1);
-
-        if (a1 < a0)
-            a1 += NVG_PI * 2;
-
-        vset(dst, p1->x + dlx0 * rw, p1->y + dly0 * rw, lu, 1);
-
-        dst++;
-
-        vset(dst, rx0, ry0, ru, 1);
-
-        dst++;
-        n = clampi((int)ceilf(((a1 - a0) / NVG_PI) * ncap), 2, ncap);
-
-        for (i = 0; i < n; i++)
-        {
-
-            float u = i / (float)(n - 1);
-            float a = a0 + u*(a1 - a0);
-            float lx = p1->x + cosf(a) * lw;
-            float ly = p1->y + sinf(a) * lw;
-
-            vset(dst, lx, ly, lu, 1);
-
-            dst++;
-
-            vset(dst, p1->x, p1->y, 0.5f, 1);
-
-            dst++;
-
-        }
-
-        vset(dst, p1->x + dlx1 * rw, p1->y + dly1 * rw, lu, 1);
-
-        dst++;
-
-        vset(dst, rx1, ry1, ru, 1);
-
-        dst++;
-
-    }
-
-    return dst;
-
-}
-
-static struct nvg_vertex *bevelJoin(struct nvg_vertex *dst, struct nvg_point *p0, struct nvg_point *p1, float lw, float rw, float lu, float ru, float fringe)
-{
-
-    float rx0, ry0, rx1, ry1;
-    float lx0, ly0, lx1, ly1;
-    float dlx0 = p0->dy;
-    float dly0 = -p0->dx;
-    float dlx1 = p1->dy;
-    float dly1 = -p1->dx;
-
-    if (p1->flags & NVG_PT_LEFT)
-    {
-
-        chooseBevel(p1->flags & NVG_PR_INNERBEVEL, p0, p1, lw, &lx0, &ly0, &lx1, &ly1);
-        vset(dst, lx0, ly0, lu, 1);
-
-        dst++;
-
-        vset(dst, p1->x - dlx0 * rw, p1->y - dly0 * rw, ru, 1);
-
-        dst++;
-
-        if (p1->flags & NVG_PT_BEVEL)
-        {
-
-            vset(dst, lx0, ly0, lu, 1);
-
-            dst++;
-
-            vset(dst, p1->x - dlx0 * rw, p1->y - dly0 * rw, ru, 1);
-
-            dst++;
-
-            vset(dst, lx1, ly1, lu, 1);
-
-            dst++;
-
-            vset(dst, p1->x - dlx1 * rw, p1->y - dly1 * rw, ru, 1);
-            
-            dst++;
-
-        }
-
-        else
-        {
-
-            rx0 = p1->x - p1->dmx * rw;
-            ry0 = p1->y - p1->dmy * rw;
-
-            vset(dst, p1->x, p1->y, 0.5f, 1);
-
-            dst++;
-
-            vset(dst, p1->x - dlx0 * rw, p1->y - dly0 * rw, ru, 1);
-
-            dst++;
-
-            vset(dst, rx0, ry0, ru, 1);
-
-            dst++;
-
-            vset(dst, rx0, ry0, ru, 1);
-
-            dst++;
-
-            vset(dst, p1->x, p1->y, 0.5f, 1);
-
-            dst++;
-
-            vset(dst, p1->x - dlx1 * rw, p1->y - dly1 * rw, ru, 1);
-
-            dst++;
-
-        }
-
-        vset(dst, lx1, ly1, lu, 1);
-
-        dst++;
-
-        vset(dst, p1->x - dlx1 * rw, p1->y - dly1 * rw, ru, 1);
-
-        dst++;
-
-    }
-
-    else
-    {
-
-        chooseBevel(p1->flags & NVG_PR_INNERBEVEL, p0, p1, -rw, &rx0, &ry0, &rx1, &ry1);
-        vset(dst, p1->x + dlx0 * lw, p1->y + dly0 * lw, lu, 1);
-
-        dst++;
-
-        vset(dst, rx0, ry0, ru, 1);
-
-        dst++;
-
-        if (p1->flags & NVG_PT_BEVEL)
-        {
-
-            vset(dst, p1->x + dlx0 * lw, p1->y + dly0 * lw, lu, 1);
-
-            dst++;
-
-            vset(dst, rx0, ry0, ru, 1);
-
-            dst++;
-
-            vset(dst, p1->x + dlx1 * lw, p1->y + dly1 * lw, lu, 1);
-
-            dst++;
-
-            vset(dst, rx1, ry1, ru, 1);
-
-            dst++;
-
-        }
-
-        else
-        {
-
-            lx0 = p1->x + p1->dmx * lw;
-            ly0 = p1->y + p1->dmy * lw;
-
-            vset(dst, p1->x + dlx0 * lw, p1->y + dly0 * lw, lu, 1);
-
-            dst++;
-
-            vset(dst, p1->x, p1->y, 0.5f, 1);
-
-            dst++;
-
-            vset(dst, lx0, ly0, lu, 1);
-
-            dst++;
-
-            vset(dst, lx0, ly0, lu, 1);
-
-            dst++;
-
-            vset(dst, p1->x + dlx1 * lw, p1->y + dly1 * lw, lu, 1);
-
-            dst++;
-
-            vset(dst, p1->x, p1->y, 0.5f, 1);
-
-            dst++;
-
-        }
-
-        vset(dst, p1->x + dlx1 * lw, p1->y + dly1 * lw, lu, 1);
-
-        dst++;
-
-        vset(dst, rx1, ry1, ru, 1);
-
-        dst++;
-
-    }
-
-    return dst;
-
-}
-
-static struct nvg_vertex *buttCapStart(struct nvg_vertex *dst, struct nvg_point *p, float dx, float dy, float w, float d, float aa, float u0, float u1)
-{
-
-    float px = p->x - dx * d;
-    float py = p->y - dy * d;
-    float dlx = dy;
-    float dly = -dx;
-
-    vset(dst, px + dlx * w - dx * aa, py + dly * w - dy * aa, u0, 0);
-
-    dst++;
-
-    vset(dst, px - dlx * w - dx * aa, py - dly * w - dy * aa, u1, 0);
-
-    dst++;
-
-    vset(dst, px + dlx * w, py + dly * w, u0, 1);
-
-    dst++;
-
-    vset(dst, px - dlx * w, py - dly * w, u1, 1);
-
-    dst++;
-
-    return dst;
-
-}
-
-static struct nvg_vertex *buttCapEnd(struct nvg_vertex *dst, struct nvg_point *p, float dx, float dy, float w, float d, float aa, float u0, float u1)
-{
-
-    float px = p->x + dx * d;
-    float py = p->y + dy * d;
-    float dlx = dy;
-    float dly = -dx;
-
-    vset(dst, px + dlx * w, py + dly * w, u0, 1);
-
-    dst++;
-
-    vset(dst, px - dlx * w, py - dly * w, u1, 1);
-
-    dst++;
-
-    vset(dst, px + dlx * w + dx * aa, py + dly * w + dy * aa, u0, 0);
-
-    dst++;
-
-    vset(dst, px - dlx * w + dx * aa, py - dly * w + dy * aa, u1, 0);
-
-    dst++;
-
-    return dst;
-
-}
-
-static struct nvg_vertex *roundCapStart(struct nvg_vertex *dst, struct nvg_point *p, float dx, float dy, float w, int ncap, float aa, float u0, float u1)
-{
-
-    int i;
-    float px = p->x;
-    float py = p->y;
-    float dlx = dy;
-    float dly = -dx;
-
-    for (i = 0; i < ncap; i++)
-    {
-
-        float a = i / (float)(ncap - 1) * NVG_PI;
-        float ax = cosf(a) * w, ay = sinf(a) * w;
-
-        vset(dst, px - dlx * ax - dx * ay, py - dly * ax - dy * ay, u0, 1);
-
-        dst++;
-
-        vset(dst, px, py, 0.5f, 1);
-
-        dst++;
-
-    }
-
-    vset(dst, px + dlx * w, py + dly * w, u0, 1);
-
-    dst++;
-
-    vset(dst, px - dlx * w, py - dly * w, u1, 1);
-
-    dst++;
-
-    return dst;
-    
-}
-
-static struct nvg_vertex *roundCapEnd(struct nvg_vertex *dst, struct nvg_point *p, float dx, float dy, float w, int ncap, float aa, float u0, float u1)
-{
-
-    int i;
-    float px = p->x;
-    float py = p->y;
-    float dlx = dy;
-    float dly = -dx;
-
-    vset(dst, px + dlx * w, py + dly * w, u0, 1);
-
-    dst++;
-
-    vset(dst, px - dlx * w, py - dly * w, u1, 1);
-
-    dst++;
-
-    for (i = 0; i < ncap; i++)
-    {
-
-        float a = i / (float)(ncap - 1) * NVG_PI;
-        float ax = cosf(a) * w, ay = sinf(a) * w;
-
-        vset(dst, px, py, 0.5f, 1);
-
-        dst++;
-
-        vset(dst, px - dlx * ax + dx*ay, py - dly * ax + dy * ay, u0, 1);
-        
-        dst++;
-
-    }
-
-    return dst;
-
-}
-
-static void calculateJoins(struct nvg_context *ctx, float w, int linejoin, float miterLimit)
-{
-
-    struct nvg_pathcache *cache = &ctx->cache;
-    int i, j;
-    float iw = 0.0f;
-
-    if (w > 0.0f)
-        iw = 1.0f / w;
-
-    for (i = 0; i < cache->npaths; i++)
-    {
-
-        struct nvg_path *path = &cache->paths[i];
-        struct nvg_point *pts = &cache->points[path->first];
-        struct nvg_point *p0 = &pts[path->count - 1];
-        struct nvg_point *p1 = &pts[0];
-        int nleft = 0;
-
-        path->nbevel = 0;
-
-        for (j = 0; j < path->count; j++)
-        {
-
-            float dlx0, dly0, dlx1, dly1, dmr2, cross, limit;
-
-            dlx0 = p0->dy;
-            dly0 = -p0->dx;
-            dlx1 = p1->dy;
-            dly1 = -p1->dx;
-            p1->dmx = (dlx0 + dlx1) * 0.5f;
-            p1->dmy = (dly0 + dly1) * 0.5f;
-            dmr2 = p1->dmx * p1->dmx + p1->dmy * p1->dmy;
-
-            if (dmr2 > 0.000001f)
-            {
-
-                float scale = 1.0f / dmr2;
-
-                if (scale > 600.0f)
-                    scale = 600.0f;
-
-                p1->dmx *= scale;
-                p1->dmy *= scale;
-
-            }
-
-            p1->flags = (p1->flags & NVG_PT_CORNER) ? NVG_PT_CORNER : 0;
-            cross = p1->dx * p0->dy - p0->dx * p1->dy;
-
-            if (cross > 0.0f)
-            {
-
-                nleft++;
-                p1->flags |= NVG_PT_LEFT;
-
-            }
-
-            limit = maxf(1.01f, minf(p0->len, p1->len) * iw);
-
-            if ((dmr2 * limit * limit) < 1.0f)
-                p1->flags |= NVG_PR_INNERBEVEL;
-
-            if (p1->flags & NVG_PT_CORNER)
-            {
-
-                if ((dmr2 * miterLimit * miterLimit) < 1.0f || linejoin == NVG_BEVEL || linejoin == NVG_ROUND)
-                    p1->flags |= NVG_PT_BEVEL;
-
-            }
-
-            if ((p1->flags & (NVG_PT_BEVEL | NVG_PR_INNERBEVEL)) != 0)
-                path->nbevel++;
-
-            p0 = p1++;
-
-        }
-
-        path->convex = (nleft == path->count) ? 1 : 0;
-
-    }
-
-}
-
-int nvg_expand_stroke(struct nvg_context *ctx, float w, float fringe, int linecap, int linejoin, float miterLimit)
+int nvg_expand_fill(struct nvg_context *ctx)
 {
 
     struct nvg_pathcache *cache = &ctx->cache;
     struct nvg_vertex *verts = ctx->cache.verts;
     struct nvg_vertex *dst;
     int cverts, i, j;
-    float aa = fringe;
-    float u0 = 0.0f, u1 = 1.0f;
-    int ncap = curveDivs(w, NVG_PI, ctx->tessTol);
-
-    w += aa * 0.5f;
-
-    if (aa == 0.0f)
-    {
-
-        u0 = 0.5f;
-        u1 = 0.5f;
-
-    }
-
-    calculateJoins(ctx, w, linejoin, miterLimit);
 
     cverts = 0;
 
@@ -1662,22 +1061,8 @@ int nvg_expand_stroke(struct nvg_context *ctx, float w, float fringe, int lineca
     {
 
         struct nvg_path *path = &cache->paths[i];
-        int loop = (path->closed) ? 1 : 0;
 
-        if (linejoin == NVG_ROUND)
-            cverts += (path->count + path->nbevel * (ncap + 2) + 1) * 2;
-        else
-            cverts += (path->count + path->nbevel * 5 + 1) * 2;
-
-        if (!loop)
-        {
-
-            if (linecap == NVG_ROUND)
-                cverts += (ncap * 2 + 2) * 2;
-            else
-                cverts += (3 + 3) * 2;
-
-        }
+        cverts += path->count + 1;
 
     }
 
@@ -1686,311 +1071,15 @@ int nvg_expand_stroke(struct nvg_context *ctx, float w, float fringe, int lineca
 
         struct nvg_path *path = &cache->paths[i];
         struct nvg_point *pts = &cache->points[path->first];
-        struct nvg_point *p0;
-        struct nvg_point *p1;
-        int s, e, loop;
-        float dx, dy;
 
-        path->fill = 0;
-        path->nfill = 0;
-        loop = (path->closed) ? 1 : 0;
-        dst = verts;
-        path->stroke = dst;
-
-        if (loop)
-        {
-
-            p0 = &pts[path->count - 1];
-            p1 = &pts[0];
-            s = 0;
-            e = path->count;
-
-        }
-
-        else
-        {
-
-            p0 = &pts[0];
-            p1 = &pts[1];
-            s = 1;
-            e = path->count - 1;
-
-        }
-
-        if (!loop)
-        {
-
-            dx = p1->x - p0->x;
-            dy = p1->y - p0->y;
-
-            normalize(&dx, &dy);
-
-            if (linecap == NVG_BUTT)
-                dst = buttCapStart(dst, p0, dx, dy, w, -aa * 0.5f, aa, u0, u1);
-            else if (linecap == NVG_BUTT || linecap == NVG_SQUARE)
-                dst = buttCapStart(dst, p0, dx, dy, w, w-aa, aa, u0, u1);
-            else if (linecap == NVG_ROUND)
-                dst = roundCapStart(dst, p0, dx, dy, w, ncap, aa, u0, u1);
-
-        }
-
-        for (j = s; j < e; ++j)
-        {
-
-            if ((p1->flags & (NVG_PT_BEVEL | NVG_PR_INNERBEVEL)) != 0)
-            {
-
-                if (linejoin == NVG_ROUND)
-                    dst = roundJoin(dst, p0, p1, w, w, u0, u1, ncap, aa);
-                else
-                    dst = bevelJoin(dst, p0, p1, w, w, u0, u1, aa);
-
-            }
-
-            else
-            {
-
-                vset(dst, p1->x + (p1->dmx * w), p1->y + (p1->dmy * w), u0, 1);
-
-                dst++;
-
-                vset(dst, p1->x - (p1->dmx * w), p1->y - (p1->dmy * w), u1, 1);
-
-                dst++;
-
-            }
-
-            p0 = p1++;
-
-        }
-
-        if (loop)
-        {
-
-            vset(dst, verts[0].x, verts[0].y, u0, 1);
-
-            dst++;
-
-            vset(dst, verts[1].x, verts[1].y, u1, 1);
-
-            dst++;
-
-        }
-
-        else
-        {
-
-            dx = p1->x - p0->x;
-            dy = p1->y - p0->y;
-
-            normalize(&dx, &dy);
-
-            if (linecap == NVG_BUTT)
-                dst = buttCapEnd(dst, p1, dx, dy, w, -aa * 0.5f, aa, u0, u1);
-            else if (linecap == NVG_BUTT || linecap == NVG_SQUARE)
-                dst = buttCapEnd(dst, p1, dx, dy, w, w-aa, aa, u0, u1);
-            else if (linecap == NVG_ROUND)
-                dst = roundCapEnd(dst, p1, dx, dy, w, ncap, aa, u0, u1);
-
-        }
-
-        path->nstroke = (int)(dst - verts);
-        verts = dst;
-
-    }
-
-    return 1;
-
-}
-
-int nvg_expand_fill(struct nvg_context *ctx, float w, int linejoin, float miterLimit)
-{
-
-    struct nvg_pathcache *cache = &ctx->cache;
-    struct nvg_vertex *verts = ctx->cache.verts;
-    struct nvg_vertex *dst;
-    int cverts, convex, i, j;
-    int fringe = w > 0.0f;
-
-    calculateJoins(ctx, w, linejoin, miterLimit);
-
-    cverts = 0;
-
-    for (i = 0; i < cache->npaths; i++)
-    {
-
-        struct nvg_path *path = &cache->paths[i];
-        cverts += path->count + path->nbevel + 1;
-
-        if (fringe)
-            cverts += (path->count + path->nbevel * 5 + 1) * 2;
-
-    }
-
-    convex = cache->npaths == 1 && cache->paths[0].convex;
-
-    for (i = 0; i < cache->npaths; i++)
-    {
-
-        struct nvg_path *path = &cache->paths[i];
-        struct nvg_point *pts = &cache->points[path->first];
-        struct nvg_point *p0;
-        struct nvg_point *p1;
-        float rw, lw, woff;
-        float ru, lu;
-
-        woff = 0.5f * ctx->fringeWidth;
         dst = verts;
         path->fill = dst;
 
-        if (fringe)
-        {
-
-            p0 = &pts[path->count - 1];
-            p1 = &pts[0];
-
-            for (j = 0; j < path->count; ++j)
-            {
-
-                if (p1->flags & NVG_PT_BEVEL)
-                {
-
-                    float dlx0 = p0->dy;
-                    float dly0 = -p0->dx;
-                    float dlx1 = p1->dy;
-                    float dly1 = -p1->dx;
-
-                    if (p1->flags & NVG_PT_LEFT)
-                    {
-
-                        float lx = p1->x + p1->dmx * woff;
-                        float ly = p1->y + p1->dmy * woff;
-
-                        vset(dst, lx, ly, 0.5f, 1);
-
-                        dst++;
-
-                    }
-
-                    else
-                    {
-
-                        float lx0 = p1->x + dlx0 * woff;
-                        float ly0 = p1->y + dly0 * woff;
-                        float lx1 = p1->x + dlx1 * woff;
-                        float ly1 = p1->y + dly1 * woff;
-
-                        vset(dst, lx0, ly0, 0.5f, 1);
-
-                        dst++;
-
-                        vset(dst, lx1, ly1, 0.5f, 1);
-
-                        dst++;
-
-                    }
-
-                }
-
-                else
-                {
-
-                    vset(dst, p1->x + (p1->dmx * woff), p1->y + (p1->dmy * woff), 0.5f, 1);
-
-                    dst++;
-
-                }
-
-                p0 = p1++;
-
-            }
-
-        }
-
-        else
-        {
-
-            for (j = 0; j < path->count; ++j)
-            {
-
-                vset(dst, pts[j].x, pts[j].y, 0.5f, 1);
-
-                dst++;
-
-            }
-
-        }
+        for (j = 0; j < path->count; ++j)
+            vset(dst++, pts[j].x, pts[j].y, 0.5f, 1);
 
         path->nfill = (int)(dst - verts);
         verts = dst;
-
-        if (fringe)
-        {
-
-            lw = w + woff;
-            rw = w - woff;
-            lu = 0;
-            ru = 1;
-            dst = verts;
-            path->stroke = dst;
-
-            if (convex)
-            {
-
-                lw = woff;
-                lu = 0.5f;
-
-            }
-
-            p0 = &pts[path->count - 1];
-            p1 = &pts[0];
-
-            for (j = 0; j < path->count; ++j)
-            {
-
-                if ((p1->flags & (NVG_PT_BEVEL | NVG_PR_INNERBEVEL)) != 0)
-                {
-
-                    dst = bevelJoin(dst, p0, p1, lw, rw, lu, ru, ctx->fringeWidth);
-
-                }
-
-                else
-                {
-
-                    vset(dst, p1->x + (p1->dmx * lw), p1->y + (p1->dmy * lw), lu, 1);
-
-                    dst++;
-
-                    vset(dst, p1->x - (p1->dmx * rw), p1->y - (p1->dmy * rw), ru, 1);
-
-                    dst++;
-
-                }
-
-                p0 = p1++;
-
-            }
-
-            vset(dst, verts[0].x, verts[0].y, lu, 1);
-
-            dst++;
-
-            vset(dst, verts[1].x, verts[1].y, ru, 1);
-
-            dst++;
-            path->nstroke = (int)(dst - verts);
-            verts = dst;
-
-        }
-
-        else
-        {
-
-            path->stroke = NULL;
-            path->nstroke = 0;
-
-        }
 
     }
 
@@ -2327,19 +1416,16 @@ void nvgCircle(struct nvg_context *ctx, float cx, float cy, float r)
 void nvg_init(struct nvg_context *ctx)
 {
 
-    setPaintColor(&ctx->state.fill, nvgRGBA(255, 255, 255, 255));
-    setPaintColor(&ctx->state.stroke, nvgRGBA(0, 0, 0, 255));
-
-    ctx->state.shapeAntiAlias = 1;
-    ctx->state.strokeWidth = 1.0f;
-    ctx->state.miterLimit = 10.0f;
-    ctx->state.linecap = NVG_BUTT;
-    ctx->state.linejoin = NVG_MITER;
-
-    nvgTransformIdentity(ctx->state.xform);
-
+    ctx->tessTol = 0.25f;
+    ctx->distTol = 0.01f;
+    ctx->drawCallCount = 0;
+    ctx->fillTriCount = 0;
+    ctx->textTriCount = 0;
     ctx->state.scissor.extent[0] = -1.0f;
     ctx->state.scissor.extent[1] = -1.0f;
+
+    setPaintColor(&ctx->state.fill, nvgRGBA(255, 255, 255, 255));
+    nvgTransformIdentity(ctx->state.xform);
 
 }
 

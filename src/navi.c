@@ -6,21 +6,30 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include "stb_truetype.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 #include "fons.h"
 #include "nvg.h"
 #include "nvg_gl.h"
 #include "list.h"
 #include "style.h"
+#include "resource.h"
 #include "widgets.h"
 #include "parser.h"
 #include "call.h"
 #include "pool.h"
 
 static struct parser parser;
-static float marginx;
-static float marginy;
-static float gridx;
-static float gridy;
+static float margin_w;
+static float margin_h;
+static float unit_w;
+static float unit_h;
+static int view_x;
+static int view_y;
+static int view_w;
+static int view_h;
+static double mouse_x;
+static double mouse_y;
 static int fontface_regular;
 static int fontface_bold;
 static int fontface_icon;
@@ -31,138 +40,107 @@ static float fontsize_xlarge;
 static GLFWcursor *cursor_arrow;
 static GLFWcursor *cursor_ibeam;
 static GLFWcursor *cursor_hand;
-static double mx;
-static double my;
-static int scrollx;
-static int scrolly;
-static int winw;
-static int winh;
-static int fbw;
-static int fbh;
 static struct alfi_widget *hover;
 static struct alfi_widget *focus;
-static struct alfi_color color_fade1;
-static struct alfi_color color_fade2;
 static struct alfi_color color_background;
 static struct alfi_color color_text;
 static struct alfi_color color_header;
 static struct alfi_color color_focus;
+static struct alfi_color color_focustext;
 static struct alfi_color color_line;
 static struct nvg_context ctx;
 static struct nvg_gl_context glctx;
 static struct fons_context fsctx;
-static char *url_default = "file://";
-static char *url_home = "http://blunder.se/";
-static char *url_test = "file:///usr/share/navi/example.alfi";
-static unsigned int ngroups;
+static struct resource res_page_default;
+static struct resource res_page_home;
+static struct resource res_page_test;
+static struct resource res_page_current;
+static struct resource res_font_regular;
+static struct resource res_font_bold;
+static struct resource res_font_icon;
+static unsigned int updatetitle;
 
-static struct alfi_widget *findrecursively(struct alfi_widget *widget, float x, float y)
+static struct alfi_widget *parser_findwidget(char *name)
 {
 
-    struct alfi_widget *child = 0;
+    return pool_findbyname(name);
 
-    while ((child = pool_nextchild(child, widget)))
+}
+
+static char *parser_allocate(char *string, unsigned int size, unsigned int count, char *content)
+{
+
+    if (string)
     {
 
-        if (box_istouching(&child->bb, x, y))
-            return findrecursively(child, x, y);
+        free(string);
+
+        string = 0;
 
     }
 
-    return widget;
-
-}
-
-static struct alfi_widget *findwidget(float x, float y)
-{
-
-    struct alfi_widget *root = 0;
-
-    while ((root = pool_nextingroupoftype(root, 0, ALFI_WIDGET_WINDOW)))
+    if (size)
     {
 
-        if (box_istouching(&root->bb, x, y))
-            return findrecursively(root, x, y);
+        string = malloc(size);
+
+        if (count)
+            memcpy(string, content, count);
 
     }
-
-    return 0;
-
-}
-
-static struct alfi_widget *parser_find(char *name, unsigned int group)
-{
-
-    return pool_findbyname(group, name);
-
-}
-
-static char *parser_createstring(unsigned int size, unsigned int count, char *content)
-{
-
-    char *string = malloc(size);
-
-    if (count)
-        memcpy(string, content, count);
 
     return string;
 
 }
 
-static void parser_destroystring(char *string)
+static char *parser_createstring(char *string, char *content)
 {
 
-    free(string);
+    return parser.allocate(string, strlen(content) + 1, strlen(content) + 1, content);
 
 }
 
-static struct alfi_widget *parser_create(unsigned int type, unsigned int group, char *in)
+static char *parser_destroystring(char *string)
+{
+
+    return parser.allocate(string, 0, 0, 0);
+
+}
+
+static struct alfi_widget *parser_createwidget(unsigned int type, char *in)
 {
 
     struct alfi_widget *widget = pool_create();
 
+    memset(&widget->data, 0, sizeof (union alfi_payload));
+
     widget->type = type;
-    widget->group = group;
-    widget->in.name = parser.createstring(strlen(in) + 1, strlen(in) + 1, in);
+    widget->id.name = parser.createstring(widget->id.name, "");
+    widget->in.name = parser.createstring(widget->in.name, in);
+
+    box_init(&widget->bb, 0, 0, 0, 0, 0);
+    call_create(widget);
+    call_setstate(widget, ALFI_STATE_NORMAL);
 
     return widget;
 
 }
 
-static void parser_destroy(struct alfi_widget *widget)
+static struct alfi_widget *parser_destroywidget(struct alfi_widget *widget)
 {
 
     struct alfi_widget *child = 0;
 
     while ((child = pool_nextchild(child, widget)))
-    {
+        child = parser_destroywidget(child);
 
-        parser_destroy(child);
+    widget->id.name = parser.destroystring(widget->id.name);
+    widget->in.name = parser.destroystring(widget->in.name);
 
-        child = 0;
-
-    }
-
-    parser.destroystring(widget->id.name);
-    parser.destroystring(widget->in.name);
     call_destroy(widget);
     pool_destroy(widget);
 
-}
-
-static void parser_clear(struct alfi_widget *widget)
-{
-
-    struct alfi_widget *child = 0;
-
-    while ((child = pool_nextchild(child, widget)))
-    {
-
-        parser_destroy(child);
-
-        child = 0;
-
-    }
+    return 0;
 
 }
 
@@ -174,27 +152,159 @@ static void parser_fail(unsigned int line)
 
 }
 
-static void loadbase(unsigned int group)
+static void view_setsize(int w, int h)
+{
+
+    view_w = w;
+    view_h = h;
+    unit_w = view_w / 32;
+    unit_h = view_h / 32;
+    margin_w = 12;
+    margin_h = 12;
+
+    if (unit_w < 32)
+        unit_w = 32;
+
+    if (unit_h < 32)
+        unit_h = 32;
+
+}
+
+static void view_setposition(float x, float y)
+{
+
+    view_x = x;
+    view_y = y;
+
+}
+
+static void view_adjust(void)
+{
+
+    struct alfi_widget *window = pool_findbyname("window");
+
+    if (!window)
+        return;
+
+    if (view_w < window->bb.w)
+    {
+
+        if (view_x > 0)
+            view_x = 0;
+
+        if (view_x < view_w - window->bb.w)
+            view_x = view_w - window->bb.w;
+
+    }
+
+    else
+    {
+
+        view_x = view_w / 2 - window->bb.w / 2;
+
+    }
+
+    if (view_h < window->bb.h)
+    {
+
+        if (view_y > 0)
+            view_y = 0;
+
+        if (view_y < view_h - window->bb.h)
+            view_y = view_h - window->bb.h;
+
+    }
+
+    else
+    {
+
+        view_y = 0;
+
+    }
+
+}
+
+static void setcolors(unsigned int id)
+{
+
+    switch (id)
+    {
+
+    case 0:
+        color_init(&color_background, 255, 255, 255, 255);
+        color_init(&color_text, 96, 96, 96, 255);
+        color_init(&color_header, 64, 64, 64, 255);
+        color_init(&color_focus, 96, 192, 192, 255);
+        color_init(&color_focustext, 255, 255, 255, 255);
+        color_init(&color_line, 192, 192, 192, 255);
+
+        break;
+
+    case 1:
+        color_init(&color_background, 24, 24, 24, 255);
+        color_init(&color_text, 192, 192, 192, 255);
+        color_init(&color_header, 224, 224, 224, 255);
+        color_init(&color_focus, 96, 192, 192, 255);
+        color_init(&color_focustext, 255, 255, 255, 255);
+        color_init(&color_line, 96, 96, 96, 255);
+
+        break;
+
+    }
+
+}
+
+static void setcursor(struct GLFWwindow *window, unsigned int type)
+{
+
+    switch (type)
+    {
+
+    case ALFI_CURSOR_HAND:
+        glfwSetCursor(window, cursor_hand);
+
+        break;
+
+    case ALFI_CURSOR_IBEAM:
+        glfwSetCursor(window, cursor_ibeam);
+
+        break;
+
+    case ALFI_CURSOR_ARROW:
+        glfwSetCursor(window, cursor_arrow);
+
+        break;
+
+    default:
+        glfwSetCursor(window, cursor_arrow);
+
+        break;
+
+    }
+
+}
+
+static void loadbase(void)
 {
 
     struct alfi_widget *widget;
 
-    widget = parser_create(ALFI_WIDGET_WINDOW, group, "");
+    widget = parser_createwidget(ALFI_WIDGET_WINDOW, "");
 
     if (widget)
     {
 
-        widget->id.name = parser.createstring(7, 7, "window");
-        widget->data.window.label.content = parser.createstring(10, 10, "undefined");
+        widget->id.name = parser.createstring(widget->id.name, "window");
+        widget->data.window.label.content = parser.createstring(widget->data.window.label.content, "undefined");
 
     }
 
-    widget = parser_create(ALFI_WIDGET_VSTACK, group, "window");
+    widget = parser_createwidget(ALFI_WIDGET_VSTACK, "window");
 
     if (widget)
     {
 
-        widget->id.name = parser.createstring(5, 5, "main");
+        widget->id.name = parser.createstring(widget->id.name, "main");
         widget->data.vstack.halign.direction = ALFI_HALIGN_LEFT;
         widget->data.vstack.valign.direction = ALFI_VALIGN_TOP;
 
@@ -202,7 +312,7 @@ static void loadbase(unsigned int group)
 
 }
 
-static void loadurl(char *path, unsigned int group)
+static void loadalfi(struct resource *resource)
 {
 
     int fd[2];
@@ -225,7 +335,7 @@ static void loadurl(char *path, unsigned int group)
         close(fd[1]);
 
         while ((count = read(fd[0], data, 4096)))
-            parser_parsedata(&parser, group, "main", count, data);
+            parser_parse(&parser, "main", count, data);
 
         close(fd[0]);
 
@@ -238,69 +348,111 @@ static void loadurl(char *path, unsigned int group)
         dup2(fd[1], 1);
         close(fd[0]);
         close(fd[1]);
-        execlp("navi-resolve", "navi-resolve", path, NULL);
+        execlp("navi-resolve", "navi-resolve", resource->url, NULL);
         exit(EXIT_FAILURE);
 
     }
 
 }
 
-static void place(unsigned int group, float x, float y, float u)
+/*
+static void loadimage(struct alfi_resource *resource, char *url)
 {
 
-    struct alfi_widget *widget = 0;
-    float cx = x;
-    float cy = y;
-    float cw = 0;
-    float ch = 0;
+    int fd[2];
+    pid_t pid;
 
-    while ((widget = pool_nextingroupoftype(widget, group, ALFI_WIDGET_WINDOW)))
+    if (pipe(fd) < 0)
+        return;
+
+    pid = fork();
+
+    if (pid < 0)
+        return;
+
+    if (pid)
     {
 
-        call_place(widget, cx, cy, cw, ch, u);
+        unsigned char *data = malloc(0x20000);
+        int w, h, n;
+        int ndata;
+        unsigned char *img;
 
-        cx += widget->bb.w + gridx * 2;
+        close(fd[1]);
+
+        ndata = read(fd[0], data, 0x20000);
+
+        img = stbi_load_from_memory(data, ndata, &w, &h, &n, 4);
+
+        if (img)
+        {
+
+            resource->ref = nvg_gl_createimagergba(&glctx, &ctx, w, h, 0, img);
+
+            stbi_image_free(img);
+
+        }
+
+        close(fd[0]);
+
+    }
+
+    else
+    {
+
+        dup2(fd[0], 0);
+        dup2(fd[1], 1);
+        close(fd[0]);
+        close(fd[1]);
+        execlp("navi-resolve", "navi-resolve", url, NULL);
+        exit(EXIT_FAILURE);
 
     }
 
 }
+*/
 
-static void init(unsigned int group)
+static void place(float x, float y, float u)
 {
 
-    struct alfi_widget *widget = 0;
+    struct alfi_widget *window = pool_findbyname("window");
 
-    while ((widget = pool_nextingroup(widget, group)))
-    {
-
-        call_init(widget);
-        call_setstate(widget, ALFI_STATE_NORMAL);
-
-    }
+    if (window)
+        call_place(window, x, y, 0, 0, u);
 
 }
 
-static void createpage(char *url)
+static void clear(struct alfi_widget *widget)
 {
 
-    unsigned int group = ++ngroups;
+    struct alfi_widget *child = 0;
 
-    loadbase(group);
-    loadurl(url, group);
-    init(group);
-    place(0, scrollx, scrolly, 1.0);
+    while ((child = pool_nextchild(child, widget)))
+        child = parser_destroywidget(child);
 
 }
 
-static void recreatepage(char *url, int group)
+static void loadpart(char *url)
 {
 
-    struct alfi_widget *main = pool_findbyname(group, "main");
+    struct resource res;
 
-    parser_clear(main);
-    loadurl(url, group);
-    init(group);
-    place(0, scrollx, scrolly, 1.0);
+    resource_seturl(&res, url);
+    loadalfi(&res);
+    place(view_x, view_y, 1.0);
+
+    updatetitle = 1;
+
+}
+
+static void loadmain(char *url)
+{
+
+    resource_seturl(&res_page_current, url);
+    clear(pool_findbyname("main"));
+    loadpart(res_page_current.url);
+    view_setposition(0, 0);
+    view_adjust();
 
 }
 
@@ -359,12 +511,13 @@ static const char *calcline(struct alfi_style *style, const char *string, const 
     int ptype = NVG_SPACE;
     unsigned int pcodepoint = 0;
 
-    fonsSetFont(&fsctx, style->font.face);
-    fonsSetSize(&fsctx, style->font.size);
-    fonsSetAlign(&fsctx, style->font.align);
-    fonsTextIterInit(&fsctx, &iter, 0, 0, string, end, FONS_GLYPH_BITMAP_OPTIONAL);
+    fsctx.state.font = style->font.face;
+    fsctx.state.size = style->font.size;
+    fsctx.state.align = style->font.align;
 
-    while (fonsTextIterNext(&fsctx, &iter, &q))
+    fons_inititer(&fsctx, &iter, 0, 0, string, end, FONS_GLYPH_BITMAP_OPTIONAL);
+
+    while (fons_nextiter(&fsctx, &iter, &q))
     {
 
         switch (iter.codepoint)
@@ -562,7 +715,7 @@ static float alfi_style_textheight(struct alfi_style *style, char *text)
 
     for (i = 0; (current = calcline(style, current, end, style->box.w, &row)); i++);
 
-    return i * style->font.height;
+    return (i) ? i * style->font.size : style->font.size;
 
 }
 
@@ -582,7 +735,53 @@ static void alfi_style_filltext(struct alfi_style *style, char *text)
 
         nvg_gl_text(&glctx, &ctx, &ctx.state, &fsctx, x, y, row.start, row.end);
 
-        y += style->font.height;
+        y += style->font.size;
+
+    }
+
+}
+
+static void alfi_style_filltextinput(struct alfi_style *style, char *text, int offset)
+{
+
+    struct nvg_textrow row;
+    const char *current = text;
+    const char *end = current + strlen(text);
+    float x = style->box.x;
+    float y = style->box.y;
+    unsigned int i;
+
+    nvg_setfillcolor(&ctx, nvgRGBA(style->color.r, style->color.g, style->color.b, style->color.a));
+
+    for (i = 0; (current = calcline(style, current, end, style->box.w, &row)); i++)
+    {
+
+        int length = row.end - row.start;
+
+        if (offset >= 0 && offset <= length)
+        {
+
+            x = nvg_gl_text(&glctx, &ctx, &ctx.state, &fsctx, x, y, row.start, row.start + offset);
+
+            nvg_gl_text(&glctx, &ctx, &ctx.state, &fsctx, x, y, row.start + offset, row.end);
+            nvgBeginPath(&ctx);
+            nvgRoundedRect(&ctx, x, y, 3, style->font.size, 0);
+            nvg_setfillcolor(&ctx, nvgRGBA(color_focus.r, color_focus.g, color_focus.b, color_focus.a));
+            nvg_gl_fill(&glctx, &ctx, &ctx.state);
+
+            x = style->box.x;
+
+        }
+
+        else
+        {
+
+            nvg_gl_text(&glctx, &ctx, &ctx.state, &fsctx, x, y, row.start, row.end);
+
+        }
+
+        offset -= length;
+        y += style->font.size;
 
     }
 
@@ -593,10 +792,10 @@ static void alfi_style_filldivider(struct alfi_style *border, struct alfi_style 
 
     nvgBeginPath(&ctx);
     nvgRect(&ctx, border->box.x, border->box.y, border->box.w, border->box.h);
-    nvgPathWinding(&ctx, NVG_HOLE);
+    nvgPathWinding(&ctx, NVG_CW);
 
     if (strlen(content))
-        nvgRect(&ctx, label->box.x - alfi_style_textwidth(label, content) * 0.5 - marginx, border->box.y, alfi_style_textwidth(label, content) + marginx * 2, border->box.h);
+        nvgRect(&ctx, label->box.x - alfi_style_textwidth(label, content) * 0.5 - margin_w, border->box.y, alfi_style_textwidth(label, content) + margin_w * 2, border->box.h);
 
     nvg_setfillcolor(&ctx, nvgRGBA(border->color.r, border->color.g, border->color.b, border->color.a));
     nvg_gl_fill(&glctx, &ctx, &ctx.state);
@@ -611,7 +810,7 @@ static void alfi_style_fillborder(struct alfi_style *border, struct alfi_style *
 
     nvgBeginPath(&ctx);
     nvgRoundedRect(&ctx, border->box.x, border->box.y, border->box.w, border->box.h, border->box.r);
-    nvgPathWinding(&ctx, NVG_HOLE);
+    nvgPathWinding(&ctx, NVG_CW);
     nvgRoundedRect(&ctx, border->box.x + bordersize, border->box.y + bordersize, border->box.w - bordersize * 2, border->box.h - bordersize * 2, border->box.r);
     nvg_setfillcolor(&ctx, nvgRGBA(border->color.r, border->color.g, border->color.b, border->color.a));
     nvg_gl_fill(&glctx, &ctx, &ctx.state);
@@ -626,11 +825,11 @@ static void alfi_style_fillborder2(struct alfi_style *border, struct alfi_style 
 
     nvgBeginPath(&ctx);
     nvgRoundedRect(&ctx, border->box.x, border->box.y, border->box.w, border->box.h, border->box.r);
-    nvgPathWinding(&ctx, NVG_HOLE);
+    nvgPathWinding(&ctx, NVG_CW);
     nvgRoundedRect(&ctx, border->box.x + bordersize, border->box.y + bordersize, border->box.w - bordersize * 2, border->box.h - bordersize * 2, border->box.r);
 
     if (strlen(content))
-        nvgRect(&ctx, label->box.x - marginx, border->box.y, alfi_style_textwidth(label, content) + marginx * 2, bordersize);
+        nvgRect(&ctx, label->box.x - margin_w, border->box.y, alfi_style_textwidth(label, content) + margin_w * 2, bordersize);
 
     nvg_setfillcolor(&ctx, nvgRGBA(border->color.r, border->color.g, border->color.b, border->color.a));
     nvg_gl_fill(&glctx, &ctx, &ctx.state);
@@ -650,6 +849,7 @@ static void alfi_style_fillrect(struct alfi_style *style)
 
 }
 
+/*
 static void alfi_style_paintrect(struct alfi_style *style, struct nvg_paint paint)
 {
 
@@ -659,6 +859,7 @@ static void alfi_style_paintrect(struct alfi_style *style, struct nvg_paint pain
     nvg_gl_fill(&glctx, &ctx, &ctx.state);
 
 }
+*/
 
 static void alfi_style_fillcircle(struct alfi_style *style)
 {
@@ -667,6 +868,15 @@ static void alfi_style_fillcircle(struct alfi_style *style)
     nvgCircle(&ctx, style->box.x, style->box.y, style->box.r);
     nvg_setfillcolor(&ctx, nvgRGBA(style->color.r, style->color.g, style->color.b, style->color.a));
     nvg_gl_fill(&glctx, &ctx, &ctx.state);
+
+}
+
+static void alfi_style_init(struct alfi_style *s)
+{
+
+    box_init(&s->box, 0, 0, 0, 0, 0);
+    color_init(&s->color, 0, 0, 0, 0);
+    font_init(&s->font, 0, 0, 0);
 
 }
 
@@ -693,35 +903,34 @@ static void box_expand(struct alfi_box *box, struct alfi_box *child, float px, f
 static void widget_anchor_keyframe(struct alfi_frame_anchor *keyframe, struct alfi_widget_anchor *anchor, unsigned int state, float x, float y, float w, float h)
 {
 
-    font_init(&keyframe->label.font, fontface_regular, fontsize_medium, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+    alfi_style_init(&keyframe->background);
+    alfi_style_init(&keyframe->label);
+    font_init(&keyframe->label.font, fontface_regular, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
     color_clone(&keyframe->background.color, &color_background);
     color_clone(&keyframe->label.color, &color_focus);
     box_init(&keyframe->background.box, x, y, w, h, 0);
     box_clone(&keyframe->label.box, &keyframe->background.box);
-    box_pad(&keyframe->label.box, marginx, marginy);
+    box_pad(&keyframe->label.box, margin_w, margin_h);
     box_scale(&keyframe->label.box, keyframe->label.box.w, alfi_style_textheight(&keyframe->label, anchor->label.content));
-    box_expand(&keyframe->background.box, &keyframe->label.box, marginx, marginy);
+    box_expand(&keyframe->background.box, &keyframe->label.box, margin_w, margin_h);
 
 }
 
-static void widget_anchor_init(struct alfi_widget *widget)
+static void widget_anchor_create(struct alfi_widget *widget)
 {
 
-    if (!widget->data.anchor.label.content)
-        widget->data.anchor.label.content = parser.createstring(1, 1, "");
-
-    if (!widget->data.anchor.link.url)
-        widget->data.anchor.link.url = parser.createstring(1, 1, "");
-
-    if (!widget->data.anchor.link.mime)
-        widget->data.anchor.link.mime = parser.createstring(1, 1, "");
+    widget->data.anchor.label.content = parser.createstring(widget->data.anchor.label.content, "");
+    widget->data.anchor.link.url = parser.createstring(widget->data.anchor.link.url, "");
+    widget->data.anchor.link.mime = parser.createstring(widget->data.anchor.link.mime, "");
 
 }
 
 static void widget_anchor_destroy(struct alfi_widget *widget)
 {
 
-    parser.destroystring(widget->data.anchor.label.content);
+    widget->data.anchor.label.content = parser.destroystring(widget->data.anchor.label.content);
+    widget->data.anchor.link.url = parser.destroystring(widget->data.anchor.link.url);
+    widget->data.anchor.link.mime = parser.destroystring(widget->data.anchor.link.mime);
 
 }
 
@@ -763,12 +972,12 @@ static void widget_anchor_onclick(struct alfi_widget *widget)
         {
 
         case ALFI_TARGET_SELF:
-            recreatepage(widget->data.anchor.link.url, widget->group);
+            loadpart(widget->data.anchor.link.url);
 
             break;
 
         case ALFI_TARGET_BLANK:
-            createpage(widget->data.anchor.link.url);
+            loadmain(widget->data.anchor.link.url);
 
             break;
 
@@ -788,33 +997,35 @@ static unsigned int widget_anchor_getcursor(struct alfi_widget *widget, float x,
 static void widget_button_keyframe(struct alfi_frame_button *keyframe, struct alfi_widget_button *button, unsigned int state, float x, float y, float w, float h)
 {
 
-    font_init(&keyframe->label.font, fontface_bold, fontsize_medium, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+    alfi_style_init(&keyframe->background);
+    alfi_style_init(&keyframe->border);
+    alfi_style_init(&keyframe->label);
+    font_init(&keyframe->label.font, fontface_bold, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
     color_clone(&keyframe->background.color, &color_background);
     color_clone(&keyframe->border.color, &color_focus);
-    color_init(&keyframe->label.color, 255, 255, 255, 255);
+    color_clone(&keyframe->label.color, &color_focustext);
     box_init(&keyframe->background.box, x, y, w, h, 4);
     box_clone(&keyframe->border.box, &keyframe->background.box);
-    box_pad(&keyframe->border.box, marginx, marginy);
+    box_pad(&keyframe->border.box, margin_w, margin_h);
     box_clone(&keyframe->label.box, &keyframe->border.box);
-    box_pad(&keyframe->label.box, gridx - marginx, gridy - marginy);
+    box_pad(&keyframe->label.box, unit_w - margin_w, unit_h - margin_h);
     box_scale(&keyframe->label.box, keyframe->label.box.w, alfi_style_textheight(&keyframe->label, button->label.content));
-    box_expand(&keyframe->border.box, &keyframe->label.box, gridx - marginx, gridy - marginy);
-    box_expand(&keyframe->background.box, &keyframe->border.box, marginx, marginy);
+    box_expand(&keyframe->border.box, &keyframe->label.box, unit_w - margin_w, unit_h - margin_h);
+    box_expand(&keyframe->background.box, &keyframe->border.box, margin_w, margin_h);
 
 }
 
-static void widget_button_init(struct alfi_widget *widget)
+static void widget_button_create(struct alfi_widget *widget)
 {
 
-    if (!widget->data.button.label.content)
-        widget->data.button.label.content = parser.createstring(10, 10, "undefined");
+    widget->data.button.label.content = parser.createstring(widget->data.button.label.content, "undefined");
 
 }
 
 static void widget_button_destroy(struct alfi_widget *widget)
 {
 
-    parser.destroystring(widget->data.button.label.content);
+    widget->data.button.label.content = parser.destroystring(widget->data.button.label.content);
 
 }
 
@@ -822,7 +1033,7 @@ static void widget_button_place(struct alfi_widget *widget, float x, float y, fl
 {
 
     struct alfi_frame_button keyframe;
-    float selfh = gridy * 3;
+    float selfh = unit_h * 3;
 
     widget_button_keyframe(&keyframe, &widget->data.button, widget->state, x, y, w, selfh);
     alfi_style_tween(&widget->data.button.frame.background, &keyframe.background, u);
@@ -886,19 +1097,21 @@ static unsigned int widget_button_getcursor(struct alfi_widget *widget, float x,
 static void widget_choice_keyframe(struct alfi_frame_choice *keyframe, struct alfi_widget_choice *choice, unsigned int state, float x, float y, float w, float h)
 {
 
-    font_init(&keyframe->label.font, fontface_regular, fontsize_medium, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+    alfi_style_init(&keyframe->background);
+    alfi_style_init(&keyframe->label);
+    font_init(&keyframe->label.font, fontface_regular, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
     color_clone(&keyframe->label.color, &color_text);
 
     if (state == ALFI_STATE_HOVER)
-        color_init(&keyframe->background.color, 224, 224, 224, 255);
+        color_clone(&keyframe->background.color, &color_line);
     else
         color_clone(&keyframe->background.color, &color_background);
 
     box_init(&keyframe->background.box, x, y, w, h, 4);
     box_clone(&keyframe->label.box, &keyframe->background.box);
-    box_pad(&keyframe->label.box, marginx, marginy);
+    box_pad(&keyframe->label.box, margin_w, margin_h);
     box_scale(&keyframe->label.box, keyframe->label.box.w, alfi_style_textheight(&keyframe->label, choice->label.content));
-    box_expand(&keyframe->background.box, &keyframe->label.box, marginx, marginy);
+    box_expand(&keyframe->background.box, &keyframe->label.box, margin_w, margin_h);
 
 }
 
@@ -914,18 +1127,17 @@ static void widget_choice_place(struct alfi_widget *widget, float x, float y, fl
 
 }
 
-static void widget_choice_init(struct alfi_widget *widget)
+static void widget_choice_create(struct alfi_widget *widget)
 {
 
-    if (!widget->data.choice.label.content)
-        widget->data.choice.label.content = parser.createstring(1, 1, "");
+    widget->data.choice.label.content = parser.createstring(widget->data.choice.label.content, "");
 
 }
 
 static void widget_choice_destroy(struct alfi_widget *widget)
 {
 
-    parser.destroystring(widget->data.choice.label.content);
+    widget->data.choice.label.content = parser.destroystring(widget->data.choice.label.content);
 
 }
 
@@ -960,6 +1172,23 @@ static unsigned int widget_choice_setstate(struct alfi_widget *widget, unsigned 
 static void widget_choice_onclick(struct alfi_widget *widget)
 {
 
+    struct alfi_widget *parent = pool_findbyname(widget->in.name);
+
+    if (parent)
+    {
+
+        switch (parent->type)
+        {
+
+        case ALFI_WIDGET_SELECT:
+            strcpy(parent->data.select.data.content, widget->data.choice.label.content);
+
+            break;
+
+        }
+
+    }
+
     setfocus(widget);
 
 }
@@ -974,30 +1203,32 @@ static unsigned int widget_choice_getcursor(struct alfi_widget *widget, float x,
 static void widget_divider_keyframe(struct alfi_frame_divider *keyframe, struct alfi_widget_divider *divider, unsigned int state, float x, float y, float w, float h)
 {
 
-    font_init(&keyframe->label.font, fontface_regular, fontsize_small, fontsize_small, FONS_ALIGN_CENTER | FONS_ALIGN_MIDDLE);
+    alfi_style_init(&keyframe->background);
+    alfi_style_init(&keyframe->border);
+    alfi_style_init(&keyframe->label);
+    font_init(&keyframe->label.font, fontface_regular, fontsize_small, FONS_ALIGN_CENTER | FONS_ALIGN_MIDDLE);
     color_clone(&keyframe->label.color, &color_text);
     color_clone(&keyframe->border.color, &color_line);
     color_clone(&keyframe->background.color, &color_background);
-    box_init(&keyframe->background.box, x, y, w, gridy * 2, 0);
-    box_init(&keyframe->border.box, x + marginx, y + gridy - 1, w - marginx * 2, 2, 0);
+    box_init(&keyframe->background.box, x, y, w, unit_h * 2, 0);
+    box_init(&keyframe->border.box, x + margin_w, y + unit_h - 1, w - margin_w * 2, 2, 0);
     box_init(&keyframe->label.box, x, y, w, h, 0);
     box_scale(&keyframe->label.box, keyframe->label.box.w, alfi_style_textheight(&keyframe->label, divider->label.content));
-    box_translate(&keyframe->label.box, w * 0.5, gridy);
+    box_translate(&keyframe->label.box, w * 0.5, unit_h);
 
 }
 
-static void widget_divider_init(struct alfi_widget *widget)
+static void widget_divider_create(struct alfi_widget *widget)
 {
 
-    if (!widget->data.divider.label.content)
-        widget->data.divider.label.content = parser.createstring(1, 1, "");
+    widget->data.divider.label.content = parser.createstring(widget->data.divider.label.content, "");
 
 }
 
 static void widget_divider_destroy(struct alfi_widget *widget)
 {
 
-    parser.destroystring(widget->data.divider.label.content);
+    widget->data.divider.label.content = parser.destroystring(widget->data.divider.label.content);
 
 }
 
@@ -1045,12 +1276,17 @@ static unsigned int widget_divider_getcursor(struct alfi_widget *widget, float x
 static void widget_field_keyframe(struct alfi_frame_field *keyframe, struct alfi_widget_field *field, unsigned int state, float x, float y, float w, float h)
 {
 
-    if (state == ALFI_STATE_FOCUS || strlen(field->data.content))
-        font_init(&keyframe->label.font, fontface_regular, fontsize_small, fontsize_small, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
-    else
-        font_init(&keyframe->label.font, fontface_regular, fontsize_medium, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+    alfi_style_init(&keyframe->background);
+    alfi_style_init(&keyframe->border);
+    alfi_style_init(&keyframe->label);
+    alfi_style_init(&keyframe->data);
 
-    font_init(&keyframe->data.font, fontface_regular, fontsize_medium, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+    if (state == ALFI_STATE_FOCUS || strlen(field->data.content))
+        font_init(&keyframe->label.font, fontface_regular, fontsize_small, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+    else
+        font_init(&keyframe->label.font, fontface_regular, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+
+    font_init(&keyframe->data.font, fontface_regular, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
 
     if (state == ALFI_STATE_FOCUS)
         color_clone(&keyframe->label.color, &color_focus);
@@ -1068,53 +1304,46 @@ static void widget_field_keyframe(struct alfi_frame_field *keyframe, struct alfi
     box_clone(&keyframe->border.box, &keyframe->background.box);
     box_clone(&keyframe->label.box, &keyframe->background.box);
     box_clone(&keyframe->data.box, &keyframe->background.box);
-    box_pad(&keyframe->border.box, marginx, marginy);
+    box_pad(&keyframe->border.box, margin_w, margin_h);
 
     if (state == ALFI_STATE_FOCUS || strlen(field->data.content))
-        box_pad(&keyframe->label.box, gridx, 0);
+        box_pad(&keyframe->label.box, unit_w, margin_h - keyframe->label.font.size * 0.5);
     else
-        box_pad(&keyframe->label.box, gridx, gridy);
+        box_pad(&keyframe->label.box, unit_w, unit_h);
 
     box_scale(&keyframe->label.box, keyframe->label.box.w, alfi_style_textheight(&keyframe->label, field->label.content));
 
     if (state == ALFI_STATE_FOCUS)
-        box_pad(&keyframe->data.box, gridx + marginx, gridy + marginy);
+        box_pad(&keyframe->data.box, unit_w + margin_w, unit_h + margin_h);
     else
-        box_pad(&keyframe->data.box, gridx, gridy);
+        box_pad(&keyframe->data.box, unit_w, unit_h);
 
     box_scale(&keyframe->data.box, keyframe->data.box.w, alfi_style_textheight(&keyframe->data, field->data.content));
 
     if (state == ALFI_STATE_FOCUS)
-        box_expand(&keyframe->border.box, &keyframe->data.box, gridx, gridy);
+        box_expand(&keyframe->border.box, &keyframe->data.box, unit_w, unit_h);
     else
-        box_expand(&keyframe->border.box, &keyframe->data.box, gridx - marginx, gridy - marginy);
+        box_expand(&keyframe->border.box, &keyframe->data.box, unit_w - margin_w, unit_h - margin_h);
 
-    box_expand(&keyframe->background.box, &keyframe->border.box, marginx, marginy);
+    box_expand(&keyframe->background.box, &keyframe->border.box, margin_w, margin_h);
 
 }
 
-static void widget_field_init(struct alfi_widget *widget)
+static void widget_field_create(struct alfi_widget *widget)
 {
 
-    if (!widget->data.field.label.content)
-        widget->data.field.label.content = parser.createstring(1, 1, "");
-
-    if (!widget->data.field.data.content)
-    {
-
-        widget->data.field.data.total = ALFI_DATASIZE;
-        widget->data.field.data.content = parser.createstring(widget->data.field.data.total, 1, "");
-        widget->data.field.data.offset = 0;
-
-    }
+    widget->data.field.label.content = parser.createstring(widget->data.field.label.content, "");
+    widget->data.field.data.content = parser.allocate(widget->data.field.data.content, ALFI_DATASIZE, 1, "");
+    widget->data.field.data.total = ALFI_DATASIZE;
+    widget->data.field.data.offset = 0;
 
 }
 
 static void widget_field_destroy(struct alfi_widget *widget)
 {
 
-    parser.destroystring(widget->data.field.label.content);
-    parser.destroystring(widget->data.field.data.content);
+    widget->data.field.label.content = parser.destroystring(widget->data.field.label.content);
+    widget->data.field.data.content = parser.destroystring(widget->data.field.data.content);
 
 }
 
@@ -1141,7 +1370,14 @@ static void widget_field_render(struct alfi_widget *widget)
         alfi_style_fillborder(&widget->data.field.frame.border, &widget->data.field.frame.label, widget->data.field.label.content, 2.0);
 
     if (strlen(widget->data.field.data.content))
-        alfi_style_filltext(&widget->data.field.frame.data, widget->data.field.data.content);
+    {
+
+        if (widget->state == ALFI_STATE_FOCUS)
+            alfi_style_filltextinput(&widget->data.field.frame.data, widget->data.field.data.content, widget->data.field.data.offset);
+        else
+            alfi_style_filltext(&widget->data.field.frame.data, widget->data.field.data.content);
+
+    }
 
 }
 
@@ -1189,29 +1425,30 @@ static unsigned int widget_field_getcursor(struct alfi_widget *widget, float x, 
 static void widget_header_keyframe(struct alfi_frame_header *keyframe, struct alfi_widget_header *header, unsigned int state, float x, float y, float w, float h)
 {
 
-    font_init(&keyframe->label.font, fontface_bold, fontsize_xlarge, fontsize_xlarge, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+    alfi_style_init(&keyframe->background);
+    alfi_style_init(&keyframe->label);
+    font_init(&keyframe->label.font, fontface_bold, fontsize_xlarge, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
     color_clone(&keyframe->background.color, &color_background);
     color_clone(&keyframe->label.color, &color_header);
     box_init(&keyframe->background.box, x, y, w, h, 0);
     box_clone(&keyframe->label.box, &keyframe->background.box);
-    box_pad(&keyframe->label.box, marginx, marginy);
+    box_pad(&keyframe->label.box, margin_w, margin_h);
     box_scale(&keyframe->label.box, keyframe->label.box.w, alfi_style_textheight(&keyframe->label, header->label.content));
-    box_expand(&keyframe->background.box, &keyframe->label.box, marginx, marginy);
+    box_expand(&keyframe->background.box, &keyframe->label.box, margin_w, margin_h);
 
 }
 
-static void widget_header_init(struct alfi_widget *widget)
+static void widget_header_create(struct alfi_widget *widget)
 {
 
-    if (!widget->data.header.label.content)
-        widget->data.header.label.content = parser.createstring(1, 1, "");
+    widget->data.header.label.content = parser.createstring(widget->data.header.label.content, "");
 
 }
 
 static void widget_header_destroy(struct alfi_widget *widget)
 {
 
-    parser.destroystring(widget->data.header.label.content);
+    widget->data.header.label.content = parser.destroystring(widget->data.header.label.content);
 
 }
 
@@ -1320,25 +1557,32 @@ static unsigned int widget_hstack_getcursor(struct alfi_widget *widget, float x,
 static void widget_image_keyframe(struct alfi_frame_image *keyframe, struct alfi_widget_image *image, unsigned int state, float x, float y, float w, float h)
 {
 
+    alfi_style_init(&keyframe->background);
+    alfi_style_init(&keyframe->frame);
     color_clone(&keyframe->background.color, &color_background);
     box_init(&keyframe->frame.box, x, y, image->resource.w, image->resource.h, 0);
-    box_translate(&keyframe->frame.box, marginx, marginy);
+    box_translate(&keyframe->frame.box, margin_w, margin_h);
     box_clone(&keyframe->background.box, &keyframe->frame.box);
-    box_pad(&keyframe->background.box, -marginx, -marginy);
+    box_pad(&keyframe->background.box, -margin_w, -margin_h);
 
 }
 
-static void widget_image_init(struct alfi_widget *widget)
+static void widget_image_create(struct alfi_widget *widget)
 {
 
-    widget->data.image.resource.ref = nvg_gl_createimagefile(&glctx, &ctx, widget->data.image.link.url, 0);
-
+/*
+    loadimage(&widget->data.image.resource, widget->data.image.link.url);
     nvg_gl_imagesize(&glctx, widget->data.image.resource.ref, &widget->data.image.resource.w, &widget->data.image.resource.h);
+*/
 
 }
 
 static void widget_image_destroy(struct alfi_widget *widget)
 {
+
+/*
+    nvg_gl_deletetexture(&glctx, widget->data.image.resource.ref);
+*/
 
 }
 
@@ -1357,10 +1601,12 @@ static void widget_image_place(struct alfi_widget *widget, float x, float y, flo
 static void widget_image_render(struct alfi_widget *widget)
 {
 
+/*
     struct nvg_paint paint;
 
     nvgImagePattern(&paint, widget->data.image.frame.frame.box.x, widget->data.image.frame.frame.box.y, widget->data.image.frame.frame.box.w, widget->data.image.frame.frame.box.h, 0.0, widget->data.image.resource.ref, 1.0);
     alfi_style_paintrect(&widget->data.image.frame.frame, paint);
+*/
 
 }
 
@@ -1388,6 +1634,7 @@ static unsigned int widget_image_getcursor(struct alfi_widget *widget, float x, 
 static void widget_list_keyframe(struct alfi_frame_list *keyframe, struct alfi_widget_list *list, unsigned int state, float x, float y, float w, float h)
 {
 
+    alfi_style_init(&keyframe->dot);
     color_clone(&keyframe->dot.color, &color_header);
 
     keyframe->dot.box.r = 3.0;
@@ -1399,7 +1646,7 @@ static void widget_list_place(struct alfi_widget *widget, float x, float y, floa
 
     struct alfi_frame_list keyframe;
     struct alfi_widget *child = 0;
-    float cx = gridx * 2;
+    float cx = unit_w;
     float cy = 0;
     float cw = w - cx;
     float ch = 0;
@@ -1440,7 +1687,7 @@ static void widget_list_render(struct alfi_widget *widget)
         if (!call_checkflag(child, ALFI_FLAG_ITEM))
             continue;
 
-        widget->data.list.frame.dot.box.x = child->bb.x - marginx;
+        widget->data.list.frame.dot.box.x = child->bb.x - margin_w;
         widget->data.list.frame.dot.box.y = child->bb.y + child->bb.h * 0.5;
 
         alfi_style_fillcircle(&widget->data.list.frame.dot);
@@ -1473,22 +1720,27 @@ static unsigned int widget_list_getcursor(struct alfi_widget *widget, float x, f
 static void widget_select_keyframe(struct alfi_frame_select *keyframe, struct alfi_widget_select *select, unsigned int state, float x, float y, float w, float h)
 {
 
+    alfi_style_init(&keyframe->background);
+    alfi_style_init(&keyframe->border);
+    alfi_style_init(&keyframe->label);
+    alfi_style_init(&keyframe->data);
+
     switch (state)
     {
 
     case ALFI_STATE_FOCUS:
-        font_init(&keyframe->label.font, fontface_regular, fontsize_small, fontsize_small, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+        font_init(&keyframe->label.font, fontface_regular, fontsize_small, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
         box_init(&keyframe->label.box, x, y, w, h, 0);
-        box_translate(&keyframe->label.box, gridx, 0);
+        box_translate(&keyframe->label.box, unit_w, 0);
         box_scale(&keyframe->label.box, keyframe->label.box.w, alfi_style_textheight(&keyframe->label, select->label.content));
         color_clone(&keyframe->label.color, &color_focus);
-        font_init(&keyframe->data.font, fontface_regular, fontsize_medium, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+        font_init(&keyframe->data.font, fontface_regular, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
         box_init(&keyframe->data.box, x, y, w, h, 0);
-        box_pad(&keyframe->data.box, gridx + marginx, gridy + marginy);
+        box_pad(&keyframe->data.box, unit_w + margin_w, unit_h + margin_h);
         box_scale(&keyframe->data.box, keyframe->data.box.w, alfi_style_textheight(&keyframe->data, select->data.content));
         color_clone(&keyframe->data.color, &color_text);
         box_init(&keyframe->border.box, x, y, w, h, 4);
-        box_pad(&keyframe->border.box, marginx, marginy);
+        box_pad(&keyframe->border.box, margin_w, margin_h);
         color_clone(&keyframe->border.color, &color_focus);
         box_init(&keyframe->background.box, x, y, w, h, 0);
         color_clone(&keyframe->background.color, &color_background);
@@ -1499,9 +1751,9 @@ static void widget_select_keyframe(struct alfi_frame_select *keyframe, struct al
         if (strlen(select->data.content))
         {
 
-            font_init(&keyframe->label.font, fontface_regular, fontsize_small, fontsize_small, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+            font_init(&keyframe->label.font, fontface_regular, fontsize_small, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
             box_init(&keyframe->label.box, x, y, w, h, 0);
-            box_translate(&keyframe->label.box, gridx, 0);
+            box_translate(&keyframe->label.box, unit_w, 0);
             box_scale(&keyframe->label.box, keyframe->label.box.w, alfi_style_textheight(&keyframe->label, select->label.content));
             color_clone(&keyframe->label.color, &color_line);
 
@@ -1510,21 +1762,21 @@ static void widget_select_keyframe(struct alfi_frame_select *keyframe, struct al
         else
         {
 
-            font_init(&keyframe->label.font, fontface_regular, fontsize_medium, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+            font_init(&keyframe->label.font, fontface_regular, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
             box_init(&keyframe->label.box, x, y, w, h, 0);
-            box_translate(&keyframe->label.box, gridx, gridy);
+            box_translate(&keyframe->label.box, unit_w, unit_h);
             box_scale(&keyframe->label.box, keyframe->label.box.w, alfi_style_textheight(&keyframe->label, select->label.content));
             color_clone(&keyframe->label.color, &color_line);
 
         }
 
-        font_init(&keyframe->data.font, fontface_regular, fontsize_medium, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+        font_init(&keyframe->data.font, fontface_regular, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
         box_init(&keyframe->data.box, x, y, w, h, 0);
-        box_pad(&keyframe->data.box, gridx, gridy);
+        box_pad(&keyframe->data.box, unit_w, unit_h);
         box_scale(&keyframe->data.box, keyframe->data.box.w, alfi_style_textheight(&keyframe->data, select->data.content));
         color_clone(&keyframe->data.color, &color_text);
         box_init(&keyframe->border.box, x, y, w, h, 4);
-        box_pad(&keyframe->border.box, marginx, marginy);
+        box_pad(&keyframe->border.box, margin_w, margin_h);
         color_clone(&keyframe->border.color, &color_line);
         box_init(&keyframe->background.box, x, y, w, h, 0);
         color_clone(&keyframe->background.color, &color_background);
@@ -1535,28 +1787,21 @@ static void widget_select_keyframe(struct alfi_frame_select *keyframe, struct al
 
 }
 
-static void widget_select_init(struct alfi_widget *widget)
+static void widget_select_create(struct alfi_widget *widget)
 {
 
-    if (!widget->data.select.label.content)
-        widget->data.select.label.content = parser.createstring(1, 1, "");
-
-    if (!widget->data.select.data.content)
-    {
-
-        widget->data.select.data.total = ALFI_DATASIZE;
-        widget->data.select.data.content = parser.createstring(widget->data.select.data.total, 1, "");
-        widget->data.select.data.offset = 0;
-
-    }
+    widget->data.select.label.content = parser.createstring(widget->data.select.label.content, "");
+    widget->data.select.data.content = parser.allocate(widget->data.select.data.content, ALFI_DATASIZE, 1, "");
+    widget->data.select.data.total = ALFI_DATASIZE;
+    widget->data.select.data.offset = 0;
 
 }
 
 static void widget_select_destroy(struct alfi_widget *widget)
 {
 
-    parser.destroystring(widget->data.select.label.content);
-    parser.destroystring(widget->data.select.data.content);
+    widget->data.select.label.content = parser.destroystring(widget->data.select.label.content);
+    widget->data.select.data.content = parser.destroystring(widget->data.select.data.content);
 
 }
 
@@ -1565,12 +1810,12 @@ static void widget_select_place(struct alfi_widget *widget, float x, float y, fl
 
     struct alfi_frame_select keyframe;
     struct alfi_widget *child = 0;
-    float cx = gridx;
-    float cy = gridy * 3;
-    float cw = w - gridx * 2;
+    float cx = unit_w;
+    float cy = unit_h * 3;
+    float cw = w - unit_w * 2;
     float ch = 0;
     float selfw = w;
-    float selfh = gridy * 3;
+    float selfh = unit_h * 3;
 
     while ((child = pool_nextchild(child, widget)))
     {
@@ -1585,8 +1830,8 @@ static void widget_select_place(struct alfi_widget *widget, float x, float y, fl
             if (selfw < child->bb.w)
                 selfw = child->bb.w;
 
-            if (selfh < cy + gridy)
-                selfh = cy + gridy;
+            if (selfh < cy + unit_h)
+                selfh = cy + unit_h;
 
         }
 
@@ -1668,29 +1913,30 @@ static unsigned int widget_select_getcursor(struct alfi_widget *widget, float x,
 static void widget_subheader_keyframe(struct alfi_frame_subheader *keyframe, struct alfi_widget_subheader *subheader, unsigned int state, float x, float y, float w, float h)
 {
 
-    font_init(&keyframe->label.font, fontface_bold, fontsize_large, fontsize_large, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+    alfi_style_init(&keyframe->background);
+    alfi_style_init(&keyframe->label);
+    font_init(&keyframe->label.font, fontface_bold, fontsize_large, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
     color_clone(&keyframe->background.color, &color_background);
     color_clone(&keyframe->label.color, &color_header);
     box_init(&keyframe->background.box, x, y, w, h, 0);
     box_clone(&keyframe->label.box, &keyframe->background.box);
-    box_pad(&keyframe->label.box, marginx, marginy);
+    box_pad(&keyframe->label.box, margin_w, margin_h);
     box_scale(&keyframe->label.box, keyframe->label.box.w, alfi_style_textheight(&keyframe->label, subheader->label.content));
-    box_expand(&keyframe->background.box, &keyframe->label.box, marginx, marginy);
+    box_expand(&keyframe->background.box, &keyframe->label.box, margin_w, margin_h);
 
 }
 
-static void widget_subheader_init(struct alfi_widget *widget)
+static void widget_subheader_create(struct alfi_widget *widget)
 {
 
-    if (!widget->data.subheader.label.content)
-        widget->data.subheader.label.content = parser.createstring(1, 1, "");
+    widget->data.subheader.label.content = parser.createstring(widget->data.subheader.label.content, "");
 
 }
 
 static void widget_subheader_destroy(struct alfi_widget *widget)
 {
 
-    parser.destroystring(widget->data.subheader.label.content);
+    widget->data.subheader.label.content = parser.destroystring(widget->data.subheader.label.content);
 
 }
 
@@ -1741,8 +1987,8 @@ static void widget_table_place(struct alfi_widget *widget, float x, float y, flo
     struct alfi_widget *child = 0;
     float cx = 0;
     float cy = 0;
-    float cw = gridx * widget->data.table.grid.clength;
-    float ch = gridy * widget->data.table.grid.rlength;
+    float cw = unit_w * widget->data.table.grid.clength;
+    float ch = unit_h * widget->data.table.grid.rlength;
     float selfw = 0;
     float selfh = 0;
     float rowh = 0;
@@ -1760,7 +2006,7 @@ static void widget_table_place(struct alfi_widget *widget, float x, float y, flo
         if (selfw < cx)
             selfw = cx;
 
-        if (cx >= gridx * widget->data.table.grid.csize)
+        if (cx >= unit_w * widget->data.table.grid.csize)
         {
 
             cx = 0;
@@ -1815,29 +2061,30 @@ static unsigned int widget_table_getcursor(struct alfi_widget *widget, float x, 
 static void widget_text_keyframe(struct alfi_frame_text *keyframe, struct alfi_widget_text *text, unsigned int state, float x, float y, float w, float h)
 {
 
-    font_init(&keyframe->label.font, fontface_regular, fontsize_medium, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
+    alfi_style_init(&keyframe->background);
+    alfi_style_init(&keyframe->label);
+    font_init(&keyframe->label.font, fontface_regular, fontsize_medium, FONS_ALIGN_LEFT | FONS_ALIGN_TOP);
     color_clone(&keyframe->background.color, &color_background);
     color_clone(&keyframe->label.color, &color_text);
     box_init(&keyframe->background.box, x, y, w, h, 0);
     box_clone(&keyframe->label.box, &keyframe->background.box);
-    box_pad(&keyframe->label.box, marginx, marginy);
+    box_pad(&keyframe->label.box, margin_w, margin_h);
     box_scale(&keyframe->label.box, keyframe->label.box.w, alfi_style_textheight(&keyframe->label, text->label.content));
-    box_expand(&keyframe->background.box, &keyframe->label.box, marginx, marginy);
+    box_expand(&keyframe->background.box, &keyframe->label.box, margin_w, margin_h);
 
 }
 
-static void widget_text_init(struct alfi_widget *widget)
+static void widget_text_create(struct alfi_widget *widget)
 {
 
-    if (!widget->data.text.label.content)
-        widget->data.text.label.content = parser.createstring(1, 1, "");
+    widget->data.text.label.content = parser.createstring(widget->data.text.label.content, "");
 
 }
 
 static void widget_text_destroy(struct alfi_widget *widget)
 {
 
-    parser.destroystring(widget->data.text.label.content);
+    widget->data.text.label.content = parser.destroystring(widget->data.text.label.content);
 
 }
 
@@ -1946,27 +2193,23 @@ static unsigned int widget_vstack_getcursor(struct alfi_widget *widget, float x,
 static void widget_window_keyframe(struct alfi_frame_window *keyframe, struct alfi_widget_window *window, unsigned int state, float x, float y, float w, float h)
 {
 
-    color_init(&keyframe->shadow1.color, 0, 0, 0, 48);
-    color_init(&keyframe->shadow2.color, 0, 0, 0, 0);
+    alfi_style_init(&keyframe->background);
     color_clone(&keyframe->background.color, &color_background);
-    box_init(&keyframe->shadow1.box, x, y, w, h, 32);
-    box_init(&keyframe->shadow2.box, x - marginx - 16.0, y - marginy - 16.0, w + marginx * 2 + 16.0 * 2, h + marginy * 2 + 16.0 * 2, 32);
-    box_init(&keyframe->background.box, x, y, w, h, 32);
+    box_init(&keyframe->background.box, x, y, w, h, 0);
 
 }
 
-static void widget_window_init(struct alfi_widget *widget)
+static void widget_window_create(struct alfi_widget *widget)
 {
 
-    if (!widget->data.window.label.content)
-        widget->data.window.label.content = parser.createstring(10, 10, "undefined");
+    widget->data.window.label.content = parser.createstring(widget->data.window.label.content, "undefined");
 
 }
 
 static void widget_window_destroy(struct alfi_widget *widget)
 {
 
-    parser.destroystring(widget->data.window.label.content);
+    widget->data.window.label.content = parser.destroystring(widget->data.window.label.content);
 
 }
 
@@ -1975,10 +2218,10 @@ static void widget_window_place(struct alfi_widget *widget, float x, float y, fl
 
     struct alfi_frame_window keyframe;
     struct alfi_widget *child = 0;
-    float selfw = gridx * 28;
-    float selfh = gridy * 28;
-    float cx = gridx * 2;
-    float cy = gridy * 2;
+    float selfw = unit_w * 28;
+    float selfh = unit_h * 28;
+    float cx = unit_w * 2;
+    float cy = unit_h * 2;
     float cw = selfw - cx * 2;
     float ch = selfh - cy * 2;
 
@@ -1997,8 +2240,6 @@ static void widget_window_place(struct alfi_widget *widget, float x, float y, fl
 
     widget_window_keyframe(&keyframe, &widget->data.window, widget->state, x, y, selfw, selfh);
     alfi_style_tween(&widget->data.window.frame.background, &keyframe.background, u);
-    alfi_style_tween(&widget->data.window.frame.shadow1, &keyframe.shadow1, u);
-    alfi_style_tween(&widget->data.window.frame.shadow2, &keyframe.shadow2, u);
     box_init(&widget->bb, x, y, selfw, selfh, 0);
 
 }
@@ -2006,11 +2247,8 @@ static void widget_window_place(struct alfi_widget *widget, float x, float y, fl
 static void widget_window_render(struct alfi_widget *widget)
 {
 
-    struct nvg_paint paint;
     struct alfi_widget *child = 0;
 
-    nvgBoxGradient(&paint, widget->data.window.frame.shadow1.box.x, widget->data.window.frame.shadow1.box.y, widget->data.window.frame.shadow1.box.w, widget->data.window.frame.shadow1.box.h, widget->data.window.frame.shadow1.box.r, 16.0, nvgRGBA(widget->data.window.frame.shadow1.color.r, widget->data.window.frame.shadow1.color.g, widget->data.window.frame.shadow1.color.b, widget->data.window.frame.shadow1.color.a), nvgRGBA(widget->data.window.frame.shadow2.color.r, widget->data.window.frame.shadow2.color.g, widget->data.window.frame.shadow2.color.b, widget->data.window.frame.shadow2.color.a));
-    alfi_style_paintrect(&widget->data.window.frame.shadow2, paint);
     alfi_style_fillrect(&widget->data.window.frame.background);
 
     while ((child = pool_nextchild(child, widget)))
@@ -2039,114 +2277,65 @@ static unsigned int widget_window_getcursor(struct alfi_widget *widget, float x,
 
 }
 
-static void setsize(float x, float y)
+static struct alfi_widget *findwidget(struct alfi_widget *widget, float x, float y)
 {
 
-    marginx = 8;
-    marginy = 8;
-    gridx = x / 40;
-    gridy = y / 40;
+    struct alfi_widget *child = 0;
 
-    if (gridx < 24)
-        gridx = 24;
-
-    if (gridx > 32)
-        gridx = 32;
-
-    if (gridy < 32)
-        gridy = 32;
-
-    if (gridy > 32)
-        gridy = 32;
-
-    fontsize_small = gridy / 2 + gridy / 4;
-    fontsize_medium = gridy;
-    fontsize_large = gridy + gridy / 3;
-    fontsize_xlarge = gridy + gridy;
-
-}
-
-static void setdefaulttheme(void)
-{
-
-    color_init(&color_fade1, 160, 160, 160, 255);
-    color_init(&color_fade2, 192, 192, 192, 255);
-    color_init(&color_background, 255, 255, 255, 255);
-    color_init(&color_text, 96, 96, 96, 255);
-    color_init(&color_header, 64, 64, 64, 255);
-    color_init(&color_focus, 96, 192, 192, 255);
-    color_init(&color_line, 192, 192, 192, 255);
-
-}
-
-static void setdarktheme(void)
-{
-
-    color_init(&color_fade1, 8, 8, 8, 255);
-    color_init(&color_fade2, 16, 16, 16, 255);
-    color_init(&color_background, 24, 24, 24, 255);
-    color_init(&color_text, 128, 128, 128, 255);
-    color_init(&color_header, 224, 224, 224, 255);
-    color_init(&color_focus, 32, 128, 128, 255);
-    color_init(&color_line, 48, 48, 48, 255);
-
-}
-
-static void setcursor(struct GLFWwindow *window, unsigned int type)
-{
-
-    switch (type)
+    while ((child = pool_nextchild(child, widget)))
     {
 
-    case ALFI_CURSOR_HAND:
-        glfwSetCursor(window, cursor_hand);
-
-        break;
-
-    case ALFI_CURSOR_IBEAM:
-        glfwSetCursor(window, cursor_ibeam);
-
-        break;
-
-    case ALFI_CURSOR_ARROW:
-        glfwSetCursor(window, cursor_arrow);
-
-        break;
-
-    default:
-        glfwSetCursor(window, cursor_arrow);
-
-        break;
+        if (box_istouching(&child->bb, x, y))
+            return findwidget(child, x, y);
 
     }
+
+    return widget;
 
 }
 
 static void checktouch(GLFWwindow *window)
 {
 
-    struct alfi_widget *widget = findwidget(mx, my);
+    struct alfi_widget *main = pool_findbyname("main");
+    struct alfi_widget *widget = findwidget(main, mouse_x, mouse_y);
 
     sethover(widget);
 
     if (widget)
-        setcursor(window, call_getcursor(widget, mx, my));
+        setcursor(window, call_getcursor(widget, mouse_x, mouse_y));
 
 }
 
-static void render(unsigned int group)
+static void checktitle(GLFWwindow *window)
 {
 
-    struct nvg_paint paint;
-    struct alfi_widget *widget = 0;
+    if (updatetitle)
+    {
+
+        struct alfi_widget *widget = pool_findbyname("window");
+
+        if (widget)
+            glfwSetWindowTitle(window, widget->data.window.label.content);
+
+        updatetitle = 0;
+
+    }
+
+}
+
+static void render(float x, float y, float w, float h)
+{
+
+    struct alfi_widget *window = pool_findbyname("window");
     struct alfi_style background;
 
-    nvgLinearGradient(&paint, 0, 0, 0, winh, nvgRGBA(color_fade1.r, color_fade1.g, color_fade1.b, color_fade1.a), nvgRGBA(color_fade2.r, color_fade2.g, color_fade2.b, color_fade2.a));
-    box_init(&background.box, 0, 0, winw, winh, 0);
-    alfi_style_paintrect(&background, paint);
+    box_init(&background.box, x, y, w, h, 0);
+    color_clone(&background.color, &color_background);
+    alfi_style_fillrect(&background);
 
-    while ((widget = pool_nextingroupoftype(widget, group, ALFI_WIDGET_WINDOW)))
-        call_render(widget);
+    if (window)
+        call_render(window);
 
 }
 
@@ -2160,20 +2349,15 @@ static void onerror(int error, const char *desc)
 static void onwindowsize(GLFWwindow *window, int width, int height)
 {
 
-    winw = width;
-    winh = height;
-
-    setsize(winw, winh);
+    view_setsize(width, height);
+    view_adjust();
 
 }
 
 static void onframebuffersize(GLFWwindow *window, int width, int height)
 {
 
-    fbw = width;
-    fbh = height;
-
-    glViewport(0, 0, fbw, fbh);
+    glViewport(0, 0, width, height);
 
 }
 
@@ -2188,25 +2372,25 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
 
         case GLFW_KEY_D:
             if (mods & GLFW_MOD_CONTROL)
-                createpage(url_default);
+                loadmain(res_page_default.url);
 
             break;
 
         case GLFW_KEY_H:
             if (mods & GLFW_MOD_CONTROL)
-                createpage(url_home);
+                loadmain(res_page_home.url);
 
             break;
 
         case GLFW_KEY_M:
             if (mods & GLFW_MOD_CONTROL)
-                setdarktheme();
+                setcolors(1);
 
             break;
 
         case GLFW_KEY_N:
             if (mods & GLFW_MOD_CONTROL)
-                setdefaulttheme();
+                setcolors(0);
 
             break;
 
@@ -2216,9 +2400,15 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
 
             break;
 
+        case GLFW_KEY_R:
+            if (mods & GLFW_MOD_CONTROL)
+                loadmain(res_page_current.url);
+
+            break;
+
         case GLFW_KEY_T:
             if (mods & GLFW_MOD_CONTROL)
-                createpage(url_test);
+                loadmain(res_page_test.url);
 
             break;
 
@@ -2233,42 +2423,82 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
         {
 
         case GLFW_KEY_UP:
-            scrolly += gridy;
+            view_setposition(view_x, view_y + unit_h);
+            view_adjust();
 
             break;
 
         case GLFW_KEY_DOWN:
-            scrolly -= gridy;
+            view_setposition(view_x, view_y - unit_h);
+            view_adjust();
 
             break;
 
         case GLFW_KEY_LEFT:
-            scrollx += gridx;
+            if (focus && focus->type == ALFI_WIDGET_FIELD)
+            {
+
+                focus->data.field.data.offset--;
+
+                if (focus->data.field.data.offset < 0)
+                    focus->data.field.data.offset = 0;
+
+            }
+
+            else
+            {
+
+                view_setposition(view_x + unit_w, view_y);
+                view_adjust();
+
+            }
 
             break;
 
         case GLFW_KEY_RIGHT:
-            scrollx -= gridx;
+            if (focus && focus->type == ALFI_WIDGET_FIELD)
+            {
+
+                unsigned int len = strlen(focus->data.field.data.content);
+
+                focus->data.field.data.offset++;
+
+                if (focus->data.field.data.offset > len)
+                    focus->data.field.data.offset = len;
+
+            }
+
+            else
+            {
+
+                view_setposition(view_x - unit_w, view_y);
+                view_adjust();
+
+            }
 
             break;
 
         case GLFW_KEY_PAGE_UP:
-            scrolly += winh / 2;
+            view_setposition(view_x, view_y + view_h / 2);
+            view_adjust();
 
             break;
 
         case GLFW_KEY_PAGE_DOWN:
-            scrolly -= winh / 2;
+            view_setposition(view_x, view_y - view_h / 2);
+            view_adjust();
 
             break;
 
         case GLFW_KEY_HOME:
-            scrollx += winw / 2;
+            view_setposition(view_x + view_w / 2, view_y);
+            view_adjust();
 
             break;
 
         case GLFW_KEY_END:
-            scrollx -= winw / 2;
+            view_setposition(view_x - view_w / 2, view_y);
+            view_adjust();
 
             break;
 
@@ -2347,6 +2577,8 @@ static void onbutton(GLFWwindow *window, int button, int action, int mods)
         case GLFW_MOUSE_BUTTON_LEFT:
             if (hover)
                 call_onclick(hover);
+            else
+                setfocus(0);
 
             break;
 
@@ -2354,8 +2586,9 @@ static void onbutton(GLFWwindow *window, int button, int action, int mods)
             if (hover)
             {
 
-                parser_destroy(hover);
-                sethover(0);
+                hover = parser_destroywidget(hover);
+
+                sethover(hover);
 
             }
 
@@ -2370,16 +2603,16 @@ static void onbutton(GLFWwindow *window, int button, int action, int mods)
 static void oncursor(GLFWwindow *window, double x, double y)
 {
 
-    mx = x;
-    my = y;
+    mouse_x = x;
+    mouse_y = y;
 
 }
 
 static void onscroll(GLFWwindow *window, double x, double y)
 {
 
-    scrollx += x * gridx;
-    scrolly += y * gridy;
+    view_setposition(view_x + x * unit_w, view_y + y * unit_h);
+    view_adjust();
 
 }
 
@@ -2407,49 +2640,28 @@ static void onchar(GLFWwindow *window, unsigned int codepoint)
 
 }
 
-static void setupscroll(void)
+static void setupresources(void)
 {
 
-    scrollx = gridx;
-    scrolly = gridy;
+    resource_seturl(&res_page_default, "file://");
+    resource_seturl(&res_page_home, "http://blunder.se/");
+    resource_seturl(&res_page_test, "file:///usr/share/navi/example.alfi");
+    resource_seturl(&res_font_regular, "/usr/share/navi/roboto-regular.ttf");
+    resource_seturl(&res_font_bold, "/usr/share/navi/roboto-bold.ttf");
+    resource_seturl(&res_font_icon, "/usr/share/navi/icofont.ttf");
 
 }
 
-static void setupfonts(void)
+static void setupfonts(float unit)
 {
 
-    fontface_regular = fonsAddFont(&fsctx, "/usr/share/navi/roboto-regular.ttf");
-
-    if (fontface_regular == -1)
-    {
-
-        printf("Could not add font.\n");
-
-        return;
-
-    }
-
-    fontface_bold = fonsAddFont(&fsctx, "/usr/share/navi/roboto-bold.ttf");
-
-    if (fontface_bold == -1)
-    {
-
-        printf("Could not add font.\n");
-
-        return;
-
-    }
-
-    fontface_icon = fonsAddFont(&fsctx, "/usr/share/navi/icofont.ttf");
-
-    if (fontface_icon == -1)
-    {
-
-        printf("Could not add font.\n");
-
-        return;
-
-    }
+    fontsize_small = 24;
+    fontsize_medium = 32;
+    fontsize_large = 48;
+    fontsize_xlarge = 96;
+    fontface_regular = fons_addfontfile(&fsctx, res_font_regular.url);
+    fontface_bold = fons_addfontfile(&fsctx, res_font_bold.url);
+    fontface_icon = fons_addfontfile(&fsctx, res_font_icon.url);
 
 }
 
@@ -2462,77 +2674,22 @@ static void setupcursors(void)
 
 }
 
-int main(int argc, char **argv)
+static void update(void)
 {
 
-    GLFWwindow *window;
-    double prevt;
+    nvg_gl_beginframe(&glctx, &ctx, view_w, view_h);
+    place(view_x, view_y, 0.5);
+    view_adjust();
+    render(0, 0, view_w, view_h);
+    nvg_gl_flush(&glctx);
+    nvg_gl_endframe(&glctx);
 
-    if (!glfwInit())
-    {
+}
 
-        printf("Failed to init GLFW.");
+static void run(GLFWwindow *window)
+{
 
-        return -1;
-
-    }
-
-    glfwSetErrorCallback(onerror);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-    glfwWindowHint(GLFW_SAMPLES, 4);
-
-    window = glfwCreateWindow(1024, 768, "Navi 0.1", 0, 0);
-
-    if (!window)
-    {
-
-        glfwTerminate();
-
-        return -1;
-
-    }
-
-    glfwSetWindowSizeCallback(window, onwindowsize);
-    glfwSetFramebufferSizeCallback(window, onframebuffersize);
-    glfwSetKeyCallback(window, onkey);
-    glfwSetMouseButtonCallback(window, onbutton);
-    glfwSetCursorPosCallback(window, oncursor);
-    glfwSetScrollCallback(window, onscroll);
-    glfwSetCharCallback(window, onchar);
-    glfwMakeContextCurrent(window);
-    glfwGetWindowSize(window, &winw, &winh);
-    glfwGetFramebufferSize(window, &fbw, &fbh);
-    glfwSwapInterval(1);
-    glfwSetTime(0);
-    glewInit();
-    fons_create(&fsctx, 512, 512, FONS_ZERO_TOPLEFT);
-    nvg_gl_create(&glctx, fsctx.width, fsctx.height, 0);
-    parser_init(&parser, parser_fail, parser_find, parser_create, parser_destroy, parser_createstring, parser_destroystring);
-    call_register(ALFI_WIDGET_ANCHOR, ALFI_FLAG_ITEM, widget_anchor_init, widget_anchor_destroy, widget_anchor_place, widget_anchor_render, widget_anchor_setstate, widget_anchor_onclick, widget_anchor_getcursor);
-    call_register(ALFI_WIDGET_BUTTON, ALFI_FLAG_ITEM | ALFI_FLAG_FOCUSABLE, widget_button_init, widget_button_destroy, widget_button_place, widget_button_render, widget_button_setstate, widget_button_onclick, widget_button_getcursor);
-    call_register(ALFI_WIDGET_CHOICE, ALFI_FLAG_CONTAINER, widget_choice_init, widget_choice_destroy, widget_choice_place, widget_choice_render, widget_choice_setstate, widget_choice_onclick, widget_choice_getcursor);
-    call_register(ALFI_WIDGET_DIVIDER, ALFI_FLAG_ITEM, widget_divider_init, widget_divider_destroy, widget_divider_place, widget_divider_render, widget_divider_setstate, widget_divider_onclick, widget_divider_getcursor);
-    call_register(ALFI_WIDGET_HSTACK, ALFI_FLAG_CONTAINER, 0, 0, widget_hstack_place, widget_hstack_render, widget_hstack_setstate, widget_hstack_onclick, widget_hstack_getcursor);
-    call_register(ALFI_WIDGET_FIELD, ALFI_FLAG_ITEM | ALFI_FLAG_FOCUSABLE, widget_field_init, widget_field_destroy, widget_field_place, widget_field_render, widget_field_setstate, widget_field_onclick, widget_field_getcursor);
-    call_register(ALFI_WIDGET_HEADER, ALFI_FLAG_ITEM, widget_header_init, widget_header_destroy, widget_header_place, widget_header_render, widget_header_setstate, widget_header_onclick, widget_header_getcursor);
-    call_register(ALFI_WIDGET_IMAGE, ALFI_FLAG_ITEM, widget_image_init, widget_image_destroy, widget_image_place, widget_image_render, widget_image_setstate, widget_image_onclick, widget_image_getcursor);
-    call_register(ALFI_WIDGET_LIST, ALFI_FLAG_CONTAINER, 0, 0, widget_list_place, widget_list_render, widget_list_setstate, widget_list_onclick, widget_list_getcursor);
-    call_register(ALFI_WIDGET_SELECT, ALFI_FLAG_ITEM | ALFI_FLAG_FOCUSABLE, widget_select_init, widget_select_destroy, widget_select_place, widget_select_render, widget_select_setstate, widget_select_onclick, widget_select_getcursor);
-    call_register(ALFI_WIDGET_SUBHEADER, ALFI_FLAG_ITEM, widget_subheader_init, widget_subheader_destroy, widget_subheader_place, widget_subheader_render, widget_subheader_setstate, widget_subheader_onclick, widget_subheader_getcursor);
-    call_register(ALFI_WIDGET_TABLE, ALFI_FLAG_CONTAINER, 0, 0, widget_table_place, widget_table_render, widget_table_setstate, widget_table_onclick, widget_table_getcursor);
-    call_register(ALFI_WIDGET_TEXT, ALFI_FLAG_ITEM, widget_text_init, widget_text_destroy, widget_text_place, widget_text_render, widget_text_setstate, widget_text_onclick, widget_text_getcursor);
-    call_register(ALFI_WIDGET_VSTACK, ALFI_FLAG_CONTAINER, 0, 0, widget_vstack_place, widget_vstack_render, widget_vstack_setstate, widget_vstack_onclick, widget_vstack_getcursor);
-    call_register(ALFI_WIDGET_WINDOW, ALFI_FLAG_CONTAINER, widget_window_init, widget_window_destroy, widget_window_place, widget_window_render, widget_window_setstate, widget_window_onclick, widget_window_getcursor);
-    pool_init();
-    setsize(winw, winh);
-    setupscroll();
-    setupcursors();
-    setupfonts();
-    setdefaulttheme();
-    createpage(url_default);
-
-    prevt = glfwGetTime();
+    double prevt = glfwGetTime();
 
     while (!glfwWindowShouldClose(window))
     {
@@ -2549,23 +2706,77 @@ int main(int argc, char **argv)
 
         }
 
+        glfwPollEvents();
+        checktouch(window);
+        checktitle(window);
+
         if (frames)
         {
 
-            nvg_gl_beginframe(&glctx, &ctx, winw, winh);
-            place(0, scrollx, scrolly, 0.5);
-            render(0);
-            checktouch(window);
-            nvg_gl_flush(&glctx);
-            nvg_gl_endframe(&glctx, &ctx);
+            update();
             glfwSwapBuffers(window);
 
         }
 
-        glfwPollEvents();
-
     }
 
+}
+
+int main(int argc, char **argv)
+{
+
+    GLFWmonitor *monitor;
+    GLFWwindow *window;
+    const GLFWvidmode *mode; 
+
+    glfwInit();
+    glfwSetErrorCallback(onerror);
+
+    monitor = glfwGetPrimaryMonitor();
+    mode = glfwGetVideoMode(monitor);
+    window = glfwCreateWindow(mode->width, mode->height, "Navi 0.1", 0, 0);
+
+    view_setsize(mode->width, mode->height);
+    glfwSetWindowSizeCallback(window, onwindowsize);
+    glfwSetFramebufferSizeCallback(window, onframebuffersize);
+    glfwSetKeyCallback(window, onkey);
+    glfwSetMouseButtonCallback(window, onbutton);
+    glfwSetCursorPosCallback(window, oncursor);
+    glfwSetScrollCallback(window, onscroll);
+    glfwSetCharCallback(window, onchar);
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
+    glfwSetTime(0);
+    glewInit();
+    fons_create(&fsctx, 512, 512, FONS_ZERO_TOPLEFT);
+    nvg_gl_create(&glctx, fsctx.width, fsctx.height);
+    parser_init(&parser, parser_fail, parser_findwidget, parser_createwidget, parser_destroywidget, parser_allocate, parser_createstring, parser_destroystring);
+    call_register(ALFI_WIDGET_ANCHOR, ALFI_FLAG_ITEM, widget_anchor_create, widget_anchor_destroy, widget_anchor_place, widget_anchor_render, widget_anchor_setstate, widget_anchor_onclick, widget_anchor_getcursor);
+    call_register(ALFI_WIDGET_BUTTON, ALFI_FLAG_ITEM | ALFI_FLAG_FOCUSABLE, widget_button_create, widget_button_destroy, widget_button_place, widget_button_render, widget_button_setstate, widget_button_onclick, widget_button_getcursor);
+    call_register(ALFI_WIDGET_CHOICE, ALFI_FLAG_CONTAINER, widget_choice_create, widget_choice_destroy, widget_choice_place, widget_choice_render, widget_choice_setstate, widget_choice_onclick, widget_choice_getcursor);
+    call_register(ALFI_WIDGET_DIVIDER, ALFI_FLAG_ITEM, widget_divider_create, widget_divider_destroy, widget_divider_place, widget_divider_render, widget_divider_setstate, widget_divider_onclick, widget_divider_getcursor);
+    call_register(ALFI_WIDGET_HSTACK, ALFI_FLAG_CONTAINER, 0, 0, widget_hstack_place, widget_hstack_render, widget_hstack_setstate, widget_hstack_onclick, widget_hstack_getcursor);
+    call_register(ALFI_WIDGET_FIELD, ALFI_FLAG_ITEM | ALFI_FLAG_FOCUSABLE, widget_field_create, widget_field_destroy, widget_field_place, widget_field_render, widget_field_setstate, widget_field_onclick, widget_field_getcursor);
+    call_register(ALFI_WIDGET_HEADER, ALFI_FLAG_ITEM, widget_header_create, widget_header_destroy, widget_header_place, widget_header_render, widget_header_setstate, widget_header_onclick, widget_header_getcursor);
+    call_register(ALFI_WIDGET_IMAGE, ALFI_FLAG_ITEM, widget_image_create, widget_image_destroy, widget_image_place, widget_image_render, widget_image_setstate, widget_image_onclick, widget_image_getcursor);
+    call_register(ALFI_WIDGET_LIST, ALFI_FLAG_CONTAINER, 0, 0, widget_list_place, widget_list_render, widget_list_setstate, widget_list_onclick, widget_list_getcursor);
+    call_register(ALFI_WIDGET_SELECT, ALFI_FLAG_ITEM | ALFI_FLAG_FOCUSABLE, widget_select_create, widget_select_destroy, widget_select_place, widget_select_render, widget_select_setstate, widget_select_onclick, widget_select_getcursor);
+    call_register(ALFI_WIDGET_SUBHEADER, ALFI_FLAG_ITEM, widget_subheader_create, widget_subheader_destroy, widget_subheader_place, widget_subheader_render, widget_subheader_setstate, widget_subheader_onclick, widget_subheader_getcursor);
+    call_register(ALFI_WIDGET_TABLE, ALFI_FLAG_CONTAINER, 0, 0, widget_table_place, widget_table_render, widget_table_setstate, widget_table_onclick, widget_table_getcursor);
+    call_register(ALFI_WIDGET_TEXT, ALFI_FLAG_ITEM, widget_text_create, widget_text_destroy, widget_text_place, widget_text_render, widget_text_setstate, widget_text_onclick, widget_text_getcursor);
+    call_register(ALFI_WIDGET_VSTACK, ALFI_FLAG_CONTAINER, 0, 0, widget_vstack_place, widget_vstack_render, widget_vstack_setstate, widget_vstack_onclick, widget_vstack_getcursor);
+    call_register(ALFI_WIDGET_WINDOW, ALFI_FLAG_CONTAINER, widget_window_create, widget_window_destroy, widget_window_place, widget_window_render, widget_window_setstate, widget_window_onclick, widget_window_getcursor);
+    pool_init();
+    setupresources();
+    setupcursors();
+    setupfonts(unit_h);
+    setcolors(0);
+    glfwPollEvents();
+    update();
+    glfwSwapBuffers(window);
+    loadbase();
+    loadmain(res_page_default.url);
+    run(window);
     nvg_gl_delete(&glctx);
     fons_delete(&fsctx);
     glfwTerminate();

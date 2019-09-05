@@ -11,61 +11,81 @@
 
 static struct parser parser;
 
-static struct alfi_widget *parser_find(char *name, unsigned int group)
+static struct alfi_widget *parser_findwidget(char *name)
 {
 
-    return pool_findbyname(group, name);
+    return pool_findbyname(name);
 
 }
 
-static char *parser_createstring(unsigned int size, unsigned int count, char *content)
+static char *parser_allocate(char *string, unsigned int size, unsigned int count, char *content)
 {
 
-    char *string = malloc(size);
+    if (string)
+    {
 
-    if (count)
-        memcpy(string, content, count);
+        free(string);
+
+        string = 0;
+
+    }
+
+    if (size)
+    {
+
+        string = malloc(size);
+
+        if (count)
+            memcpy(string, content, count);
+
+    }
 
     return string;
 
 }
 
-static void parser_destroystring(char *string)
+static char *parser_createstring(char *string, char *content)
 {
 
-    free(string);
+    return parser.allocate(string, strlen(content) + 1, strlen(content) + 1, content);
 
 }
 
-static struct alfi_widget *parser_create(unsigned int type, unsigned int group, char *in)
+static char *parser_destroystring(char *string)
+{
+
+    return parser.allocate(string, 0, 0, 0);
+
+}
+
+static struct alfi_widget *parser_createwidget(unsigned int type, char *in)
 {
 
     struct alfi_widget *widget = pool_create();
 
     widget->type = type;
-    widget->group = group;
-    widget->in.name = in;
+    widget->id.name = parser.createstring(widget->id.name, "");
+    widget->in.name = parser.createstring(widget->in.name, in);
 
     return widget;
 
 }
 
-static void parser_destroy(struct alfi_widget *widget)
+static struct alfi_widget *parser_destroywidget(struct alfi_widget *widget)
 {
 
     struct alfi_widget *child = 0;
 
     while ((child = pool_nextchild(child, widget)))
-    {
+        child = parser_destroywidget(child);
 
-        parser_destroy(child);
-
-        child = 0;
-
-    }
+    widget->id.name = parser.destroystring(widget->id.name);
+    widget->in.name = parser.destroystring(widget->in.name);
 
     call_destroy(widget);
     pool_destroy(widget);
+
+    return 0;
 
 }
 
@@ -77,12 +97,12 @@ static void parser_fail(unsigned int line)
 
 }
 
-static void loadbase(unsigned int group)
+static void loadbase(void)
 {
 
     struct alfi_widget *widget;
 
-    widget = parser_create(ALFI_WIDGET_WINDOW, group, "");
+    widget = parser_createwidget(ALFI_WIDGET_WINDOW, "");
 
     if (widget)
     {
@@ -92,7 +112,7 @@ static void loadbase(unsigned int group)
 
     }
 
-    widget = parser_create(ALFI_WIDGET_VSTACK, group, "window");
+    widget = parser_createwidget(ALFI_WIDGET_VSTACK, "window");
 
     if (widget)
     {
@@ -112,11 +132,11 @@ int main(int argc, char **argv)
     int count;
 
     pool_init();
-    parser_init(&parser, parser_fail, parser_find, parser_create, parser_destroy, parser_createstring, parser_destroystring);
-    loadbase(1);
+    parser_init(&parser, parser_fail, parser_findwidget, parser_createwidget, parser_destroywidget, parser_allocate, parser_createstring, parser_destroystring);
+    loadbase();
 
     while ((count = read(0, data, 4096)))
-        parser_parsedata(&parser, 1, "main", count, data);
+        parser_parse(&parser, "main", count, data);
 
     return 0;
 

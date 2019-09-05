@@ -24,7 +24,6 @@ struct alfi_font
 
     int face;
     float size;
-    float height;
     int align;
 
 };
@@ -56,6 +55,6 @@ void color_init(struct alfi_color *color, unsigned char r, unsigned char g, unsi
 void color_clone(struct alfi_color *color, struct alfi_color *target);
 void color_lerp(struct alfi_color *color, float r, float g, float b, float a, float u);
 void color_lerpfrom(struct alfi_color *color, struct alfi_color *from, float u);
-void font_init(struct alfi_font *font, int face, float size, float height, int align);
-void font_lerp(struct alfi_font *font, int face, float size, float height, int align, float u);
+void font_init(struct alfi_font *font, int face, float size, int align);
+void font_lerp(struct alfi_font *font, int face, float size, int align, float u);
 void font_lerpfrom(struct alfi_font *font, struct alfi_font *from, float u);

@@ -6,8 +6,6 @@
 #include <GLFW/glfw3.h>
 #include "stb_truetype.h"
 #include "fons.h"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include "nvg.h"
 #include "nvg_gl.h"
 
@@ -16,7 +14,6 @@
 #define NVG_GL_VERSION_GLES2 0
 #define NVG_GL_VERSION_GLES3 0
 #define NVG_GL_USEUNIFORMBUFFER 0
-#define NVG_GL_USESTATEFILTER 1
 #define NVG_GL_UNIFORMARRAYSIZE 11
 
 struct nvg_gl_fraguniforms
@@ -73,13 +70,6 @@ static int maxi(int a, int b)
 
 }
 
-static float clampf(float a, float mn, float mx)
-{
-
-    return a < mn ? mn : (a > mx ? mx : a);
-
-}
-
 #ifdef NVG_GL_VERSION_GLES2
 static unsigned int nearestPow2(unsigned int num)
 {
@@ -97,80 +87,6 @@ static unsigned int nearestPow2(unsigned int num)
 
 }
 #endif
-
-static void bindTexture(struct nvg_gl_context *glctx, GLuint tex)
-{
-
-#if NVG_GL_USESTATEFILTER
-    if (glctx->boundTexture != tex)
-    {
-
-        glctx->boundTexture = tex;
-
-        glBindTexture(GL_TEXTURE_2D, tex);
-
-    }
-#else
-    glBindTexture(GL_TEXTURE_2D, tex);
-#endif
-
-}
-
-static void stencilMask(struct nvg_gl_context *glctx, GLuint mask)
-{
-
-#if NVG_GL_USESTATEFILTER
-    if (glctx->stencilMask != mask)
-    {
-
-        glctx->stencilMask = mask;
-
-        glStencilMask(mask);
-
-    }
-#else
-    glStencilMask(mask);
-#endif
-
-}
-
-static void stencilFunc(struct nvg_gl_context *glctx, GLenum func, GLint ref, GLuint mask)
-{
-
-#if NVG_GL_USESTATEFILTER
-    if ((glctx->stencilFunc != func) || (glctx->stencilFuncRef != ref) || (glctx->stencilFuncMask != mask))
-    {
-
-        glctx->stencilFunc = func;
-        glctx->stencilFuncRef = ref;
-        glctx->stencilFuncMask = mask;
-
-        glStencilFunc(func, ref, mask);
-
-    }
-#else
-    glStencilFunc(func, ref, mask);
-#endif
-
-}
-
-static void blendFuncSeparate(struct nvg_gl_context *glctx, const struct nvg_gl_blend *blend)
-{
-
-#if NVG_GL_USESTATEFILTER
-    if ((glctx->blendFunc.srcRGB != blend->srcRGB) || (glctx->blendFunc.dstRGB != blend->dstRGB) || (glctx->blendFunc.srcAlpha != blend->srcAlpha) || (glctx->blendFunc.dstAlpha != blend->dstAlpha))
-    {
-
-        glctx->blendFunc = *blend;
-
-        glBlendFuncSeparate(blend->srcRGB, blend->dstRGB, blend->srcAlpha, blend->dstAlpha);
-
-    }
-#else
-    glBlendFuncSeparate(blend->srcRGB, blend->dstRGB, blend->srcAlpha, blend->dstAlpha);
-#endif
-
-}
 
 static struct nvg_gl_texture *findTexture(struct nvg_gl_context *glctx, int id)
 {
@@ -543,20 +459,8 @@ static int renderCreate(struct nvg_gl_context *glctx)
 
     checkError(glctx, "init");
 
-    if (glctx->flags & NVG_ANTIALIAS)
-    {
-
-        if (!createShader(&glctx->shader, "shader", shaderHeader, "#define EDGE_AA 1\n", fillVertShader, fillFragShader))
-            return 0;
-
-    }
-
-    else
-    {
-
-        if (!createShader(&glctx->shader, "shader", shaderHeader, NULL, fillVertShader, fillFragShader))
-            return 0;
-    }
+    if (!createShader(&glctx->shader, "shader", shaderHeader, NULL, fillVertShader, fillFragShader))
+        return 0;
 
     checkError(glctx, "uniform locations");
     getUniforms(&glctx->shader);
@@ -619,7 +523,7 @@ static int renderCreateTexture(struct nvg_gl_context *glctx, int type, int w, in
     tex->type = type;
     tex->flags = imageFlags;
 
-    bindTexture(glctx, tex->tex);
+    glBindTexture(GL_TEXTURE_2D, tex->tex);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 #ifndef NVG_GL_VERSION_GLES2
     glPixelStorei(GL_UNPACK_ROW_LENGTH, tex->width);
@@ -692,7 +596,7 @@ static int renderCreateTexture(struct nvg_gl_context *glctx, int type, int w, in
 #endif
 
     checkError(glctx, "create tex");
-    bindTexture(glctx, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     return tex->id;
 
@@ -706,7 +610,7 @@ static int renderUpdateTexture(struct nvg_gl_context *glctx, int image, int x, i
     if (!tex)
         return 0;
 
-    bindTexture(glctx, tex->tex);
+    glBindTexture(GL_TEXTURE_2D, tex->tex);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 #ifndef NVG_GL_VERSION_GLES2
     glPixelStorei(GL_UNPACK_ROW_LENGTH, tex->width);
@@ -737,7 +641,7 @@ static int renderUpdateTexture(struct nvg_gl_context *glctx, int image, int x, i
     glPixelStorei(GL_UNPACK_SKIP_PIXELS, 0);
     glPixelStorei(GL_UNPACK_SKIP_ROWS, 0);
 #endif
-    bindTexture(glctx, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     return 1;
 
@@ -772,7 +676,7 @@ static struct nvg_color premulColor(struct nvg_color c)
 
 }
 
-static int convertPaint(struct nvg_gl_context *glctx, struct nvg_gl_fraguniforms *frag, struct nvg_paint *paint, struct nvg_scissor *scissor, float width, float fringe, float strokeThr)
+static int convertPaint(struct nvg_gl_context *glctx, struct nvg_gl_fraguniforms *frag, struct nvg_paint *paint, struct nvg_scissor *scissor)
 {
 
     struct nvg_gl_texture *tex = NULL;
@@ -803,15 +707,15 @@ static int convertPaint(struct nvg_gl_context *glctx, struct nvg_gl_fraguniforms
 
         frag->scissorExt[0] = scissor->extent[0];
         frag->scissorExt[1] = scissor->extent[1];
-        frag->scissorScale[0] = sqrtf(scissor->xform[0] * scissor->xform[0] + scissor->xform[2] * scissor->xform[2]) / fringe;
-        frag->scissorScale[1] = sqrtf(scissor->xform[1] * scissor->xform[1] + scissor->xform[3] * scissor->xform[3]) / fringe;
+        frag->scissorScale[0] = sqrtf(scissor->xform[0] * scissor->xform[0] + scissor->xform[2] * scissor->xform[2]);
+        frag->scissorScale[1] = sqrtf(scissor->xform[1] * scissor->xform[1] + scissor->xform[3] * scissor->xform[3]);
 
     }
 
     memcpy(frag->extent, paint->extent, sizeof (frag->extent));
 
-    frag->strokeMult = (width * 0.5f + fringe * 0.5f) / fringe;
-    frag->strokeThr = strokeThr;
+    frag->strokeMult = 1.0f;
+    frag->strokeThr = -1.0f;
 
     if (paint->image != 0)
     {
@@ -899,7 +803,7 @@ static void setUniforms(struct nvg_gl_context *glctx, int uniformOffset, int ima
 
         struct nvg_gl_texture *tex = findTexture(glctx, image);
 
-        bindTexture(glctx, tex ? tex->tex : 0);
+        glBindTexture(GL_TEXTURE_2D, tex ? tex->tex : 0);
         checkError(glctx, "tex paint tex");
 
     }
@@ -907,7 +811,7 @@ static void setUniforms(struct nvg_gl_context *glctx, int uniformOffset, int ima
     else
     {
 
-        bindTexture(glctx, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
     }
 
@@ -920,8 +824,8 @@ static void fill(struct nvg_gl_context *glctx, struct nvg_gl_call *call)
     int i;
 
     glEnable(GL_STENCIL_TEST);
-    stencilMask(glctx, 0xff);
-    stencilFunc(glctx, GL_ALWAYS, 0, 0xff);
+    glStencilMask(0xff);
+    glStencilFunc(GL_ALWAYS, 0, 0xff);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
     setUniforms(glctx, call->uniformOffset, 0);
     checkError(glctx, "fill simple");
@@ -936,19 +840,7 @@ static void fill(struct nvg_gl_context *glctx, struct nvg_gl_call *call)
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     setUniforms(glctx, call->uniformOffset + glctx->fragSize, call->image);
     checkError(glctx, "fill fill");
-
-    if (glctx->flags & NVG_ANTIALIAS)
-    {
-
-        stencilFunc(glctx, GL_EQUAL, 0x00, 0xff);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-
-        for (i = 0; i < call->pathCount; i++)
-            glDrawArrays(GL_TRIANGLE_STRIP, paths[i].strokeOffset, paths[i].strokeCount);
-
-    }
-
-    stencilFunc(glctx, GL_NOTEQUAL, 0x0, 0xff);
+    glStencilFunc(GL_NOTEQUAL, 0x0, 0xff);
     glStencilOp(GL_ZERO, GL_ZERO, GL_ZERO);
     glDrawArrays(GL_TRIANGLE_STRIP, call->triangleOffset, call->triangleCount);
     glDisable(GL_STENCIL_TEST);
@@ -965,66 +857,7 @@ static void convexFill(struct nvg_gl_context *glctx, struct nvg_gl_call *call)
     checkError(glctx, "convex fill");
 
     for (i = 0; i < call->pathCount; i++)
-    {
-
         glDrawArrays(GL_TRIANGLE_FAN, paths[i].fillOffset, paths[i].fillCount);
-
-        if (paths[i].strokeCount > 0)
-            glDrawArrays(GL_TRIANGLE_STRIP, paths[i].strokeOffset, paths[i].strokeCount);
-
-    }
-
-}
-
-static void stroke(struct nvg_gl_context *glctx, struct nvg_gl_call *call)
-{
-
-    struct nvg_gl_path *paths = &glctx->paths[call->pathOffset];
-    int i;
-
-    if (glctx->flags & NVG_STENCIL_STROKES)
-    {
-
-        glEnable(GL_STENCIL_TEST);
-        stencilMask(glctx, 0xff);
-        stencilFunc(glctx, GL_EQUAL, 0x0, 0xff);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
-        setUniforms(glctx, call->uniformOffset + glctx->fragSize, call->image);
-        checkError(glctx, "stroke fill 0");
-
-        for (i = 0; i < call->pathCount; i++)
-            glDrawArrays(GL_TRIANGLE_STRIP, paths[i].strokeOffset, paths[i].strokeCount);
-
-        setUniforms(glctx, call->uniformOffset, call->image);
-        stencilFunc(glctx, GL_EQUAL, 0x00, 0xff);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
-
-        for (i = 0; i < call->pathCount; i++)
-            glDrawArrays(GL_TRIANGLE_STRIP, paths[i].strokeOffset, paths[i].strokeCount);
-
-        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        stencilFunc(glctx, GL_ALWAYS, 0x0, 0xff);
-        glStencilOp(GL_ZERO, GL_ZERO, GL_ZERO);
-        checkError(glctx, "stroke fill 1");
-
-        for (i = 0; i < call->pathCount; i++)
-            glDrawArrays(GL_TRIANGLE_STRIP, paths[i].strokeOffset, paths[i].strokeCount);
-
-        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-        glDisable(GL_STENCIL_TEST);
-
-    }
-
-    else
-    {
-
-        setUniforms(glctx, call->uniformOffset, call->image);
-        checkError(glctx, "stroke fill");
-
-        for (i = 0; i < call->pathCount; i++)
-            glDrawArrays(GL_TRIANGLE_STRIP, paths[i].strokeOffset, paths[i].strokeCount);
-
-    }
 
 }
 
@@ -1034,30 +867,6 @@ static void triangles(struct nvg_gl_context *glctx, struct nvg_gl_call *call)
     setUniforms(glctx, call->uniformOffset, call->image);
     checkError(glctx, "triangles fill");
     glDrawArrays(GL_TRIANGLES, call->triangleOffset, call->triangleCount);
-
-}
-
-static struct nvg_gl_blend blendCompositeOperation(struct nvg_compositeoperationstate op)
-{
-
-    struct nvg_gl_blend blend;
-    
-    blend.srcRGB = op.srcRGB;
-    blend.dstRGB = op.dstRGB;
-    blend.srcAlpha = op.srcAlpha;
-    blend.dstAlpha = op.dstAlpha;
-
-    if (blend.srcRGB == GL_INVALID_ENUM || blend.dstRGB == GL_INVALID_ENUM || blend.srcAlpha == GL_INVALID_ENUM || blend.dstAlpha == GL_INVALID_ENUM)
-    {
-
-        blend.srcRGB = GL_ONE;
-        blend.dstRGB = GL_ONE_MINUS_SRC_ALPHA;
-        blend.srcAlpha = GL_ONE;
-        blend.dstAlpha = GL_ONE_MINUS_SRC_ALPHA;
-
-    }
-
-    return blend;
 
 }
 
@@ -1082,17 +891,6 @@ void nvg_gl_flush(struct nvg_gl_context *glctx)
         glStencilFunc(GL_ALWAYS, 0, 0xffffffff);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, 0);
-#if NVG_GL_USESTATEFILTER
-        glctx->boundTexture = 0;
-        glctx->stencilMask = 0xffffffff;
-        glctx->stencilFunc = GL_ALWAYS;
-        glctx->stencilFuncRef = 0;
-        glctx->stencilFuncMask = 0xffffffff;
-        glctx->blendFunc.srcRGB = GL_INVALID_ENUM;
-        glctx->blendFunc.srcAlpha = GL_INVALID_ENUM;
-        glctx->blendFunc.dstRGB = GL_INVALID_ENUM;
-        glctx->blendFunc.dstAlpha = GL_INVALID_ENUM;
-#endif
 #if NVG_GL_USEUNIFORMBUFFER
         glBindBuffer(GL_UNIFORM_BUFFER, glctx->fragBuf);
         glBufferData(GL_UNIFORM_BUFFER, glctx->nuniforms * glctx->fragSize, glctx->uniforms, GL_STREAM_DRAW);
@@ -1117,14 +915,12 @@ void nvg_gl_flush(struct nvg_gl_context *glctx)
 
             struct nvg_gl_call *call = &glctx->calls[i];
 
-            blendFuncSeparate(glctx, &call->blendFunc);
+            glBlendFuncSeparate(call->blendFunc.srcRGB, call->blendFunc.dstRGB, call->blendFunc.srcAlpha, call->blendFunc.dstAlpha);
 
             if (call->type == NVG_GL_FILL)
                 fill(glctx, call);
             else if (call->type == NVG_GL_CONVEXFILL)
                 convexFill(glctx, call);
-            else if (call->type == NVG_GL_STROKE)
-                stroke(glctx, call);
             else if (call->type == NVG_GL_TRIANGLES)
                 triangles(glctx, call);
 
@@ -1138,7 +934,7 @@ void nvg_gl_flush(struct nvg_gl_context *glctx)
         glDisable(GL_CULL_FACE);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glUseProgram(0);
-        bindTexture(glctx, 0);
+        glBindTexture(GL_TEXTURE_2D, 0);
 
     }
 
@@ -1156,12 +952,7 @@ static int maxVertCount(const struct nvg_path *paths, int npaths)
     int i;
 
     for (i = 0; i < npaths; i++)
-    {
-
         count += paths[i].nfill;
-        count += paths[i].nstroke;
-
-    }
 
     return count;
 
@@ -1282,7 +1073,7 @@ static void vset(struct nvg_vertex *vtx, float x, float y, float u, float v)
 
 }
 
-static void renderFill(struct nvg_gl_context *glctx, struct nvg_paint *paint, struct nvg_compositeoperationstate compositeoperation, struct nvg_scissor *scissor, float fringe, const float *bounds, const struct nvg_path *paths, int npaths)
+static void renderFill(struct nvg_gl_context *glctx, struct nvg_paint *paint, struct nvg_scissor *scissor, const float *bounds, const struct nvg_path *paths, int npaths)
 {
 
     struct nvg_gl_call *call = allocCall(glctx);
@@ -1302,7 +1093,7 @@ static void renderFill(struct nvg_gl_context *glctx, struct nvg_paint *paint, st
 
     call->pathCount = npaths;
     call->image = paint->image;
-    call->blendFunc = blendCompositeOperation(compositeoperation);
+    call->blendFunc = glctx->blendFunc;
 
     if (npaths == 1 && paths[0].convex)
     {
@@ -1338,18 +1129,6 @@ static void renderFill(struct nvg_gl_context *glctx, struct nvg_paint *paint, st
 
         }
 
-        if (path->nstroke > 0)
-        {
-
-            copy->strokeOffset = offset;
-            copy->strokeCount = path->nstroke;
-
-            memcpy(&glctx->verts[offset], path->stroke, sizeof (struct nvg_vertex) * path->nstroke);
-
-            offset += path->nstroke;
-
-        }
-
     }
 
     if (call->type == NVG_GL_FILL)
@@ -1375,7 +1154,7 @@ static void renderFill(struct nvg_gl_context *glctx, struct nvg_paint *paint, st
         frag->strokeThr = -1.0f;
         frag->type = NSVG_SHADER_SIMPLE;
 
-        convertPaint(glctx, fragUniformPtr(glctx, call->uniformOffset + glctx->fragSize), paint, scissor, fringe, fringe, -1.0f);
+        convertPaint(glctx, fragUniformPtr(glctx, call->uniformOffset + glctx->fragSize), paint, scissor);
 
     }
 
@@ -1387,7 +1166,7 @@ static void renderFill(struct nvg_gl_context *glctx, struct nvg_paint *paint, st
         if (call->uniformOffset == -1)
             goto error;
 
-        convertPaint(glctx, fragUniformPtr(glctx, call->uniformOffset), paint, scissor, fringe, fringe, -1.0f);
+        convertPaint(glctx, fragUniformPtr(glctx, call->uniformOffset), paint, scissor);
 
     }
 
@@ -1399,86 +1178,7 @@ error:
 
 }
 
-static void renderStroke(struct nvg_gl_context *glctx, struct nvg_paint *paint, struct nvg_compositeoperationstate compositeoperation, struct nvg_scissor *scissor, float fringe, float strokeWidth, const struct nvg_path *paths, int npaths)
-{
-
-    struct nvg_gl_call *call = allocCall(glctx);
-    int i, maxverts, offset;
-
-    if (!call)
-        return;
-
-    call->type = NVG_GL_STROKE;
-    call->pathOffset = allocPaths(glctx, npaths);
-
-    if (call->pathOffset == -1)
-        goto error;
-
-    call->pathCount = npaths;
-    call->image = paint->image;
-    call->blendFunc = blendCompositeOperation(compositeoperation);
-    maxverts = maxVertCount(paths, npaths);
-    offset = allocVerts(glctx, maxverts);
-
-    if (offset == -1)
-        goto error;
-
-    for (i = 0; i < npaths; i++)
-    {
-
-        struct nvg_gl_path *copy = &glctx->paths[call->pathOffset + i];
-        const struct nvg_path *path = &paths[i];
-
-        memset(copy, 0, sizeof (struct nvg_gl_path));
-
-        if (path->nstroke)
-        {
-
-            copy->strokeOffset = offset;
-            copy->strokeCount = path->nstroke;
-
-            memcpy(&glctx->verts[offset], path->stroke, sizeof (struct nvg_vertex) * path->nstroke);
-
-            offset += path->nstroke;
-
-        }
-
-    }
-
-    if (glctx->flags & NVG_STENCIL_STROKES)
-    {
-
-        call->uniformOffset = allocFragUniforms(glctx, 2);
-
-        if (call->uniformOffset == -1)
-            goto error;
-
-        convertPaint(glctx, fragUniformPtr(glctx, call->uniformOffset), paint, scissor, strokeWidth, fringe, -1.0f);
-        convertPaint(glctx, fragUniformPtr(glctx, call->uniformOffset + glctx->fragSize), paint, scissor, strokeWidth, fringe, 1.0f - 0.5f/255.0f);
-
-    }
-
-    else
-    {
-
-        call->uniformOffset = allocFragUniforms(glctx, 1);
-
-        if (call->uniformOffset == -1)
-            goto error;
-
-        convertPaint(glctx, fragUniformPtr(glctx, call->uniformOffset), paint, scissor, strokeWidth, fringe, -1.0f);
-
-    }
-
-    return;
-
-error:
-    if (glctx->ncalls > 0)
-        glctx->ncalls--;
-
-}
-
-static void renderTriangles(struct nvg_gl_context *glctx, struct nvg_paint *paint, struct nvg_compositeoperationstate compositeoperation, struct nvg_scissor *scissor, const struct nvg_vertex *verts, int nverts)
+static void renderTriangles(struct nvg_gl_context *glctx, struct nvg_paint *paint, struct nvg_scissor *scissor, const struct nvg_vertex *verts, int nverts)
 {
 
     struct nvg_gl_call *call = allocCall(glctx);
@@ -1489,7 +1189,7 @@ static void renderTriangles(struct nvg_gl_context *glctx, struct nvg_paint *pain
 
     call->type = NVG_GL_TRIANGLES;
     call->image = paint->image;
-    call->blendFunc = blendCompositeOperation(compositeoperation);
+    call->blendFunc = glctx->blendFunc;
     call->triangleOffset = allocVerts(glctx, nverts);
 
     if (call->triangleOffset == -1)
@@ -1506,7 +1206,7 @@ static void renderTriangles(struct nvg_gl_context *glctx, struct nvg_paint *pain
 
     frag = fragUniformPtr(glctx, call->uniformOffset);
 
-    convertPaint(glctx, frag, paint, scissor, 1.0f, 1.0f, -1.0f);
+    convertPaint(glctx, frag, paint, scissor);
 
     frag->type = NSVG_SHADER_IMG;
 
@@ -1539,7 +1239,7 @@ static void renderDelete(struct nvg_gl_context *glctx)
     for (i = 0; i < glctx->ntextures; i++)
     {
 
-        if (glctx->textures[i].tex != 0 && (glctx->textures[i].flags & NVG_IMAGE_NODELETE) == 0)
+        if (glctx->textures[i].tex != 0)
             glDeleteTextures(1, &glctx->textures[i].tex);
 
     }
@@ -1555,32 +1255,18 @@ static void renderDelete(struct nvg_gl_context *glctx)
 void nvg_gl_beginframe(struct nvg_gl_context *glctx, struct nvg_context *ctx, float windowWidth, float windowHeight)
 {
 
-    ctx->tessTol = 0.25f;
-    ctx->distTol = 0.01f;
-    ctx->fringeWidth = 1.0f;
-    ctx->drawCallCount = 0;
-    ctx->fillTriCount = 0;
-    ctx->strokeTriCount = 0;
-    ctx->textTriCount = 0;
+    nvg_init(ctx);
+
     glctx->view[0] = windowWidth;
     glctx->view[1] = windowHeight;
-
-    nvg_init(ctx);
-    nvg_gl_compop(ctx, NVG_SOURCE_OVER);
-
-}
-
-void nvg_gl_cancelframe(struct nvg_gl_context *glctx, struct nvg_context *ctx)
-{
-
-    glctx->nverts = 0;
-    glctx->npaths = 0;
-    glctx->ncalls = 0;
-    glctx->nuniforms = 0;
+    glctx->blendFunc.srcRGB = GL_ONE;
+    glctx->blendFunc.dstRGB = GL_ONE_MINUS_SRC_ALPHA;
+    glctx->blendFunc.srcAlpha = GL_ONE;
+    glctx->blendFunc.dstAlpha = GL_ONE_MINUS_SRC_ALPHA;
 
 }
 
-void nvg_gl_endframe(struct nvg_gl_context *glctx, struct nvg_context *ctx)
+void nvg_gl_endframe(struct nvg_gl_context *glctx)
 {
 
     if (glctx->fontImageIdx != 0)
@@ -1623,46 +1309,7 @@ void nvg_gl_endframe(struct nvg_gl_context *glctx, struct nvg_context *ctx)
 
 }
 
-int nvg_gl_createimagefile(struct nvg_gl_context *glctx, struct nvg_context *ctx, const char *filename, int imageFlags)
-{
-
-    int w, h, n, image;
-    unsigned char *img;
-
-    stbi_set_unpremultiply_on_load(1);
-    stbi_convert_iphone_png_to_rgb(1);
-
-    img = stbi_load(filename, &w, &h, &n, 4);
-
-    if (!img)
-        return 0;
-
-    image = nvg_gl_createimagergba(glctx, ctx, w, h, imageFlags, img);
-
-    stbi_image_free(img);
-
-    return image;
-
-}
-
-int nvg_gl_createimagemem(struct nvg_gl_context *glctx, struct nvg_context *ctx, int imageFlags, unsigned char *data, int ndata)
-{
-
-    int w, h, n, image;
-    unsigned char *img = stbi_load_from_memory(data, ndata, &w, &h, &n, 4);
-
-    if (!img)
-        return 0;
-
-    image = nvg_gl_createimagergba(glctx, ctx, w, h, imageFlags, img);
-
-    stbi_image_free(img);
-
-    return image;
-
-}
-
-int nvg_gl_createimagergba(struct nvg_gl_context *glctx, struct nvg_context *ctx, int w, int h, int imageFlags, const unsigned char *data)
+int nvg_gl_createimagergba(struct nvg_gl_context *glctx, int w, int h, int imageFlags, const unsigned char *data)
 {
 
     return renderCreateTexture(glctx, NVG_TEXTURE_RGBA, w, h, imageFlags, data);
@@ -1696,7 +1343,7 @@ void nvg_gl_deletetexture(struct nvg_gl_context *glctx, int id)
     if (texture)
     {
 
-        if (texture->tex != 0 && (texture->flags & NVG_IMAGE_NODELETE) == 0)
+        if (texture->tex != 0)
             glDeleteTextures(1, &texture->tex);
 
         memset(texture, 0, sizeof (struct nvg_gl_texture));
@@ -1711,13 +1358,8 @@ void nvg_gl_fill(struct nvg_gl_context *glctx, struct nvg_context *ctx, struct n
     unsigned int i;
 
     nvg_flatten_paths(ctx);
-
-    if (glctx->edgeAntiAlias && state->shapeAntiAlias)
-        nvg_expand_fill(ctx, ctx->fringeWidth, NVG_MITER, 2.4f);
-    else
-        nvg_expand_fill(ctx, 0.0f, NVG_MITER, 2.4f);
-
-    renderFill(glctx, &state->fill, state->compositeoperation, &state->scissor, ctx->fringeWidth, ctx->cache.bounds, ctx->cache.paths, ctx->cache.npaths);
+    nvg_expand_fill(ctx);
+    renderFill(glctx, &state->fill, &state->scissor, ctx->cache.bounds, ctx->cache.paths, ctx->cache.npaths);
 
     for (i = 0; i < ctx->cache.npaths; i++)
     {
@@ -1725,49 +1367,10 @@ void nvg_gl_fill(struct nvg_gl_context *glctx, struct nvg_context *ctx, struct n
         const struct nvg_path *path = &ctx->cache.paths[i];
 
         ctx->fillTriCount += path->nfill - 2;
-        ctx->fillTriCount += path->nstroke - 2;
         ctx->drawCallCount += 2;
 
     }
 
-}
-
-void nvg_gl_stroke(struct nvg_gl_context *glctx, struct nvg_context *ctx, struct nvg_state *state)
-{
-
-    float strokeWidth = clampf(state->strokeWidth, 0.0f, 200.0f);
-    unsigned int i;
-
-    if (strokeWidth < ctx->fringeWidth)
-    {
-
-        float alpha = clampf(strokeWidth / ctx->fringeWidth, 0.0f, 1.0f);
-
-        state->stroke.innerColor.a *= alpha * alpha;
-        state->stroke.outerColor.a *= alpha * alpha;
-        strokeWidth = ctx->fringeWidth;
-
-    }
-
-    nvg_flatten_paths(ctx);
-
-    if (glctx->edgeAntiAlias && state->shapeAntiAlias)
-        nvg_expand_stroke(ctx, strokeWidth * 0.5f, ctx->fringeWidth, state->linecap, state->linejoin, state->miterLimit);
-    else
-        nvg_expand_stroke(ctx, strokeWidth * 0.5f, 0.0f, state->linecap, state->linejoin, state->miterLimit);
-
-    renderStroke(glctx, &state->stroke, state->compositeoperation, &state->scissor, ctx->fringeWidth, strokeWidth, ctx->cache.paths, ctx->cache.npaths);
-
-    for (i = 0; i < ctx->cache.npaths; i++)
-    {
-
-        const struct nvg_path *path = &ctx->cache.paths[i];
-
-        ctx->strokeTriCount += path->nstroke - 2;
-        ctx->drawCallCount++;
-
-    }
-    
 }
 
 float nvg_gl_text(struct nvg_gl_context *glctx, struct nvg_context *ctx, struct nvg_state *state, struct fons_context *fsctx, float x, float y, const char *string, const char *end)
@@ -1775,16 +1378,15 @@ float nvg_gl_text(struct nvg_gl_context *glctx, struct nvg_context *ctx, struct 
 
     struct fons_textiter iter;
     struct fons_quad q;
-    struct nvg_vertex *verts = ctx->cache.verts;
     int cverts = 0;
     int nverts = 0;
     int dirty[4];
 
     cverts = maxi(2, (int)(end - string)) * 6;
 
-    fonsTextIterInit(fsctx, &iter, x, y, string, end, FONS_GLYPH_BITMAP_REQUIRED);
+    fons_inititer(fsctx, &iter, x, y, string, end, FONS_GLYPH_BITMAP_REQUIRED);
 
-    while (fonsTextIterNext(fsctx, &iter, &q))
+    while (fons_nextiter(fsctx, &iter, &q))
     {
 
         float c[4 * 2];
@@ -1797,12 +1399,12 @@ float nvg_gl_text(struct nvg_gl_context *glctx, struct nvg_context *ctx, struct 
         if (nverts + 6 <= cverts)
         {
 
-            vset(&verts[nverts + 0], c[0], c[1], q.s0, q.t0);
-            vset(&verts[nverts + 1], c[4], c[5], q.s1, q.t1);
-            vset(&verts[nverts + 2], c[2], c[3], q.s1, q.t0);
-            vset(&verts[nverts + 3], c[0], c[1], q.s0, q.t0);
-            vset(&verts[nverts + 4], c[6], c[7], q.s0, q.t1);
-            vset(&verts[nverts + 5], c[4], c[5], q.s1, q.t1);
+            vset(&ctx->cache.verts[nverts + 0], c[0], c[1], q.s0, q.t0);
+            vset(&ctx->cache.verts[nverts + 1], c[4], c[5], q.s1, q.t1);
+            vset(&ctx->cache.verts[nverts + 2], c[2], c[3], q.s1, q.t0);
+            vset(&ctx->cache.verts[nverts + 3], c[0], c[1], q.s0, q.t0);
+            vset(&ctx->cache.verts[nverts + 4], c[6], c[7], q.s0, q.t1);
+            vset(&ctx->cache.verts[nverts + 5], c[4], c[5], q.s1, q.t1);
 
             nverts += 6;
 
@@ -1810,12 +1412,12 @@ float nvg_gl_text(struct nvg_gl_context *glctx, struct nvg_context *ctx, struct 
 
     }
 
-    if (fonsValidateTexture(fsctx, dirty))
+    if (fons_validate(fsctx, dirty))
         renderUpdateTexture(glctx, glctx->fontImages[glctx->fontImageIdx], dirty[0], dirty[1], dirty[2] - dirty[0], dirty[3] - dirty[1], fsctx->texData);
 
     state->fill.image = glctx->fontImages[glctx->fontImageIdx];
 
-    renderTriangles(glctx, &state->fill, state->compositeoperation, &state->scissor, verts, nverts);
+    renderTriangles(glctx, &state->fill, &state->scissor, ctx->cache.verts, nverts);
 
     ctx->drawCallCount++;
     ctx->textTriCount += nverts / 3;
@@ -1824,11 +1426,8 @@ float nvg_gl_text(struct nvg_gl_context *glctx, struct nvg_context *ctx, struct 
 
 }
 
-void nvg_gl_create(struct nvg_gl_context *glctx, int w, int h, int flags)
+void nvg_gl_create(struct nvg_gl_context *glctx, int w, int h)
 {
-
-    glctx->flags = flags;
-    glctx->edgeAntiAlias = flags & NVG_ANTIALIAS ? 1 : 0;
 
     renderCreate(glctx);
 
@@ -1856,114 +1455,6 @@ void nvg_gl_delete(struct nvg_gl_context *glctx)
     }
 
     renderDelete(glctx);
-
-}
-
-void nvg_gl_compop(struct nvg_context *ctx, int op)
-{
-
-    int sfactor, dfactor;
-
-    if (op == NVG_SOURCE_OVER)
-    {
-
-        sfactor = GL_ONE;
-        dfactor = GL_ONE_MINUS_SRC_ALPHA;
-
-    }
-
-    else if (op == NVG_SOURCE_IN)
-    {
-
-        sfactor = GL_DST_ALPHA;
-        dfactor = GL_ZERO;
-
-    }
-
-    else if (op == NVG_SOURCE_OUT)
-    {
-
-        sfactor = GL_ONE_MINUS_DST_ALPHA;
-        dfactor = GL_ZERO;
-
-    }
-
-    else if (op == NVG_ATOP)
-    {
-
-        sfactor = GL_DST_ALPHA;
-        dfactor = GL_ONE_MINUS_SRC_ALPHA;
-
-    }
-
-    else if (op == NVG_DESTINATION_OVER)
-    {
-
-        sfactor = GL_ONE_MINUS_DST_ALPHA;
-        dfactor = GL_ONE;
-
-    }
-
-    else if (op == NVG_DESTINATION_IN)
-    {
-
-        sfactor = GL_ZERO;
-        dfactor = GL_SRC_ALPHA;
-
-    }
-
-    else if (op == NVG_DESTINATION_OUT)
-    {
-
-        sfactor = GL_ZERO;
-        dfactor = GL_ONE_MINUS_SRC_ALPHA;
-
-    }
-
-    else if (op == NVG_DESTINATION_ATOP)
-    {
-
-        sfactor = GL_ONE_MINUS_DST_ALPHA;
-        dfactor = GL_SRC_ALPHA;
-
-    }
-
-    else if (op == NVG_LIGHTER)
-    {
-
-        sfactor = GL_ONE;
-        dfactor = GL_ONE;
-
-    }
-
-    else if (op == NVG_COPY)
-    {
-
-        sfactor = GL_ONE;
-        dfactor = GL_ZERO;
-
-    }
-
-    else if (op == NVG_XOR)
-    {
-
-        sfactor = GL_ONE_MINUS_DST_ALPHA;
-        dfactor = GL_ONE_MINUS_SRC_ALPHA;
-
-    }
-
-    else
-    {
-
-        sfactor = GL_ONE;
-        dfactor = GL_ZERO;
-
-    }
-
-    ctx->state.compositeoperation.srcRGB = sfactor;
-    ctx->state.compositeoperation.dstRGB = dfactor;
-    ctx->state.compositeoperation.srcAlpha = sfactor;
-    ctx->state.compositeoperation.dstAlpha = dfactor;
 
 }
 

@@ -43,8 +43,8 @@
 #define ALFI_VALIGN_TOP                 1
 #define ALFI_VALIGN_MIDDLE              2
 #define ALFI_VALIGN_BOTTOM              3
-#define ALFI_TARGET_SELF                0
-#define ALFI_TARGET_BLANK               1
+#define ALFI_TARGET_BLANK               0
+#define ALFI_TARGET_SELF                1
 #define ALFI_TYPE_REGULAR               0
 #define ALFI_TYPE_PASSWORD              1
 #define ALFI_STATE_NORMAL               0
@@ -155,7 +155,7 @@ struct alfi_attribute_valign
 
 };
 
-struct alfi_resource_image
+struct alfi_resource
 {
 
     int ref;
@@ -261,8 +261,6 @@ struct alfi_frame_window
 {
 
     struct alfi_style background;
-    struct alfi_style shadow1;
-    struct alfi_style shadow2;
 
 };
 
@@ -341,7 +339,7 @@ struct alfi_widget_image
 {
 
     struct alfi_attribute_link link;
-    struct alfi_resource_image resource;
+    struct alfi_resource resource;
     struct alfi_frame_image frame;
 
 };
@@ -418,6 +416,30 @@ struct alfi_widget_vstack
 
 };
 
+union alfi_payload
+{
+
+    struct alfi_widget_anchor anchor;
+    struct alfi_widget_audio audio;
+    struct alfi_widget_button button;
+    struct alfi_widget_choice choice;
+    struct alfi_widget_divider divider;
+    struct alfi_widget_field field;
+    struct alfi_widget_hstack hstack;
+    struct alfi_widget_header header;
+    struct alfi_widget_image image;
+    struct alfi_widget_list list;
+    struct alfi_widget_select select;
+    struct alfi_widget_subheader subheader;
+    struct alfi_widget_tab tab;
+    struct alfi_widget_table table;
+    struct alfi_widget_text text;
+    struct alfi_widget_video video;
+    struct alfi_widget_vstack vstack;
+    struct alfi_widget_window window;
+
+};
+
 struct alfi_widget
 {
 
@@ -427,31 +449,7 @@ struct alfi_widget
     struct alfi_attribute_in in;
     unsigned int state;
     struct list_item item;
-    unsigned int group;
-
-    union
-    {
-
-        struct alfi_widget_anchor anchor;
-        struct alfi_widget_audio audio;
-        struct alfi_widget_button button;
-        struct alfi_widget_choice choice;
-        struct alfi_widget_divider divider;
-        struct alfi_widget_field field;
-        struct alfi_widget_hstack hstack;
-        struct alfi_widget_header header;
-        struct alfi_widget_image image;
-        struct alfi_widget_list list;
-        struct alfi_widget_select select;
-        struct alfi_widget_subheader subheader;
-        struct alfi_widget_tab tab;
-        struct alfi_widget_table table;
-        struct alfi_widget_text text;
-        struct alfi_widget_video video;
-        struct alfi_widget_vstack vstack;
-        struct alfi_widget_window window;
-
-    } data;
+    union alfi_payload data;
 
 };
 
