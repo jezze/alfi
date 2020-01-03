@@ -51,7 +51,6 @@ struct fons_textiter
     float spacing;
     unsigned int codepoint;
     short size;
-    short blur;
     struct fons_font *font;
     int prevGlyphIndex;
     const char *str;
@@ -68,7 +67,7 @@ struct fons_glyph
     unsigned int codepoint;
     int index;
     int next;
-    short size, blur;
+    short size;
     short x0, y0, x1, y1;
     short xadv, xoff, yoff;
 
@@ -113,7 +112,6 @@ struct fons_state
     int align;
     float size;
     unsigned int color;
-    float blur;
     float spacing;
 
 };

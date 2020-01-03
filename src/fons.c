@@ -304,7 +304,6 @@ void fons_initstate(struct fons_context *fsctx)
     fsctx->state.size = 12.0f;
     fsctx->state.color = 0xffffffff;
     fsctx->state.font = 0;
-    fsctx->state.blur = 0;
     fsctx->state.spacing = 0;
     fsctx->state.align = FONS_ALIGN_LEFT | FONS_ALIGN_BASELINE;
 
@@ -386,102 +385,7 @@ int fons_addfontmem(struct fons_context *fsctx, unsigned char *data, int dataSiz
 
 }
 
-#define APREC 16
-#define ZPREC 7
-
-static void blurCols(unsigned char *dst, int w, int h, int dstStride, int alpha)
-{
-
-    int x, y;
-
-    for (y = 0; y < h; y++)
-    {
-
-        int z = 0;
-
-        for (x = 1; x < w; x++)
-        {
-
-            z += (alpha * (((int)(dst[x]) << ZPREC) - z)) >> APREC;
-            dst[x] = z >> ZPREC;
-
-        }
-
-        dst[w - 1] = 0;
-        z = 0;
-
-        for (x = w - 2; x >= 0; x--)
-        {
-
-            z += (alpha * (((int)(dst[x]) << ZPREC) - z)) >> APREC;
-            dst[x] = z >> ZPREC;
-
-        }
-
-        dst[0] = 0;
-        dst += dstStride;
-
-    }
-
-}
-
-static void blurRows(unsigned char *dst, int w, int h, int dstStride, int alpha)
-{
-
-    int x, y;
-
-    for (x = 0; x < w; x++)
-    {
-
-        int z = 0;
-
-        for (y = dstStride; y < h * dstStride; y += dstStride)
-        {
-
-            z += (alpha * (((int)(dst[y]) << ZPREC) - z)) >> APREC;
-            dst[y] = z >> ZPREC;
-
-        }
-
-        dst[(h - 1) * dstStride] = 0;
-        z = 0;
-
-        for (y = (h - 2) * dstStride; y >= 0; y -= dstStride)
-        {
-
-            z += (alpha * (((int)(dst[y]) << ZPREC) - z)) >> APREC;
-            dst[y] = z >> ZPREC;
-
-        }
-
-        dst[0] = 0;
-        dst++;
-
-    }
-
-}
-
-static void blurit(unsigned char *dst, int w, int h, int dstStride, int blur)
-{
-
-    int alpha;
-    float sigma;
-
-    if (blur < 1)
-        return;
-
-    sigma = (float)blur * 0.57735f;
-    alpha = (int)((1 << APREC) * (1.0f - expf(-2.3f / (sigma + 1.0f))));
-    blurRows(dst, w, h, dstStride, alpha);
-    blurCols(dst, w, h, dstStride, alpha);
-    blurRows(dst, w, h, dstStride, alpha);
-    blurCols(dst, w, h, dstStride, alpha);
-//    blurrows(dst, w, h, dstStride, alpha);
-//    blurcols(dst, w, h, dstStride, alpha);
-
-}
-
-static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font *font, unsigned int codepoint, short size, short blur, int bitmapOption)
+static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font *font, unsigned int codepoint, short size, int bitmapOption)
 {
 
     int i, g, advance, lsb;
@@ -497,17 +401,14 @@ static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font 
     if (size < 2)
         return 0;
 
-    if (blur > 20)
-        blur = 20;
-
-    pad = blur + 2;
+    pad = 2;
     h = hashint(codepoint) & (FONS_HASH_LUT_SIZE - 1);
     i = font->lut[h];
 
     while (i != -1)
     {
     
-        if (font->glyphs[i].codepoint == codepoint && font->glyphs[i].size == size && font->glyphs[i].blur == blur)
+        if (font->glyphs[i].codepoint == codepoint && font->glyphs[i].size == size)
         {
 
             glyph = &font->glyphs[i];
@@ -560,7 +461,6 @@ static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font 
         glyph = &font->glyphs[font->nglyphs];
         glyph->codepoint = codepoint;
         glyph->size = size;
-        glyph->blur = blur;
         glyph->next = 0;
         glyph->next = font->lut[h];
         font->lut[h] = font->nglyphs;
@@ -601,9 +501,6 @@ static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font 
         dst[x + (gh - 1) * fsctx->width] = 0;
 
     }
-
-    if (blur > 0)
-        blurit(&fsctx->texData[glyph->x0 + glyph->y0 * fsctx->width], gw, gh, fsctx->width, blur);
 
     fsctx->dirtyRect[0] = mini(fsctx->dirtyRect[0], glyph->x0);
     fsctx->dirtyRect[1] = mini(fsctx->dirtyRect[1], glyph->y0);
@@ -713,7 +610,6 @@ int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, float 
 
     iter->font = &fsctx->fonts[fsctx->state.font];
     iter->size = fsctx->state.size;
-    iter->blur = fsctx->state.blur;
     iter->scale = stbtt_ScaleForPixelHeight(&iter->font->font, iter->size);
 
     if (fsctx->state.align & FONS_ALIGN_LEFT)
@@ -772,7 +668,7 @@ int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct
         str++;
         iter->x = iter->nextx;
         iter->y = iter->nexty;
-        glyph = getGlyph(fsctx, iter->font, iter->codepoint, iter->size, iter->blur, iter->bitmapOption);
+        glyph = getGlyph(fsctx, iter->font, iter->codepoint, iter->size, iter->bitmapOption);
 
         if (glyph)
             getQuad(fsctx, iter->font, iter->prevGlyphIndex, glyph, iter->scale, iter->spacing, &iter->nextx, &iter->nexty, quad);
@@ -810,7 +706,7 @@ float fons_getwidth(struct fons_context *fsctx, float x, float y, const char *st
         if (decutf8(&utf8state, &codepoint, *(const unsigned char *)str))
             continue;
 
-        glyph = getGlyph(fsctx, font, codepoint, fsctx->state.size, fsctx->state.blur, FONS_GLYPH_BITMAP_OPTIONAL);
+        glyph = getGlyph(fsctx, font, codepoint, fsctx->state.size, FONS_GLYPH_BITMAP_OPTIONAL);
 
         if (glyph)
             getQuad(fsctx, font, prevGlyphIndex, glyph, scale, fsctx->state.spacing, &x, &y, &q);
