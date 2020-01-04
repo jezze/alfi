@@ -1,9 +1,8 @@
 #include "list.h"
 
-static void add(struct list *list, struct list_item *item)
+void list_add(struct list *list, struct list_item *item)
 {
 
-    item->list = list;
     item->prev = list->tail;
     item->next = 0;
 
@@ -17,7 +16,7 @@ static void add(struct list *list, struct list_item *item)
 
 }
 
-static void remove(struct list *list, struct list_item *item)
+void list_remove(struct list *list, struct list_item *item)
 {
 
     if (list->head == item)
@@ -38,26 +37,9 @@ static void remove(struct list *list, struct list_item *item)
     if (item->prev)
         item->prev->next = item->next;
 
-    item->list = 0;
     item->next = 0;
     item->prev = 0;
     list->count--;
-
-}
-
-void list_add(struct list *list, struct list_item *item)
-{
-
-    if (item->list == 0)
-        add(list, item);
-
-}
-
-void list_remove(struct list *list, struct list_item *item)
-{
-
-    if (item->list == list)
-        remove(list, item);
 
 }
 
@@ -75,7 +57,7 @@ struct list_item *list_pickhead(struct list *list)
     struct list_item *item = list->head;
 
     if (item)
-        remove(list, item);
+        list_remove(list, item);
 
     return item;
 
@@ -87,7 +69,7 @@ struct list_item *list_picktail(struct list *list)
     struct list_item *item = list->tail;
 
     if (item)
-        remove(list, item);
+        list_remove(list, item);
 
     return item;
 
@@ -96,7 +78,6 @@ struct list_item *list_picktail(struct list *list)
 void list_inititem(struct list_item *item, void *data)
 {
 
-    item->list = 0;
     item->next = 0;
     item->prev = 0;
     item->data = data;

@@ -7,20 +7,27 @@
 #define NVG_PI 3.14159265358979323846264338327f
 #define NVG_KAPPA90 0.5522847493f
 #define NVG_COUNTOF(arr) (sizeof (arr) / sizeof (0[arr]))
+#define NVG_DISTTOL 0.01f
+#define NVG_TESSTOL 0.25f
 
-static int mini(int a, int b)
+enum nvg_commands
 {
 
-    return a < b ? a : b;
+    NVG_MOVETO = 0,
+    NVG_LINETO = 1,
+    NVG_BEZIERTO = 2,
+    NVG_CLOSE = 3,
+    NVG_WINDING = 4
 
-}
+};
 
-static int maxi(int a, int b)
+enum nvg_winding
 {
 
-    return a > b ? a : b;
+    NVG_CCW = 1,
+    NVG_CW = 2
 
-}
+};
 
 static float minf(float a, float b)
 {
@@ -50,20 +57,6 @@ static float signf(float a)
 
 }
 
-static float clampf(float a, float mn, float mx)
-{
-
-    return a < mn ? mn : (a > mx ? mx : a);
-
-}
-
-static float cross(float dx0, float dy0, float dx1, float dy1)
-{
-
-    return dx1 * dy0 - dx0 * dy1;
-
-}
-
 static float normalize(float *x, float *y)
 {
 
@@ -83,21 +76,7 @@ static float normalize(float *x, float *y)
 
 }
 
-struct nvg_color nvgRGB(unsigned char r, unsigned char g, unsigned char b)
-{
-
-    return nvgRGBA(r, g, b, 255);
-
-}
-
-struct nvg_color nvgRGBf(float r, float g, float b)
-{
-
-    return nvgRGBAf(r, g, b, 1.0f);
-
-}
-
-struct nvg_color nvgRGBA(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+struct nvg_color nvg_rgba(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {
 
     struct nvg_color color;
@@ -111,7 +90,7 @@ struct nvg_color nvgRGBA(unsigned char r, unsigned char g, unsigned char b, unsi
 
 }
 
-struct nvg_color nvgRGBAf(float r, float g, float b, float a)
+struct nvg_color nvg_rgbaf(float r, float g, float b, float a)
 {
 
     struct nvg_color color;
@@ -125,91 +104,123 @@ struct nvg_color nvgRGBAf(float r, float g, float b, float a)
 
 }
 
-struct nvg_color nvgTransRGBA(struct nvg_color c, unsigned char a)
+struct nvg_color nvg_premulrgba(struct nvg_color c)
 {
 
-    c.a = a / 255.0f;
+    c.r *= c.a;
+    c.g *= c.a;
+    c.b *= c.a;
 
     return c;
 
 }
 
-struct nvg_color nvgTransRGBAf(struct nvg_color c, float a)
+void nvg_paint_color(struct nvg_paint *paint, float r, float g, float b, float a)
 {
 
-    c.a = a;
+    memset(paint, 0, sizeof (struct nvg_paint));
+    nvg_xform_identity(paint->xform);
 
-    return c;
+    paint->radius = 0.0f;
+    paint->feather = 1.0f;
+    paint->innerColor = nvg_rgba(r, g, b, a);
+    paint->outerColor = nvg_rgba(r, g, b, a);
 
 }
 
-struct nvg_color nvgLerpRGBA(struct nvg_color c0, struct nvg_color c1, float u)
+void nvg_paint_image(struct nvg_paint *paint, float cx, float cy, float w, float h, float angle, int image, float alpha)
 {
 
-    struct nvg_color c;
+    memset(paint, 0, sizeof (struct nvg_paint));
+    nvg_xform_rotate(paint->xform, angle);
 
-    u = clampf(u, 0.0f, 1.0f);
-    c.r = c0.r * (1.0f - u) + c1.r * u;
-    c.g = c0.g * (1.0f - u) + c1.g * u;
-    c.b = c0.b * (1.0f - u) + c1.b * u;
-    c.a = c0.a * (1.0f - u) + c1.a * u;
-
-    return c;
+    paint->xform[4] = cx;
+    paint->xform[5] = cy;
+    paint->extent[0] = w;
+    paint->extent[1] = h;
+    paint->image = image;
+    paint->innerColor = nvg_rgbaf(1, 1, 1, alpha);
+    paint->outerColor = nvg_rgbaf(1, 1, 1, alpha);
 
 }
 
-struct nvg_color nvgHSL(float h, float s, float l)
+void nvg_paint_boxgradient(struct nvg_paint *paint, float x, float y, float w, float h, float r, float f, struct nvg_color icol, struct nvg_color ocol)
 {
 
-    return nvgHSLA(h, s, l, 255);
+    memset(paint, 0, sizeof (struct nvg_paint));
+    nvg_xform_identity(paint->xform);
+
+    paint->xform[4] = x + w * 0.5f;
+    paint->xform[5] = y + h * 0.5f;
+    paint->extent[0] = w * 0.5f;
+    paint->extent[1] = h * 0.5f;
+    paint->radius = r;
+    paint->feather = maxf(1.0f, f);
+    paint->innerColor = icol;
+    paint->outerColor = ocol;
 
 }
 
-static float hue(float h, float m1, float m2)
+void nvg_paint_lineargradient(struct nvg_paint *paint, float sx, float sy, float ex, float ey, struct nvg_color icol, struct nvg_color ocol)
 {
 
-    if (h < 0)
-        h += 1;
+    float dx, dy, d;
+    const float large = 1e5;
 
-    if (h > 1)
-        h -= 1;
+    memset(paint, 0, sizeof (struct nvg_paint));
 
-    if (h < 1.0f / 6.0f)
-        return m1 + (m2 - m1) * h * 6.0f;
-    else if (h < 3.0f / 6.0f)
-        return m2;
-    else if (h < 4.0f / 6.0f)
-        return m1 + (m2 - m1) * (2.0f / 3.0f - h) * 6.0f;
+    dx = ex - sx;
+    dy = ey - sy;
+    d = sqrtf(dx * dx + dy * dy);
+    dx /= d;
+    dy /= d;
 
-    return m1;
+    paint->xform[0] = dy;
+    paint->xform[1] = -dx;
+    paint->xform[2] = dx;
+    paint->xform[3] = dy;
+    paint->xform[4] = sx - dx * large;
+    paint->xform[5] = sy - dy * large;
+    paint->extent[0] = large;
+    paint->extent[1] = large + d * 0.5f;
+    paint->radius = 0.0f;
+    paint->feather = maxf(1.0f, d);
+    paint->innerColor = icol;
+    paint->outerColor = ocol;
 
 }
 
-struct nvg_color nvgHSLA(float h, float s, float l, unsigned char a)
+void nvg_paint_radialgradient(struct nvg_paint *paint, float cx, float cy, float inr, float outr, struct nvg_color icol, struct nvg_color ocol)
 {
 
-    float m1, m2;
-    struct nvg_color col;
+    float r = (inr + outr) * 0.5f;
+    float f = (outr - inr);
 
-    h = fmodf(h, 1.0f);
+    memset(paint, 0, sizeof (struct nvg_paint));
+    nvg_xform_identity(paint->xform);
 
-    if (h < 0.0f)
-        h += 1.0f;
-
-    s = clampf(s, 0.0f, 1.0f);
-    l = clampf(l, 0.0f, 1.0f);
-    m2 = l <= 0.5f ? (l * (1 + s)) : (l + s - l * s);
-    m1 = 2 * l - m2;
-    col.r = clampf(hue(h + 1.0f / 3.0f, m1, m2), 0.0f, 1.0f);
-    col.g = clampf(hue(h, m1, m2), 0.0f, 1.0f);
-    col.b = clampf(hue(h - 1.0f / 3.0f, m1, m2), 0.0f, 1.0f);
-    col.a = a / 255.0f;
-
-    return col;
+    paint->xform[4] = cx;
+    paint->xform[5] = cy;
+    paint->extent[0] = r;
+    paint->extent[1] = r;
+    paint->radius = r;
+    paint->feather = maxf(1.0f, f);
+    paint->innerColor = icol;
+    paint->outerColor = ocol;
 
 }
 
-void nvgTransformIdentity(float *t)
+void nvg_setvertex(struct nvg_vertex *vtx, float x, float y, float u, float v)
+{
+
+    vtx->x = x;
+    vtx->y = y;
+    vtx->u = u;
+    vtx->v = v;
+
+}
+
+void nvg_xform_identity(float *t)
 {
 
     t[0] = 1.0f;
@@ -221,7 +232,7 @@ void nvgTransformIdentity(float *t)
 
 }
 
-void nvgTransformTranslate(float *t, float tx, float ty)
+void nvg_xform_translate(float *t, float tx, float ty)
 {
 
     t[0] = 1.0f;
@@ -233,7 +244,7 @@ void nvgTransformTranslate(float *t, float tx, float ty)
 
 }
 
-void nvgTransformScale(float *t, float sx, float sy)
+void nvg_xform_scale(float *t, float sx, float sy)
 {
 
     t[0] = sx;
@@ -245,7 +256,7 @@ void nvgTransformScale(float *t, float sx, float sy)
 
 }
 
-void nvgTransformRotate(float *t, float a)
+void nvg_xform_rotate(float *t, float a)
 {
 
     float cs = cosf(a);
@@ -260,7 +271,7 @@ void nvgTransformRotate(float *t, float a)
 
 }
 
-void nvgTransformSkewX(float *t, float a)
+void nvg_xform_skewx(float *t, float a)
 {
 
     t[0] = 1.0f;
@@ -272,7 +283,7 @@ void nvgTransformSkewX(float *t, float a)
 
 }
 
-void nvgTransformSkewY(float *t, float a)
+void nvg_xform_skewy(float *t, float a)
 {
 
     t[0] = 1.0f;
@@ -284,7 +295,7 @@ void nvgTransformSkewY(float *t, float a)
 
 }
 
-void nvgTransformMultiply(float *t, const float *s)
+void nvg_xform_multiply(float *t, const float *s)
 {
 
     float t0 = t[0] * s[0] + t[1] * s[2];
@@ -300,45 +311,43 @@ void nvgTransformMultiply(float *t, const float *s)
 
 }
 
-void nvgTransformPremultiply(float *t, const float *s)
+void nvg_xform_premultiply(float *t, const float *s)
 {
 
     float s2[6];
 
     memcpy(s2, s, sizeof (float) * 6);
-    nvgTransformMultiply(s2, t);
+    nvg_xform_multiply(s2, t);
     memcpy(t, s2, sizeof (float) * 6);
 
 }
 
-int nvgTransformInverse(float *inv, const float *t)
+void nvg_xform_inverse(float *t, const float *s)
 {
 
-    double det = (double)t[0] * t[3] - (double)t[2] * t[1];
+    double det = (double)s[0] * s[3] - (double)s[2] * s[1];
     double invdet;
 
     if (det > -1e-6 && det < 1e-6)
     {
 
-        nvgTransformIdentity(inv);
+        nvg_xform_identity(t);
 
-        return 0;
+        return;
 
     }
 
     invdet = 1.0 / det;
-    inv[0] = (float)(t[3] * invdet);
-    inv[2] = (float)(-t[2] * invdet);
-    inv[4] = (float)(((double)t[2] * t[5] - (double)t[3] * t[4]) * invdet);
-    inv[1] = (float)(-t[1] * invdet);
-    inv[3] = (float)(t[0] * invdet);
-    inv[5] = (float)(((double)t[1] * t[4] - (double)t[0] * t[5]) * invdet);
-
-    return 1;
+    t[0] = (float)(s[3] * invdet);
+    t[2] = (float)(-s[2] * invdet);
+    t[4] = (float)(((double)s[2] * s[5] - (double)s[3] * s[4]) * invdet);
+    t[1] = (float)(-s[1] * invdet);
+    t[3] = (float)(s[0] * invdet);
+    t[5] = (float)(((double)s[1] * s[4] - (double)s[0] * s[5]) * invdet);
 
 }
 
-void nvgTransformPoint(float *dx, float *dy, const float *t, float sx, float sy)
+void nvg_getpoints(float *dx, float *dy, const float *t, float sx, float sy)
 {
 
     *dx = sx * t[0] + sy * t[2] + t[4];
@@ -346,265 +355,94 @@ void nvgTransformPoint(float *dx, float *dy, const float *t, float sx, float sy)
 
 }
 
-static void setPaintColor(struct nvg_paint *p, struct nvg_color color)
-{
-
-    memset(p, 0, sizeof (struct nvg_paint));
-    nvgTransformIdentity(p->xform);
-
-    p->radius = 0.0f;
-    p->feather = 1.0f;
-    p->innerColor = color;
-    p->outerColor = color;
-
-}
-
-void nvgTransform(struct nvg_context *ctx, float a, float b, float c, float d, float e, float f)
+void nvg_transform(struct nvg_context *ctx, float a, float b, float c, float d, float e, float f)
 {
 
     float t[6] = { a, b, c, d, e, f };
 
-    nvgTransformPremultiply(ctx->state.xform, t);
+    nvg_xform_premultiply(ctx->xform, t);
 
 }
 
-void nvgTranslate(struct nvg_context *ctx, float x, float y)
+void nvg_translate(struct nvg_context *ctx, float x, float y)
 {
 
     float t[6];
 
-    nvgTransformTranslate(t, x,y);
-    nvgTransformPremultiply(ctx->state.xform, t);
+    nvg_xform_translate(t, x, y);
+    nvg_xform_premultiply(ctx->xform, t);
 
 }
 
-void nvgRotate(struct nvg_context *ctx, float angle)
+void nvg_rotate(struct nvg_context *ctx, float angle)
 {
 
     float t[6];
 
-    nvgTransformRotate(t, angle);
-    nvgTransformPremultiply(ctx->state.xform, t);
+    nvg_xform_rotate(t, angle);
+    nvg_xform_premultiply(ctx->xform, t);
 
 }
 
-void nvgSkewX(struct nvg_context *ctx, float angle)
+void nvg_skewx(struct nvg_context *ctx, float angle)
 {
 
     float t[6];
 
-    nvgTransformSkewX(t, angle);
-    nvgTransformPremultiply(ctx->state.xform, t);
+    nvg_xform_skewx(t, angle);
+    nvg_xform_premultiply(ctx->xform, t);
 
 }
 
-void nvgSkewY(struct nvg_context *ctx, float angle)
+void nvg_skewy(struct nvg_context *ctx, float angle)
 {
 
     float t[6];
 
-    nvgTransformSkewY(t, angle);
-    nvgTransformPremultiply(ctx->state.xform, t);
+    nvg_xform_skewy(t, angle);
+    nvg_xform_premultiply(ctx->xform, t);
 
 }
 
-void nvgScale(struct nvg_context *ctx, float x, float y)
+void nvg_scale(struct nvg_context *ctx, float x, float y)
 {
 
     float t[6];
 
-    nvgTransformScale(t, x, y);
-    nvgTransformPremultiply(ctx->state.xform, t);
+    nvg_xform_scale(t, x, y);
+    nvg_xform_premultiply(ctx->xform, t);
 
 }
 
-void nvg_setfillcolor(struct nvg_context *ctx, struct nvg_color color)
+void nvg_scissor_init(struct nvg_scissor *scissor)
 {
 
-    setPaintColor(&ctx->state.fill, color);
+    memset(scissor->xform, 0, sizeof (scissor->xform));
+
+    scissor->extent[0] = -1.0f;
+    scissor->extent[1] = -1.0f;
 
 }
 
-void nvg_setfillpaint(struct nvg_context *ctx, struct nvg_paint paint)
-{
-
-    ctx->state.fill = paint;
-
-    nvgTransformMultiply(ctx->state.fill.xform, ctx->state.xform);
-
-}
-
-void nvgLinearGradient(struct nvg_paint *p, float sx, float sy, float ex, float ey, struct nvg_color icol, struct nvg_color ocol)
-{
-
-    float dx, dy, d;
-    const float large = 1e5;
-
-    memset(p, 0, sizeof (struct nvg_paint));
-
-    dx = ex - sx;
-    dy = ey - sy;
-    d = sqrtf(dx * dx + dy * dy);
-
-    if (d > 0.0001f)
-    {
-
-        dx /= d;
-        dy /= d;
-
-    }
-
-    else
-    {
-
-        dx = 0;
-        dy = 1;
-
-    }
-
-    p->xform[0] = dy;
-    p->xform[1] = -dx;
-    p->xform[2] = dx;
-    p->xform[3] = dy;
-    p->xform[4] = sx - dx * large;
-    p->xform[5] = sy - dy * large;
-    p->extent[0] = large;
-    p->extent[1] = large + d * 0.5f;
-    p->radius = 0.0f;
-    p->feather = maxf(1.0f, d);
-    p->innerColor = icol;
-    p->outerColor = ocol;
-
-}
-
-void nvgRadialGradient(struct nvg_paint *p, float cx, float cy, float inr, float outr, struct nvg_color icol, struct nvg_color ocol)
-{
-
-    float r = (inr + outr) * 0.5f;
-    float f = (outr - inr);
-
-    memset(p, 0, sizeof (struct nvg_paint));
-    nvgTransformIdentity(p->xform);
-
-    p->xform[4] = cx;
-    p->xform[5] = cy;
-    p->extent[0] = r;
-    p->extent[1] = r;
-    p->radius = r;
-    p->feather = maxf(1.0f, f);
-    p->innerColor = icol;
-    p->outerColor = ocol;
-
-}
-
-void nvgBoxGradient(struct nvg_paint *p, float x, float y, float w, float h, float r, float f, struct nvg_color icol, struct nvg_color ocol)
-{
-
-    memset(p, 0, sizeof (struct nvg_paint));
-    nvgTransformIdentity(p->xform);
-
-    p->xform[4] = x + w * 0.5f;
-    p->xform[5] = y + h * 0.5f;
-    p->extent[0] = w * 0.5f;
-    p->extent[1] = h * 0.5f;
-    p->radius = r;
-    p->feather = maxf(1.0f, f);
-    p->innerColor = icol;
-    p->outerColor = ocol;
-
-}
-
-void nvgImagePattern(struct nvg_paint *p, float cx, float cy, float w, float h, float angle, int image, float alpha)
-{
-
-    memset(p, 0, sizeof (struct nvg_paint));
-    nvgTransformRotate(p->xform, angle);
-
-    p->xform[4] = cx;
-    p->xform[5] = cy;
-    p->extent[0] = w;
-    p->extent[1] = h;
-    p->image = image;
-    p->innerColor = p->outerColor = nvgRGBAf(1, 1, 1, alpha);
-
-}
-
-void nvgScissor(struct nvg_context *ctx, float x, float y, float w, float h)
+void nvg_scissor_set(struct nvg_scissor *scissor, float *xform, float x, float y, float w, float h)
 {
 
     w = maxf(0.0f, w);
     h = maxf(0.0f, h);
 
-    nvgTransformIdentity(ctx->state.scissor.xform);
+    nvg_xform_identity(scissor->xform);
 
-    ctx->state.scissor.xform[4] = x + w * 0.5f;
-    ctx->state.scissor.xform[5] = y + h * 0.5f;
+    scissor->xform[4] = x + w * 0.5f;
+    scissor->xform[5] = y + h * 0.5f;
 
-    nvgTransformMultiply(ctx->state.scissor.xform, ctx->state.xform);
+    nvg_xform_multiply(scissor->xform, xform);
 
-    ctx->state.scissor.extent[0] = w * 0.5f;
-    ctx->state.scissor.extent[1] = h * 0.5f;
-
-}
-
-static void isectRects(float *dst, float ax, float ay, float aw, float ah, float bx, float by, float bw, float bh)
-{
-
-    float minx = maxf(ax, bx);
-    float miny = maxf(ay, by);
-    float maxx = minf(ax + aw, bx + bw);
-    float maxy = minf(ay + ah, by + bh);
-
-    dst[0] = minx;
-    dst[1] = miny;
-    dst[2] = maxf(0.0f, maxx - minx);
-    dst[3] = maxf(0.0f, maxy - miny);
+    scissor->extent[0] = w * 0.5f;
+    scissor->extent[1] = h * 0.5f;
 
 }
 
-void nvgIntersectScissor(struct nvg_context *ctx, float x, float y, float w, float h)
-{
-
-    float pxform[6], invxorm[6];
-    float rect[4];
-    float ex, ey, tex, tey;
-
-    if (ctx->state.scissor.extent[0] < 0)
-    {
-
-        nvgScissor(ctx, x, y, w, h);
-
-        return;
-
-    }
-
-    memcpy(pxform, ctx->state.scissor.xform, sizeof (float) * 6);
-
-    ex = ctx->state.scissor.extent[0];
-    ey = ctx->state.scissor.extent[1];
-
-    nvgTransformInverse(invxorm, ctx->state.xform);
-    nvgTransformMultiply(pxform, invxorm);
-
-    tex = ex * absf(pxform[0]) + ey * absf(pxform[2]);
-    tey = ex * absf(pxform[1]) + ey * absf(pxform[3]);
-
-    isectRects(rect, pxform[4] - tex, pxform[5] - tey, tex * 2, tey * 2, x, y, w, h);
-    nvgScissor(ctx, rect[0], rect[1], rect[2], rect[3]);
-
-}
-
-void nvgResetScissor(struct nvg_context *ctx)
-{
-
-    memset(ctx->state.scissor.xform, 0, sizeof (ctx->state.scissor.xform));
-
-    ctx->state.scissor.extent[0] = -1.0f;
-    ctx->state.scissor.extent[1] = -1.0f;
-
-}
-
-static int ptEquals(float x1, float y1, float x2, float y2, float tol)
+static int pointequals(float x1, float y1, float x2, float y2, float tol)
 {
 
     float dx = x2 - x1;
@@ -614,47 +452,10 @@ static int ptEquals(float x1, float y1, float x2, float y2, float tol)
 
 }
 
-static float distPtSeg(float x, float y, float px, float py, float qx, float qy)
+static void appendcommand(struct nvg_context *ctx, float *vals, int nvals)
 {
 
-    float pqx, pqy, dx, dy, d, t;
-
-    pqx = qx - px;
-    pqy = qy - py;
-    dx = x - px;
-    dy = y - py;
-    d = pqx * pqx + pqy * pqy;
-    t = pqx * dx + pqy * dy;
-
-    if (d > 0)
-        t /= d;
-
-    if (t < 0)
-        t = 0;
-    else if (t > 1)
-        t = 1;
-
-    dx = px + t * pqx - x;
-    dy = py + t * pqy - y;
-
-    return dx * dx + dy * dy;
-
-}
-
-static void appendCommands(struct nvg_context *ctx, float *vals, int nvals)
-{
-
-    int i;
-
-    if ((int)vals[0] != NVG_CLOSE && (int)vals[0] != NVG_WINDING)
-    {
-
-        ctx->commandx = vals[nvals - 2];
-        ctx->commandy = vals[nvals - 1];
-
-    }
-
-    i = 0;
+    int i = 0;
 
     while (i < nvals)
     {
@@ -665,23 +466,23 @@ static void appendCommands(struct nvg_context *ctx, float *vals, int nvals)
         {
 
         case NVG_MOVETO:
-            nvgTransformPoint(&vals[i + 1], &vals[i + 2], ctx->state.xform, vals[i + 1], vals[i + 2]);
+            nvg_getpoints(&vals[i + 1], &vals[i + 2], ctx->xform, vals[i + 1], vals[i + 2]);
 
             i += 3;
 
             break;
 
         case NVG_LINETO:
-            nvgTransformPoint(&vals[i + 1], &vals[i + 2], ctx->state.xform, vals[i + 1],vals[i + 2]);
+            nvg_getpoints(&vals[i + 1], &vals[i + 2], ctx->xform, vals[i + 1],vals[i + 2]);
 
             i += 3;
 
             break;
 
         case NVG_BEZIERTO:
-            nvgTransformPoint(&vals[i + 1],&vals[i + 2], ctx->state.xform, vals[i + 1], vals[i + 2]);
-            nvgTransformPoint(&vals[i + 3],&vals[i + 4], ctx->state.xform, vals[i + 3], vals[i + 4]);
-            nvgTransformPoint(&vals[i + 5],&vals[i + 6], ctx->state.xform, vals[i + 5], vals[i + 6]);
+            nvg_getpoints(&vals[i + 1],&vals[i + 2], ctx->xform, vals[i + 1], vals[i + 2]);
+            nvg_getpoints(&vals[i + 3],&vals[i + 4], ctx->xform, vals[i + 3], vals[i + 4]);
+            nvg_getpoints(&vals[i + 5],&vals[i + 6], ctx->xform, vals[i + 5], vals[i + 6]);
 
             i += 7;
 
@@ -710,82 +511,73 @@ static void appendCommands(struct nvg_context *ctx, float *vals, int nvals)
 
 }
 
-
-static void clearPathCache(struct nvg_context *ctx)
+static struct nvg_path *lastpath(struct nvg_context *ctx)
 {
 
-    ctx->cache.npoints = 0;
-    ctx->cache.npaths = 0;
+    if (ctx->npaths)
+        return &ctx->paths[ctx->npaths - 1];
+
+    return 0;
 
 }
 
-static struct nvg_path *lastPath(struct nvg_context *ctx)
+static void addpath(struct nvg_context *ctx)
 {
 
-    if (ctx->cache.npaths > 0)
-        return &ctx->cache.paths[ctx->cache.npaths - 1];
-
-    return NULL;
-
-}
-
-static void addPath(struct nvg_context *ctx)
-{
-
-    struct nvg_path *path = &ctx->cache.paths[ctx->cache.npaths];
+    struct nvg_path *path = &ctx->paths[ctx->npaths];
 
     memset(path, 0, sizeof (struct nvg_path));
 
-    path->first = ctx->cache.npoints;
+    path->first = ctx->npoints;
     path->winding = NVG_CCW;
-    ctx->cache.npaths++;
+    ctx->npaths++;
 
 }
 
-static struct nvg_point *lastPoint(struct nvg_context *ctx)
+static struct nvg_point *lastpoint(struct nvg_context *ctx)
 {
 
-    if (ctx->cache.npoints > 0)
-        return &ctx->cache.points[ctx->cache.npoints - 1];
+    if (ctx->npoints)
+        return &ctx->points[ctx->npoints - 1];
 
-    return NULL;
+    return 0;
 
 }
 
-static void addPoint(struct nvg_context *ctx, float x, float y)
+static void addpoint(struct nvg_context *ctx, float x, float y)
 {
 
-    struct nvg_path *path = lastPath(ctx);
+    struct nvg_path *path = lastpath(ctx);
     struct nvg_point *pt;
 
     if (!path)
         return;
 
-    if (path->count > 0 && ctx->cache.npoints > 0)
+    if (path->count > 0 && ctx->npoints > 0)
     {
 
-        pt = lastPoint(ctx);
+        pt = lastpoint(ctx);
 
-        if (ptEquals(pt->x, pt->y, x, y, ctx->distTol))
+        if (pointequals(pt->x, pt->y, x, y, NVG_DISTTOL))
             return;
 
     }
 
-    pt = &ctx->cache.points[ctx->cache.npoints];
+    pt = &ctx->points[ctx->npoints];
 
     memset(pt, 0, sizeof (struct nvg_point));
 
     pt->x = x;
     pt->y = y;
-    ctx->cache.npoints++;
+    ctx->npoints++;
     path->count++;
 
 }
 
-static void closePath(struct nvg_context *ctx)
+static void closepath(struct nvg_context *ctx)
 {
 
-    struct nvg_path *path = lastPath(ctx);
+    struct nvg_path *path = lastpath(ctx);
 
     if (!path)
         return;
@@ -794,10 +586,10 @@ static void closePath(struct nvg_context *ctx)
 
 }
 
-static void pathWinding(struct nvg_context *ctx, int winding)
+static void pathwinding(struct nvg_context *ctx, int winding)
 {
 
-    struct nvg_path *path = lastPath(ctx);
+    struct nvg_path *path = lastpath(ctx);
 
     if (!path)
         return;
@@ -818,7 +610,7 @@ static float triarea2(float ax, float ay, float bx, float by, float cx, float cy
 
 }
 
-static float polyArea(struct nvg_point *pts, int npts)
+static float polyarea(struct nvg_point *pts, int npts)
 {
 
     float area = 0;
@@ -839,7 +631,7 @@ static float polyArea(struct nvg_point *pts, int npts)
 
 }
 
-static void polyReverse(struct nvg_point *pts, int npts)
+static void polyreverse(struct nvg_point *pts, int npts)
 {
 
     struct nvg_point tmp;
@@ -858,17 +650,7 @@ static void polyReverse(struct nvg_point *pts, int npts)
 
 }
 
-static void vset(struct nvg_vertex *vtx, float x, float y, float u, float v)
-{
-
-    vtx->x = x;
-    vtx->y = y;
-    vtx->u = u;
-    vtx->v = v;
-
-}
-
-static void tesselateBezier(struct nvg_context *ctx, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, int level)
+static void tesselatebezier(struct nvg_context *ctx, float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, int level)
 {
 
     float x12, y12, x23, y23, x34, y34, x123, y123, x234, y234, x1234, y1234;
@@ -890,10 +672,10 @@ static void tesselateBezier(struct nvg_context *ctx, float x1, float y1, float x
     d2 = absf(((x2 - x4) * dy - (y2 - y4) * dx));
     d3 = absf(((x3 - x4) * dy - (y3 - y4) * dx));
 
-    if ((d2 + d3) * (d2 + d3) < ctx->tessTol * (dx * dx + dy * dy))
+    if ((d2 + d3) * (d2 + d3) < NVG_TESSTOL * (dx * dx + dy * dy))
     {
 
-        addPoint(ctx, x4, y4);
+        addpoint(ctx, x4, y4);
 
         return;
 
@@ -904,15 +686,14 @@ static void tesselateBezier(struct nvg_context *ctx, float x1, float y1, float x
     x1234 = (x123 + x234) * 0.5f;
     y1234 = (y123 + y234) * 0.5f;
 
-    tesselateBezier(ctx, x1, y1, x12, y12, x123, y123, x1234, y1234, level + 1);
-    tesselateBezier(ctx, x1234, y1234, x234, y234, x34, y34, x4, y4, level + 1);
+    tesselatebezier(ctx, x1, y1, x12, y12, x123, y123, x1234, y1234, level + 1);
+    tesselatebezier(ctx, x1234, y1234, x234, y234, x34, y34, x4, y4, level + 1);
 
 }
 
-void nvg_flatten_paths(struct nvg_context *ctx)
+void nvg_flatten(struct nvg_context *ctx)
 {
 
-    struct nvg_pathcache *cache = &ctx->cache;
     struct nvg_point *last;
     struct nvg_point *p0;
     struct nvg_point *p1;
@@ -924,7 +705,7 @@ void nvg_flatten_paths(struct nvg_context *ctx)
     float area;
     int i, j;
 
-    if (cache->npaths > 0)
+    if (ctx->npaths > 0)
         return;
 
     i = 0;
@@ -938,11 +719,11 @@ void nvg_flatten_paths(struct nvg_context *ctx)
         {
 
         case NVG_MOVETO:
-            addPath(ctx);
+            addpath(ctx);
 
             p = &ctx->commands[i + 1];
 
-            addPoint(ctx, p[0], p[1]);
+            addpoint(ctx, p[0], p[1]);
 
             i += 3;
 
@@ -951,14 +732,14 @@ void nvg_flatten_paths(struct nvg_context *ctx)
         case NVG_LINETO:
             p = &ctx->commands[i + 1];
 
-            addPoint(ctx, p[0], p[1]);
+            addpoint(ctx, p[0], p[1]);
 
             i += 3;
 
             break;
 
         case NVG_BEZIERTO:
-            last = lastPoint(ctx);
+            last = lastpoint(ctx);
 
             if (last)
             {
@@ -967,7 +748,7 @@ void nvg_flatten_paths(struct nvg_context *ctx)
                 cp2 = &ctx->commands[i + 3];
                 p = &ctx->commands[i + 5];
 
-                tesselateBezier(ctx, last->x, last->y, cp1[0], cp1[1], cp2[0], cp2[1], p[0], p[1], 0);
+                tesselatebezier(ctx, last->x, last->y, cp1[0], cp1[1], cp2[0], cp2[1], p[0], p[1], 0);
 
             }
 
@@ -976,14 +757,14 @@ void nvg_flatten_paths(struct nvg_context *ctx)
             break;
 
         case NVG_CLOSE:
-            closePath(ctx);
+            closepath(ctx);
 
             i++;
 
             break;
 
         case NVG_WINDING:
-            pathWinding(ctx, (int)ctx->commands[i + 1]);
+            pathwinding(ctx, (int)ctx->commands[i + 1]);
 
             i += 2;
 
@@ -996,18 +777,18 @@ void nvg_flatten_paths(struct nvg_context *ctx)
 
     }
 
-    cache->bounds[0] = cache->bounds[1] = 1e6f;
-    cache->bounds[2] = cache->bounds[3] = -1e6f;
+    ctx->bounds[0] = ctx->bounds[1] = 1e6f;
+    ctx->bounds[2] = ctx->bounds[3] = -1e6f;
 
-    for (j = 0; j < cache->npaths; j++)
+    for (j = 0; j < ctx->npaths; j++)
     {
 
-        path = &cache->paths[j];
-        pts = &cache->points[path->first];
+        path = &ctx->paths[j];
+        pts = &ctx->points[path->first];
         p0 = &pts[path->count - 1];
         p1 = &pts[0];
 
-        if (ptEquals(p0->x, p0->y, p1->x, p1->y, ctx->distTol))
+        if (pointequals(p0->x, p0->y, p1->x, p1->y, NVG_DISTTOL))
         {
 
             path->count--;
@@ -1019,13 +800,13 @@ void nvg_flatten_paths(struct nvg_context *ctx)
         if (path->count > 2)
         {
 
-            area = polyArea(pts, path->count);
+            area = polyarea(pts, path->count);
 
             if (path->winding == NVG_CCW && area < 0.0f)
-                polyReverse(pts, path->count);
+                polyreverse(pts, path->count);
 
             if (path->winding == NVG_CW && area > 0.0f)
-                polyReverse(pts, path->count);
+                polyreverse(pts, path->count);
 
         }
 
@@ -1035,10 +816,10 @@ void nvg_flatten_paths(struct nvg_context *ctx)
             p0->dx = p1->x - p0->x;
             p0->dy = p1->y - p0->y;
             p0->len = normalize(&p0->dx, &p0->dy);
-            cache->bounds[0] = minf(cache->bounds[0], p0->x);
-            cache->bounds[1] = minf(cache->bounds[1], p0->y);
-            cache->bounds[2] = maxf(cache->bounds[2], p0->x);
-            cache->bounds[3] = maxf(cache->bounds[3], p0->y);
+            ctx->bounds[0] = minf(ctx->bounds[0], p0->x);
+            ctx->bounds[1] = minf(ctx->bounds[1], p0->y);
+            ctx->bounds[2] = maxf(ctx->bounds[2], p0->x);
+            ctx->bounds[3] = maxf(ctx->bounds[3], p0->y);
             p0 = p1++;
 
         }
@@ -1047,288 +828,96 @@ void nvg_flatten_paths(struct nvg_context *ctx)
 
 }
 
-int nvg_expand_fill(struct nvg_context *ctx)
+void nvg_expand(struct nvg_context *ctx)
 {
 
-    struct nvg_pathcache *cache = &ctx->cache;
-    struct nvg_vertex *verts = ctx->cache.verts;
+    struct nvg_vertex *verts = ctx->verts;
     struct nvg_vertex *dst;
-    int cverts, i, j;
+    int i, j;
 
-    cverts = 0;
-
-    for (i = 0; i < cache->npaths; i++)
+    for (i = 0; i < ctx->npaths; i++)
     {
 
-        struct nvg_path *path = &cache->paths[i];
-
-        cverts += path->count + 1;
-
-    }
-
-    for (i = 0; i < cache->npaths; i++)
-    {
-
-        struct nvg_path *path = &cache->paths[i];
-        struct nvg_point *pts = &cache->points[path->first];
+        struct nvg_path *path = &ctx->paths[i];
+        struct nvg_point *pts = &ctx->points[path->first];
 
         dst = verts;
         path->fill = dst;
 
         for (j = 0; j < path->count; ++j)
-            vset(dst++, pts[j].x, pts[j].y, 0.5f, 1);
+            nvg_setvertex(dst++, pts[j].x, pts[j].y, 0.5f, 1);
 
         path->nfill = (int)(dst - verts);
         verts = dst;
 
     }
 
-    return 1;
-
 }
 
-void nvgBeginPath(struct nvg_context *ctx)
-{
-
-    ctx->ncommands = 0;
-
-    clearPathCache(ctx);
-
-}
-
-void nvgMoveTo(struct nvg_context *ctx, float x, float y)
+void nvg_path_moveto(struct nvg_context *ctx, float x, float y)
 {
 
     float vals[] = { NVG_MOVETO, x, y };
 
-    appendCommands(ctx, vals, NVG_COUNTOF(vals));
+    appendcommand(ctx, vals, NVG_COUNTOF(vals));
 
 }
 
-void nvgLineTo(struct nvg_context *ctx, float x, float y)
+void nvg_path_lineto(struct nvg_context *ctx, float x, float y)
 {
 
     float vals[] = { NVG_LINETO, x, y };
 
-    appendCommands(ctx, vals, NVG_COUNTOF(vals));
+    appendcommand(ctx, vals, NVG_COUNTOF(vals));
 
 }
 
-void nvgBezierTo(struct nvg_context *ctx, float c1x, float c1y, float c2x, float c2y, float x, float y)
+void nvg_path_bezierto(struct nvg_context *ctx, float c1x, float c1y, float c2x, float c2y, float x, float y)
 {
 
     float vals[] = { NVG_BEZIERTO, c1x, c1y, c2x, c2y, x, y };
 
-    appendCommands(ctx, vals, NVG_COUNTOF(vals));
+    appendcommand(ctx, vals, NVG_COUNTOF(vals));
 
 }
 
-void nvgQuadTo(struct nvg_context *ctx, float cx, float cy, float x, float y)
+void nvg_path_begin(struct nvg_context *ctx)
 {
 
-    float x0 = ctx->commandx;
-    float y0 = ctx->commandy;
-    float vals[] = {
-        NVG_BEZIERTO,
-        x0 + 2.0f / 3.0f * (cx - x0), y0 + 2.0f / 3.0f * (cy - y0),
-        x + 2.0f / 3.0f * (cx - x), y + 2.0f / 3.0f * (cy - y),
-        x, y
-    };
-
-    appendCommands(ctx, vals, NVG_COUNTOF(vals));
+    ctx->ncommands = 0;
+    ctx->npoints = 0;
+    ctx->npaths = 0;
 
 }
 
-void nvgArcTo(struct nvg_context *ctx, float x1, float y1, float x2, float y2, float radius)
-{
-
-    float x0 = ctx->commandx;
-    float y0 = ctx->commandy;
-    float dx0, dy0, dx1, dy1, a, d, cx, cy, a0, a1;
-    int dir;
-
-    if (!ctx->ncommands)
-        return;
-
-    if (ptEquals(x0, y0, x1, y1, ctx->distTol) || ptEquals(x1, y1, x2, y2, ctx->distTol) || distPtSeg(x1, y1, x0, y0, x2, y2) < ctx->distTol * ctx->distTol || radius < ctx->distTol)
-    {
-
-        nvgLineTo(ctx, x1, y1);
-
-        return;
-
-    }
-
-    dx0 = x0 - x1;
-    dy0 = y0 - y1;
-    dx1 = x2 - x1;
-    dy1 = y2 - y1;
-
-    normalize(&dx0, &dy0);
-    normalize(&dx1, &dy1);
-    
-    a = acosf(dx0 * dx1 + dy0 * dy1);
-    d = radius / tanf(a / 2.0f);
-
-    if (d > 10000.0f)
-    {
-
-        nvgLineTo(ctx, x1,y1);
-
-        return;
-
-    }
-
-    if (cross(dx0, dy0, dx1, dy1) > 0.0f)
-    {
-
-        cx = x1 + dx0 * d + dy0 * radius;
-        cy = y1 + dy0 * d + -dx0 * radius;
-        a0 = atan2f(dx0, -dy0);
-        a1 = atan2f(-dx1, dy1);
-        dir = NVG_CW;
-
-    }
-
-    else
-    {
-
-        cx = x1 + dx0 * d + -dy0 * radius;
-        cy = y1 + dy0 * d + dx0 * radius;
-        a0 = atan2f(-dx0, dy0);
-        a1 = atan2f(dx1, -dy1);
-        dir = NVG_CCW;
-
-    }
-
-    nvgArc(ctx, cx, cy, radius, a0, a1, dir);
-
-}
-
-void nvgClosePath(struct nvg_context *ctx)
+void nvg_path_close(struct nvg_context *ctx)
 {
 
     float vals[] = { NVG_CLOSE };
 
-    appendCommands(ctx, vals, NVG_COUNTOF(vals));
+    appendcommand(ctx, vals, NVG_COUNTOF(vals));
 
 }
 
-void nvgPathWinding(struct nvg_context *ctx, int dir)
+void nvg_path_solid(struct nvg_context *ctx)
 {
 
-    float vals[] = { NVG_WINDING, (float)dir };
+    float vals[] = { NVG_WINDING, (float)NVG_CCW };
 
-    appendCommands(ctx, vals, NVG_COUNTOF(vals));
+    appendcommand(ctx, vals, NVG_COUNTOF(vals));
 
 }
 
-void nvgArc(struct nvg_context *ctx, float cx, float cy, float r, float a0, float a1, int dir)
+void nvg_path_hole(struct nvg_context *ctx)
 {
 
-    float a = 0, da = 0, hda = 0, kappa = 0;
-    float dx = 0, dy = 0, x = 0, y = 0, tanx = 0, tany = 0;
-    float px = 0, py = 0, ptanx = 0, ptany = 0;
-    float vals[3 + 5 * 7 + 100];
-    int i, ndivs, nvals;
-    int move = ctx->ncommands > 0 ? NVG_LINETO : NVG_MOVETO;
+    float vals[] = { NVG_WINDING, (float)NVG_CW };
 
-    da = a1 - a0;
-
-    if (dir == NVG_CW)
-    {
-
-        if (absf(da) >= NVG_PI * 2)
-        {
-
-            da = NVG_PI * 2;
-
-        }
-
-        else
-        {
-
-            while (da < 0.0f)
-                da += NVG_PI * 2;
-
-        }
-
-    }
-
-    else
-    {
-
-        if (absf(da) >= NVG_PI * 2)
-        {
-
-            da = -NVG_PI * 2;
-
-        }
-
-        else
-        {
-
-            while (da > 0.0f)
-                da -= NVG_PI * 2;
-
-        }
-
-    }
-
-    ndivs = maxi(1, mini((int)(absf(da) / (NVG_PI * 0.5f) + 0.5f), 5));
-    hda = (da / (float)ndivs) / 2.0f;
-    kappa = absf(4.0f / 3.0f * (1.0f - cosf(hda)) / sinf(hda));
-
-    if (dir == NVG_CCW)
-        kappa = -kappa;
-
-    nvals = 0;
-
-    for (i = 0; i <= ndivs; i++)
-    {
-
-        a = a0 + da * (i / (float)ndivs);
-        dx = cosf(a);
-        dy = sinf(a);
-        x = cx + dx * r;
-        y = cy + dy * r;
-        tanx = -dy * r * kappa;
-        tany = dx * r * kappa;
-
-        if (i == 0)
-        {
-
-            vals[nvals++] = (float)move;
-            vals[nvals++] = x;
-            vals[nvals++] = y;
-
-        }
-
-        else
-        {
-
-            vals[nvals++] = NVG_BEZIERTO;
-            vals[nvals++] = px + ptanx;
-            vals[nvals++] = py + ptany;
-            vals[nvals++] = x - tanx;
-            vals[nvals++] = y - tany;
-            vals[nvals++] = x;
-            vals[nvals++] = y;
-
-        }
-
-        px = x;
-        py = y;
-        ptanx = tanx;
-        ptany = tany;
-
-    }
-
-    appendCommands(ctx, vals, nvals);
+    appendcommand(ctx, vals, NVG_COUNTOF(vals));
 
 }
 
-void nvgRect(struct nvg_context *ctx, float x, float y, float w, float h)
+void nvg_path_rect(struct nvg_context *ctx, float x, float y, float w, float h)
 {
 
     float vals[] = {
@@ -1339,58 +928,44 @@ void nvgRect(struct nvg_context *ctx, float x, float y, float w, float h)
         NVG_CLOSE
     };
 
-    appendCommands(ctx, vals, NVG_COUNTOF(vals));
+    appendcommand(ctx, vals, NVG_COUNTOF(vals));
 
 }
 
-void nvgRoundedRect(struct nvg_context *ctx, float x, float y, float w, float h, float r)
+void nvg_path_roundedrect(struct nvg_context *ctx, float x, float y, float w, float h, float r)
 {
 
-    nvgRoundedRectVarying(ctx, x, y, w, h, r, r, r, r);
+    nvg_path_roundedrectvarying(ctx, x, y, w, h, r, r, r, r);
 
 }
 
-void nvgRoundedRectVarying(struct nvg_context *ctx, float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft)
+void nvg_path_roundedrectvarying(struct nvg_context *ctx, float x, float y, float w, float h, float radTopLeft, float radTopRight, float radBottomRight, float radBottomLeft)
 {
 
-    if (radTopLeft < 0.1f && radTopRight < 0.1f && radBottomRight < 0.1f && radBottomLeft < 0.1f)
-    {
+    float halfw = absf(w) * 0.5f;
+    float halfh = absf(h) * 0.5f;
+    float rxBL = minf(radBottomLeft, halfw) * signf(w), ryBL = minf(radBottomLeft, halfh) * signf(h);
+    float rxBR = minf(radBottomRight, halfw) * signf(w), ryBR = minf(radBottomRight, halfh) * signf(h);
+    float rxTR = minf(radTopRight, halfw) * signf(w), ryTR = minf(radTopRight, halfh) * signf(h);
+    float rxTL = minf(radTopLeft, halfw) * signf(w), ryTL = minf(radTopLeft, halfh) * signf(h);
+    float vals[] = {
+        NVG_MOVETO, x, y + ryTL,
+        NVG_LINETO, x, y + h - ryBL,
+        NVG_BEZIERTO, x, y + h - ryBL * (1 - NVG_KAPPA90), x + rxBL * (1 - NVG_KAPPA90), y + h, x + rxBL, y + h,
+        NVG_LINETO, x + w - rxBR, y + h,
+        NVG_BEZIERTO, x + w - rxBR * (1 - NVG_KAPPA90), y + h, x + w, y + h - ryBR * (1 - NVG_KAPPA90), x + w, y + h - ryBR,
+        NVG_LINETO, x + w, y + ryTR,
+        NVG_BEZIERTO, x + w, y + ryTR * (1 - NVG_KAPPA90), x + w - rxTR * (1 - NVG_KAPPA90), y, x + w - rxTR, y,
+        NVG_LINETO, x + rxTL, y,
+        NVG_BEZIERTO, x + rxTL * (1 - NVG_KAPPA90), y, x, y + ryTL * (1 - NVG_KAPPA90), x, y + ryTL,
+        NVG_CLOSE
+    };
 
-        nvgRect(ctx, x, y, w, h);
-
-        return;
-
-    }
-
-    else
-    {
-
-        float halfw = absf(w) * 0.5f;
-        float halfh = absf(h) * 0.5f;
-        float rxBL = minf(radBottomLeft, halfw) * signf(w), ryBL = minf(radBottomLeft, halfh) * signf(h);
-        float rxBR = minf(radBottomRight, halfw) * signf(w), ryBR = minf(radBottomRight, halfh) * signf(h);
-        float rxTR = minf(radTopRight, halfw) * signf(w), ryTR = minf(radTopRight, halfh) * signf(h);
-        float rxTL = minf(radTopLeft, halfw) * signf(w), ryTL = minf(radTopLeft, halfh) * signf(h);
-        float vals[] = {
-            NVG_MOVETO, x, y + ryTL,
-            NVG_LINETO, x, y + h - ryBL,
-            NVG_BEZIERTO, x, y + h - ryBL * (1 - NVG_KAPPA90), x + rxBL*(1 - NVG_KAPPA90), y + h, x + rxBL, y + h,
-            NVG_LINETO, x + w - rxBR, y + h,
-            NVG_BEZIERTO, x + w - rxBR * (1 - NVG_KAPPA90), y + h, x + w, y + h - ryBR * (1 - NVG_KAPPA90), x + w, y + h - ryBR,
-            NVG_LINETO, x + w, y + ryTR,
-            NVG_BEZIERTO, x + w, y + ryTR * (1 - NVG_KAPPA90), x + w - rxTR * (1 - NVG_KAPPA90), y, x + w - rxTR, y,
-            NVG_LINETO, x + rxTL, y,
-            NVG_BEZIERTO, x + rxTL * (1 - NVG_KAPPA90), y, x, y + ryTL * (1 - NVG_KAPPA90), x, y + ryTL,
-            NVG_CLOSE
-        };
-
-        appendCommands(ctx, vals, NVG_COUNTOF(vals));
-
-    }
+    appendcommand(ctx, vals, NVG_COUNTOF(vals));
 
 }
 
-void nvgEllipse(struct nvg_context *ctx, float cx, float cy, float rx, float ry)
+void nvg_path_ellipse(struct nvg_context *ctx, float cx, float cy, float rx, float ry)
 {
 
     float vals[] = {
@@ -1402,30 +977,21 @@ void nvgEllipse(struct nvg_context *ctx, float cx, float cy, float rx, float ry)
         NVG_CLOSE
     };
 
-    appendCommands(ctx, vals, NVG_COUNTOF(vals));
+    appendcommand(ctx, vals, NVG_COUNTOF(vals));
 
 }
 
-void nvgCircle(struct nvg_context *ctx, float cx, float cy, float r)
+void nvg_path_circle(struct nvg_context *ctx, float cx, float cy, float r)
 {
 
-    nvgEllipse(ctx, cx, cy, r, r);
+    nvg_path_ellipse(ctx, cx, cy, r, r);
 
 }
 
-void nvg_init(struct nvg_context *ctx)
+void nvg_reset(struct nvg_context *ctx)
 {
 
-    ctx->tessTol = 0.25f;
-    ctx->distTol = 0.01f;
-    ctx->drawCallCount = 0;
-    ctx->fillTriCount = 0;
-    ctx->textTriCount = 0;
-    ctx->state.scissor.extent[0] = -1.0f;
-    ctx->state.scissor.extent[1] = -1.0f;
-
-    setPaintColor(&ctx->state.fill, nvgRGBA(255, 255, 255, 255));
-    nvgTransformIdentity(ctx->state.xform);
+    nvg_xform_identity(ctx->xform);
 
 }
 

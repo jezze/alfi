@@ -28,6 +28,7 @@ static unsigned int readword(struct parser *parser, char *result, unsigned int c
 
         case '\0':
         case '\n':
+            parser->expr.escaped = 0;
             parser->expr.line++;
             parser->expr.linebreak = 1;
             parser->expr.offset++;
@@ -35,41 +36,80 @@ static unsigned int readword(struct parser *parser, char *result, unsigned int c
 
             return i;
 
-        case ' ':
-            if (parser->expr.inside)
+        }
+
+        if (parser->expr.escaped)
+        {
+
+            parser->expr.escaped = 0;
+
+            switch (c)
             {
 
+            case 'n':
+                result[i] = '\n';
+                i++;
+
+                break;
+
+            default:
                 result[i] = c;
                 i++;
 
+                break;
+
             }
-            
-            else
+
+        }
+
+        else
+        {
+
+            switch (c)
             {
 
-                result[i] = '\0';
+            case '\\':
+                parser->expr.escaped = 1;
 
-                if (i == 0)
-                    continue;
+                break;
 
-                parser->expr.offset++;
+            case ' ':
+                if (parser->expr.inside)
+                {
 
-                return i;
+                    result[i] = c;
+                    i++;
+
+                }
+
+                else
+                {
+
+                    result[i] = '\0';
+
+                    if (i == 0)
+                        continue;
+
+                    parser->expr.offset++;
+
+                    return i;
+
+                }
+
+                break;
+
+            case '"':
+                parser->expr.inside = !parser->expr.inside;
+
+                break;
+
+            default:
+                result[i] = c;
+                i++;
+
+                break;
 
             }
-
-            break;
-
-        case '"':
-            parser->expr.inside = !parser->expr.inside;
-
-            break;
-
-        default:
-            result[i] = c;
-            i++;
-
-            break;
 
         }
 
@@ -79,18 +119,43 @@ static unsigned int readword(struct parser *parser, char *result, unsigned int c
 
 }
 
+static void parseskip(struct parser *parser)
+{
+
+    char word[4096];
+
+    readword(parser, word, 4096);
+
+}
+
+struct alfi_widget *parsewidget(struct parser *parser)
+{
+
+    char word[4096];
+    unsigned int count = readword(parser, word, 4096);
+
+    return (count) ? parser->findwidget(word) : 0;
+
+}
+
 static unsigned int parsetoken(struct parser *parser, const struct tokword *items, unsigned int nitems)
 {
 
     char word[4096];
     unsigned int count = readword(parser, word, 4096);
-    unsigned int i;
 
-    for (i = 0; i < nitems; i++)
+    if (count)
     {
 
-        if (!memcmp(word, items[i].word, count + 1))
-            return items[i].token;
+        unsigned int i;
+
+        for (i = 0; i < nitems; i++)
+        {
+
+            if (!memcmp(word, items[i].word, count + 1))
+                return items[i].token;
+
+        }
 
     }
 
@@ -147,7 +212,7 @@ static unsigned int parseuint(struct parser *parser, unsigned int base)
             break;
 
         default:
-            parser->fail(parser->expr.line + 1);
+            parser->fail();
 
             break;
 
@@ -165,7 +230,7 @@ static char *parsestring(char *string, struct parser *parser)
     char word[4096];
     unsigned int count = readword(parser, word, 4096);
 
-    return parser->allocate(string, count + 1, count + 1, word);
+    return (count) ? parser->allocate(string, count + 1, count + 1, word) : 0;
 
 }
 
@@ -284,111 +349,110 @@ static unsigned int getwidget(struct parser *parser)
         {ALFI_WIDGET_IMAGE, "image"},
         {ALFI_WIDGET_LIST, "list"},
         {ALFI_WIDGET_SELECT, "select"},
-        {ALFI_WIDGET_TAB, "tab"},
         {ALFI_WIDGET_TABLE, "table"},
         {ALFI_WIDGET_TEXT, "text"},
         {ALFI_WIDGET_VSTACK, "vstack"},
         {ALFI_WIDGET_WINDOW, "window"}
     };
 
-    return parsetoken(parser, items, 16);
+    return parsetoken(parser, items, 15);
 
 }
 
-static void parse_attribute_data(struct parser *parser, struct alfi_attribute_data *data)
+static void parse_attribute_data(struct parser *parser, struct alfi_attribute_data *attribute)
 {
 
-    data->total = ALFI_DATASIZE;
-    data->content = parser->allocate(data->content, data->total, 0, 0);
-    data->offset = readword(parser, data->content, data->total);
+    attribute->total = ALFI_DATASIZE;
+    attribute->content = parser->allocate(attribute->content, attribute->total, 0, 0);
+    attribute->offset = readword(parser, attribute->content, attribute->total);
 
 }
 
-static void parse_attribute_grid(struct parser *parser, struct alfi_attribute_grid *grid)
+static void parse_attribute_grid(struct parser *parser, struct alfi_attribute_grid *attribute)
 {
 
-    grid->csize = parseuint(parser, 10);
-    grid->rsize = parseuint(parser, 10);
-    grid->coffset = parseuint(parser, 10);
-    grid->roffset = parseuint(parser, 10);
-    grid->clength = parseuint(parser, 10);
-    grid->rlength = parseuint(parser, 10);
+    attribute->csize = parseuint(parser, 10);
+    attribute->rsize = parseuint(parser, 10);
+    attribute->coffset = parseuint(parser, 10);
+    attribute->roffset = parseuint(parser, 10);
+    attribute->clength = parseuint(parser, 10);
+    attribute->rlength = parseuint(parser, 10);
 
 }
 
-static void parse_attribute_halign(struct parser *parser, struct alfi_attribute_halign *halign)
+static void parse_attribute_halign(struct parser *parser, struct alfi_attribute_halign *attribute)
 {
 
-    halign->direction = gethalign(parser);
+    attribute->direction = gethalign(parser);
 
 }
 
-static void parse_attribute_icon(struct parser *parser, struct alfi_attribute_icon *icon)
+static void parse_attribute_icon(struct parser *parser, struct alfi_attribute_icon *attribute)
 {
 
-    icon->type = geticon(parser);
+    attribute->type = geticon(parser);
 
 }
 
-static void parse_attribute_id(struct parser *parser, struct alfi_attribute_id *id)
+static void parse_attribute_id(struct parser *parser, struct alfi_attribute_id *attribute)
 {
 
-    id->name = parsestring(id->name, parser);
+    attribute->name = parsestring(attribute->name, parser);
 
 }
 
-static void parse_attribute_in(struct parser *parser, struct alfi_attribute_in *in)
+static void parse_attribute_in(struct parser *parser, struct alfi_attribute_in *attribute)
 {
 
-    in->name = parsestring(in->name, parser);
+    attribute->name = parsestring(attribute->name, parser);
 
 }
 
-static void parse_attribute_label(struct parser *parser, struct alfi_attribute_label *label)
+static void parse_attribute_label(struct parser *parser, struct alfi_attribute_label *attribute)
 {
 
-    label->content = parsestring(label->content, parser);
+    attribute->content = parsestring(attribute->content, parser);
 
 }
 
-static void parse_attribute_link(struct parser *parser, struct alfi_attribute_link *link)
+static void parse_attribute_link(struct parser *parser, struct alfi_attribute_link *attribute)
 {
 
-    link->url = parsestring(link->url, parser);
-    link->mime = parsestring(link->mime, parser);
+    attribute->url = parsestring(attribute->url, parser);
+    attribute->mime = parsestring(attribute->mime, parser);
 
 }
 
-static void parse_attribute_range(struct parser *parser, struct alfi_attribute_range *range)
+static void parse_attribute_range(struct parser *parser, struct alfi_attribute_range *attribute)
 {
 
-    range->min = parseuint(parser, 10);
-    range->max = parseuint(parser, 10);
+    attribute->min = parseuint(parser, 10);
+    attribute->max = parseuint(parser, 10);
 
 }
 
-static void parse_attribute_target(struct parser *parser, struct alfi_attribute_target *target)
+static void parse_attribute_target(struct parser *parser, struct alfi_attribute_target *attribute)
 {
 
-    target->type = gettarget(parser);
+    attribute->type = gettarget(parser);
 
 }
 
-static void parse_attribute_type(struct parser *parser, struct alfi_attribute_type *type)
+static void parse_attribute_type(struct parser *parser, struct alfi_attribute_type *attribute)
 {
 
-    type->type = gettype(parser);
+    attribute->type = gettype(parser);
 
 }
 
-static void parse_attribute_valign(struct parser *parser, struct alfi_attribute_valign *valign)
+static void parse_attribute_valign(struct parser *parser, struct alfi_attribute_valign *attribute)
 {
 
-    valign->direction = getvalign(parser);
+    attribute->direction = getvalign(parser);
 
 }
 
-static void parse_widget_button(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_button *button)
+static void parse_payload_anchor(struct parser *parser, struct alfi_header *header, struct alfi_payload_anchor *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -397,308 +461,33 @@ static void parse_widget_button(struct parser *parser, struct alfi_widget *widge
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ICON:
-            parse_attribute_icon(parser, &button->icon);
-
-            break;
-
         case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
+            parse_attribute_id(parser, &header->id);
 
             break;
 
         case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
+            parse_attribute_in(parser, &header->in);
 
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &button->label);
-
-            break;
-
-        default:
-            parser->fail(parser->expr.line + 1);
-
-            break;
-
-        }
-
-    }
-
-}
-
-static void parse_widget_choice(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_choice *choice)
-{
-
-    while (!parser->expr.linebreak)
-    {
-
-        switch (getattribute(parser))
-        {
-
-        case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
-
-            break;
-
-        case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
-
-            break;
-
-        case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &choice->label);
-
-            break;
-
-        default:
-            parser->fail(parser->expr.line + 1);
-
-            break;
-
-        }
-
-    }
-
-}
-
-static void parse_widget_divider(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_divider *divider)
-{
-
-    while (!parser->expr.linebreak)
-    {
-
-        switch (getattribute(parser))
-        {
-
-        case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
-
-            break;
-
-        case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
-
-            break;
-
-        case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &divider->label);
-
-            break;
-
-        default:
-            parser->fail(parser->expr.line + 1);
-
-            break;
-
-        }
-
-    }
-
-}
-
-static void parse_widget_field(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_field *field)
-{
-
-    while (!parser->expr.linebreak)
-    {
-
-        switch (getattribute(parser))
-        {
-
-        case ALFI_ATTRIBUTE_DATA:
-            parse_attribute_data(parser, &field->data);
-
-            break;
-
-        case ALFI_ATTRIBUTE_ICON:
-            parse_attribute_icon(parser, &field->icon);
-
-            break;
-
-        case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
-
-            break;
-
-        case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
-
-            break;
-
-        case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &field->label);
-
-            break;
-
-        case ALFI_ATTRIBUTE_TYPE:
-            parse_attribute_type(parser, &widget->data.field.type);
-
-            break;
-
-        default:
-            parser->fail(parser->expr.line + 1);
-
-            break;
-
-        }
-
-    }
-
-}
-
-static void parse_widget_header(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_header *header)
-{
-
-    while (!parser->expr.linebreak)
-    {
-
-        switch (getattribute(parser))
-        {
-
-        case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
-
-            break;
-
-        case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
-
-            break;
-
-        case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &header->label);
-
-            break;
-
-        default:
-            parser->fail(parser->expr.line + 1);
-
-            break;
-
-        }
-
-    }
-
-}
-
-static void parse_widget_hstack(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_hstack *hstack)
-{
-
-    while (!parser->expr.linebreak)
-    {
-
-        switch (getattribute(parser))
-        {
-
-        case ALFI_ATTRIBUTE_GRID:
-            parse_attribute_grid(parser, &hstack->grid);
-
-            break;
-
-        case ALFI_ATTRIBUTE_HALIGN:
-            parse_attribute_halign(parser, &hstack->halign);
-
-            break;
-
-        case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
-
-            break;
-
-        case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
-
-            break;
-
-        case ALFI_ATTRIBUTE_VALIGN:
-            parse_attribute_valign(parser, &hstack->valign);
-
-            break;
-
-        default:
-            parser->fail(parser->expr.line + 1);
-
-            break;
-
-        }
-
-    }
-
-}
-
-static void parse_widget_image(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_image *image)
-{
-
-    while (!parser->expr.linebreak)
-    {
-
-        switch (getattribute(parser))
-        {
-
-        case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
-
-            break;
-
-        case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
+            parse_attribute_label(parser, &payload->label);
 
             break;
 
         case ALFI_ATTRIBUTE_LINK:
-            parse_attribute_link(parser, &image->link);
-
-            break;
-
-        default:
-            parser->fail(parser->expr.line + 1);
-
-            break;
-
-        }
-
-    }
-
-}
-
-static void parse_widget_anchor(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_anchor *anchor)
-{
-
-    while (!parser->expr.linebreak)
-    {
-
-        switch (getattribute(parser))
-        {
-
-        case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
-
-            break;
-
-        case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
-
-            break;
-
-        case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &anchor->label);
-
-            break;
-
-        case ALFI_ATTRIBUTE_LINK:
-            parse_attribute_link(parser, &anchor->link);
+            parse_attribute_link(parser, &payload->link);
 
             break;
 
         case ALFI_ATTRIBUTE_TARGET:
-            parse_attribute_target(parser, &anchor->target);
+            parse_attribute_target(parser, &payload->target);
 
             break;
 
         default:
-            parser->fail(parser->expr.line + 1);
+            parser->fail();
 
             break;
 
@@ -708,7 +497,57 @@ static void parse_widget_anchor(struct parser *parser, struct alfi_widget *widge
 
 }
 
-static void parse_widget_list(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_list *list)
+static void parse_payload_button(struct parser *parser, struct alfi_header *header, struct alfi_payload_button *payload)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ICON:
+            parse_attribute_icon(parser, &payload->icon);
+
+            break;
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &header->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &header->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &payload->label);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LINK:
+            parse_attribute_link(parser, &payload->link);
+
+            break;
+
+        case ALFI_ATTRIBUTE_TARGET:
+            parse_attribute_target(parser, &payload->target);
+
+            break;
+
+        default:
+            parser->fail();
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_payload_choice(struct parser *parser, struct alfi_header *header, struct alfi_payload_choice *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -718,17 +557,22 @@ static void parse_widget_list(struct parser *parser, struct alfi_widget *widget,
         {
 
         case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
+            parse_attribute_id(parser, &header->id);
 
             break;
 
         case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
+            parse_attribute_in(parser, &header->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &payload->label);
 
             break;
 
         default:
-            parser->fail(parser->expr.line + 1);
+            parser->fail();
 
             break;
 
@@ -738,7 +582,42 @@ static void parse_widget_list(struct parser *parser, struct alfi_widget *widget,
 
 }
 
-static void parse_widget_select(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_select *select)
+static void parse_payload_divider(struct parser *parser, struct alfi_header *header, struct alfi_payload_divider *payload)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &header->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &header->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &payload->label);
+
+            break;
+
+        default:
+            parser->fail();
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_payload_field(struct parser *parser, struct alfi_header *header, struct alfi_payload_field *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -748,32 +627,37 @@ static void parse_widget_select(struct parser *parser, struct alfi_widget *widge
         {
 
         case ALFI_ATTRIBUTE_DATA:
-            parse_attribute_data(parser, &select->data);
+            parse_attribute_data(parser, &payload->data);
+
+            break;
+
+        case ALFI_ATTRIBUTE_ICON:
+            parse_attribute_icon(parser, &payload->icon);
 
             break;
 
         case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
+            parse_attribute_id(parser, &header->id);
 
             break;
 
         case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
+            parse_attribute_in(parser, &header->in);
 
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &select->label);
+            parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ALFI_ATTRIBUTE_RANGE:
-            parse_attribute_range(parser, &select->range);
+        case ALFI_ATTRIBUTE_TYPE:
+            parse_attribute_type(parser, &payload->type);
 
             break;
 
         default:
-            parser->fail(parser->expr.line + 1);
+            parser->fail();
 
             break;
 
@@ -783,7 +667,7 @@ static void parse_widget_select(struct parser *parser, struct alfi_widget *widge
 
 }
 
-static void parse_widget_subheader(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_subheader *subheader)
+static void parse_payload_header(struct parser *parser, struct alfi_header *header, struct alfi_payload_header *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -793,22 +677,22 @@ static void parse_widget_subheader(struct parser *parser, struct alfi_widget *wi
         {
 
         case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
+            parse_attribute_id(parser, &header->id);
 
             break;
 
         case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
+            parse_attribute_in(parser, &header->in);
 
             break;
 
         case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &subheader->label);
+            parse_attribute_label(parser, &payload->label);
 
             break;
 
         default:
-            parser->fail(parser->expr.line + 1);
+            parser->fail();
 
             break;
 
@@ -818,42 +702,7 @@ static void parse_widget_subheader(struct parser *parser, struct alfi_widget *wi
 
 }
 
-static void parse_widget_tab(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_tab *tab)
-{
-
-    while (!parser->expr.linebreak)
-    {
-
-        switch (getattribute(parser))
-        {
-
-        case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
-
-            break;
-
-        case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
-
-            break;
-
-        case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &tab->label);
-
-            break;
-
-        default:
-            parser->fail(parser->expr.line + 1);
-
-            break;
-
-        }
-
-    }
-
-}
-
-static void parse_widget_table(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_table *table)
+static void parse_payload_hstack(struct parser *parser, struct alfi_header *header, struct alfi_payload_hstack *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -863,102 +712,32 @@ static void parse_widget_table(struct parser *parser, struct alfi_widget *widget
         {
 
         case ALFI_ATTRIBUTE_GRID:
-            parse_attribute_grid(parser, &table->grid);
-
-            break;
-
-        case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
-
-            break;
-
-        case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
-
-            break;
-
-        default:
-            parser->fail(parser->expr.line + 1);
-
-            break;
-
-        }
-
-    }
-
-}
-
-static void parse_widget_text(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_text *text)
-{
-
-    while (!parser->expr.linebreak)
-    {
-
-        switch (getattribute(parser))
-        {
-
-        case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
-
-            break;
-
-        case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
-
-            break;
-
-        case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &text->label);
-
-            break;
-
-        default:
-            parser->fail(parser->expr.line + 1);
-
-            break;
-
-        }
-
-    }
-
-}
-
-static void parse_widget_vstack(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_vstack *vstack)
-{
-
-    while (!parser->expr.linebreak)
-    {
-
-        switch (getattribute(parser))
-        {
-
-        case ALFI_ATTRIBUTE_GRID:
-            parse_attribute_grid(parser, &vstack->grid);
+            parse_attribute_grid(parser, &payload->grid);
 
             break;
 
         case ALFI_ATTRIBUTE_HALIGN:
-            parse_attribute_halign(parser, &vstack->halign);
+            parse_attribute_halign(parser, &payload->halign);
 
             break;
 
         case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
+            parse_attribute_id(parser, &header->id);
 
             break;
 
         case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &widget->in);
+            parse_attribute_in(parser, &header->in);
 
             break;
 
         case ALFI_ATTRIBUTE_VALIGN:
-            parse_attribute_valign(parser, &vstack->valign);
+            parse_attribute_valign(parser, &payload->valign);
 
             break;
 
         default:
-            parser->fail(parser->expr.line + 1);
+            parser->fail();
 
             break;
 
@@ -968,7 +747,7 @@ static void parse_widget_vstack(struct parser *parser, struct alfi_widget *widge
 
 }
 
-static void parse_widget_window(struct parser *parser, struct alfi_widget *widget, struct alfi_widget_window *window)
+static void parse_payload_image(struct parser *parser, struct alfi_header *header, struct alfi_payload_image *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -978,17 +757,277 @@ static void parse_widget_window(struct parser *parser, struct alfi_widget *widge
         {
 
         case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &widget->id);
+            parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
-            parse_attribute_label(parser, &window->label);
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &header->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LINK:
+            parse_attribute_link(parser, &payload->link);
 
             break;
 
         default:
-            parser->fail(parser->expr.line + 1);
+            parser->fail();
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_payload_list(struct parser *parser, struct alfi_header *header, struct alfi_payload_list *payload)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &header->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &header->in);
+
+            break;
+
+        default:
+            parser->fail();
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_payload_select(struct parser *parser, struct alfi_header *header, struct alfi_payload_select *payload)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_DATA:
+            parse_attribute_data(parser, &payload->data);
+
+            break;
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &header->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &header->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &payload->label);
+
+            break;
+
+        case ALFI_ATTRIBUTE_RANGE:
+            parse_attribute_range(parser, &payload->range);
+
+            break;
+
+        default:
+            parser->fail();
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_payload_subheader(struct parser *parser, struct alfi_header *header, struct alfi_payload_subheader *payload)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &header->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &header->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &payload->label);
+
+            break;
+
+        default:
+            parser->fail();
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_payload_table(struct parser *parser, struct alfi_header *header, struct alfi_payload_table *payload)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_GRID:
+            parse_attribute_grid(parser, &payload->grid);
+
+            break;
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &header->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &header->in);
+
+            break;
+
+        default:
+            parser->fail();
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_payload_text(struct parser *parser, struct alfi_header *header, struct alfi_payload_text *payload)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &header->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &header->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &payload->label);
+
+            break;
+
+        default:
+            parser->fail();
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_payload_vstack(struct parser *parser, struct alfi_header *header, struct alfi_payload_vstack *payload)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_GRID:
+            parse_attribute_grid(parser, &payload->grid);
+
+            break;
+
+        case ALFI_ATTRIBUTE_HALIGN:
+            parse_attribute_halign(parser, &payload->halign);
+
+            break;
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &header->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &header->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_VALIGN:
+            parse_attribute_valign(parser, &payload->valign);
+
+            break;
+
+        default:
+            parser->fail();
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_payload_window(struct parser *parser, struct alfi_header *header, struct alfi_payload_window *payload)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &header->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &payload->label);
+
+            break;
+
+        default:
+            parser->fail();
 
             break;
 
@@ -1001,25 +1040,18 @@ static void parse_widget_window(struct parser *parser, struct alfi_widget *widge
 static void parse_command_comment(struct parser *parser)
 {
 
-    char word[4096];
-
     while (!parser->expr.linebreak)
-        readword(parser, word, 4096);
+        parseskip(parser);
 
 }
 
 static void parse_command_delete(struct parser *parser)
 {
 
-    char word[4096];
-    struct alfi_widget *widget;
-
-    readword(parser, word, 4096);
-
-    widget = parser->findwidget(word);
+    struct alfi_widget *widget = parsewidget(parser);
 
     if (!widget)
-        parser->fail(parser->expr.line + 1);
+        parser->fail();
 
     parser->destroywidget(widget);
 
@@ -1031,93 +1063,88 @@ static void parse_command_insert(struct parser *parser, char *in)
     struct alfi_widget *widget = parser->createwidget(getwidget(parser), in);
 
     if (!widget)
-        parser->fail(parser->expr.line + 1);
+        parser->fail();
 
-    switch (widget->type)
+    switch (widget->header.type)
     {
 
     case ALFI_WIDGET_ANCHOR:
-        parse_widget_anchor(parser, widget, &widget->data.anchor);
+        parse_payload_anchor(parser, &widget->header, &widget->payload.anchor);
 
         break;
 
     case ALFI_WIDGET_BUTTON:
-        parse_widget_button(parser, widget, &widget->data.button);
+        parse_payload_button(parser, &widget->header, &widget->payload.button);
 
         break;
 
     case ALFI_WIDGET_CHOICE:
-        parse_widget_choice(parser, widget, &widget->data.choice);
+        parse_payload_choice(parser, &widget->header, &widget->payload.choice);
 
         break;
 
     case ALFI_WIDGET_DIVIDER:
-        parse_widget_divider(parser, widget, &widget->data.divider);
+        parse_payload_divider(parser, &widget->header, &widget->payload.divider);
 
         break;
 
     case ALFI_WIDGET_FIELD:
-        parse_widget_field(parser, widget, &widget->data.field);
+        parse_payload_field(parser, &widget->header, &widget->payload.field);
 
         break;
 
     case ALFI_WIDGET_HEADER:
-        parse_widget_header(parser, widget, &widget->data.header);
+        parse_payload_header(parser, &widget->header, &widget->payload.header);
 
         break;
 
     case ALFI_WIDGET_HSTACK:
-        parse_widget_hstack(parser, widget, &widget->data.hstack);
+        parse_payload_hstack(parser, &widget->header, &widget->payload.hstack);
 
         break;
 
     case ALFI_WIDGET_IMAGE:
-        parse_widget_image(parser, widget, &widget->data.image);
+        parse_payload_image(parser, &widget->header, &widget->payload.image);
 
         break;
 
     case ALFI_WIDGET_LIST:
-        parse_widget_list(parser, widget, &widget->data.list);
+        parse_payload_list(parser, &widget->header, &widget->payload.list);
 
         break;
 
     case ALFI_WIDGET_SELECT:
-        parse_widget_select(parser, widget, &widget->data.select);
+        parse_payload_select(parser, &widget->header, &widget->payload.select);
 
         break;
 
     case ALFI_WIDGET_SUBHEADER:
-        parse_widget_subheader(parser, widget, &widget->data.subheader);
-
-        break;
-
-    case ALFI_WIDGET_TAB:
-        parse_widget_tab(parser, widget, &widget->data.tab);
+        parse_payload_subheader(parser, &widget->header, &widget->payload.subheader);
 
         break;
 
     case ALFI_WIDGET_TABLE:
-        parse_widget_table(parser, widget, &widget->data.table);
+        parse_payload_table(parser, &widget->header, &widget->payload.table);
 
         break;
 
     case ALFI_WIDGET_TEXT:
-        parse_widget_text(parser, widget, &widget->data.text);
+        parse_payload_text(parser, &widget->header, &widget->payload.text);
 
         break;
 
     case ALFI_WIDGET_VSTACK:
-        parse_widget_vstack(parser, widget, &widget->data.vstack);
+        parse_payload_vstack(parser, &widget->header, &widget->payload.vstack);
 
         break;
 
     case ALFI_WIDGET_WINDOW:
-        parse_widget_window(parser, widget, &widget->data.window);
+        parse_payload_window(parser, &widget->header, &widget->payload.window);
 
         break;
 
     default:
-        parser->fail(parser->expr.line + 1);
+        parser->fail();
 
         break;
 
@@ -1128,101 +1155,91 @@ static void parse_command_insert(struct parser *parser, char *in)
 static void parse_command_update(struct parser *parser)
 {
 
-    char word[4096];
-    struct alfi_widget *widget;
-
-    readword(parser, word, 4096);
-
-    widget = parser->findwidget(word);
+    struct alfi_widget *widget = parsewidget(parser);
 
     if (!widget)
-        parser->fail(parser->expr.line + 1);
+        parser->fail();
 
-    switch (widget->type)
+    switch (widget->header.type)
     {
 
     case ALFI_WIDGET_ANCHOR:
-        parse_widget_anchor(parser, widget, &widget->data.anchor);
+        parse_payload_anchor(parser, &widget->header, &widget->payload.anchor);
 
         break;
 
     case ALFI_WIDGET_BUTTON:
-        parse_widget_button(parser, widget, &widget->data.button);
+        parse_payload_button(parser, &widget->header, &widget->payload.button);
 
         break;
 
     case ALFI_WIDGET_CHOICE:
-        parse_widget_choice(parser, widget, &widget->data.choice);
+        parse_payload_choice(parser, &widget->header, &widget->payload.choice);
 
         break;
 
     case ALFI_WIDGET_DIVIDER:
-        parse_widget_divider(parser, widget, &widget->data.divider);
+        parse_payload_divider(parser, &widget->header, &widget->payload.divider);
 
         break;
 
     case ALFI_WIDGET_FIELD:
-        parse_widget_field(parser, widget, &widget->data.field);
+        parse_payload_field(parser, &widget->header, &widget->payload.field);
 
         break;
 
     case ALFI_WIDGET_HEADER:
-        parse_widget_header(parser, widget, &widget->data.header);
+        parse_payload_header(parser, &widget->header, &widget->payload.header);
 
         break;
 
     case ALFI_WIDGET_HSTACK:
-        parse_widget_hstack(parser, widget, &widget->data.hstack);
+        parse_payload_hstack(parser, &widget->header, &widget->payload.hstack);
 
         break;
 
     case ALFI_WIDGET_IMAGE:
-        parse_widget_image(parser, widget, &widget->data.image);
+        parse_payload_image(parser, &widget->header, &widget->payload.image);
 
         break;
 
     case ALFI_WIDGET_LIST:
-        parse_widget_list(parser, widget, &widget->data.list);
+        parse_payload_list(parser, &widget->header, &widget->payload.list);
 
         break;
 
     case ALFI_WIDGET_SELECT:
-        parse_widget_select(parser, widget, &widget->data.select);
+        parse_payload_select(parser, &widget->header, &widget->payload.select);
 
         break;
 
     case ALFI_WIDGET_SUBHEADER:
-        parse_widget_subheader(parser, widget, &widget->data.subheader);
-
-        break;
-
-    case ALFI_WIDGET_TAB:
-        parse_widget_tab(parser, widget, &widget->data.tab);
+        parse_payload_subheader(parser, &widget->header, &widget->payload.subheader);
 
         break;
 
     case ALFI_WIDGET_TABLE:
-        parse_widget_table(parser, widget, &widget->data.table);
+        parse_payload_table(parser, &widget->header, &widget->payload.table);
 
         break;
 
     case ALFI_WIDGET_TEXT:
-        parse_widget_text(parser, widget, &widget->data.text);
+        parse_payload_text(parser, &widget->header, &widget->payload.text);
 
         break;
 
     case ALFI_WIDGET_VSTACK:
-        parse_widget_vstack(parser, widget, &widget->data.vstack);
+        parse_payload_vstack(parser, &widget->header, &widget->payload.vstack);
 
         break;
 
     case ALFI_WIDGET_WINDOW:
-        parse_widget_window(parser, widget, &widget->data.window);
+        parse_payload_window(parser, &widget->header, &widget->payload.window);
 
         break;
 
     default:
-        parser->fail(parser->expr.line + 1);
+        parser->fail();
 
         break;
 
@@ -1265,7 +1282,7 @@ static void parse(struct parser *parser, char *in)
             break;
 
         default:
-            parser->fail(parser->expr.line + 1);
+            parser->fail();
 
             break;
 
@@ -1284,12 +1301,13 @@ void parser_parse(struct parser *parser, char *in, unsigned int count, void *dat
     parser->expr.line = 0;
     parser->expr.linebreak = 0;
     parser->expr.inside = 0;
+    parser->expr.escaped = 0;
 
     parse(parser, in);
 
 }
 
-void parser_init(struct parser *parser, void (*fail)(unsigned int line), struct alfi_widget *(*findwidget)(char *name), struct alfi_widget *(*createwidget)(unsigned int type, char *in), struct alfi_widget *(*destroywidget)(struct alfi_widget *widget), char *(*allocate)(char *string, unsigned int size, unsigned int count, char *content), char *(*createstring)(char *string, char *content), char *(*destroystring)(char *string))
+void parser_init(struct parser *parser, void (*fail)(void), struct alfi_widget *(*findwidget)(char *name), struct alfi_widget *(*createwidget)(unsigned int type, char *in), struct alfi_widget *(*destroywidget)(struct alfi_widget *widget), char *(*allocate)(char *string, unsigned int size, unsigned int count, char *content))
 {
 
     parser->fail = fail;
@@ -1297,8 +1315,6 @@ void parser_init(struct parser *parser, void (*fail)(unsigned int line), struct 
     parser->createwidget = createwidget;
     parser->destroywidget = destroywidget;
     parser->allocate = allocate;
-    parser->createstring = createstring;
-    parser->destroystring = destroystring;
 
 }
 

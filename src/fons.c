@@ -62,7 +62,7 @@ static unsigned int decutf8(unsigned int *state, unsigned int *codep, unsigned i
 
 }
 
-static int atlasInsertNode(struct fons_atlas *atlas, int idx, int x, int y, int w)
+static int atlasinsertnode(struct fons_atlas *atlas, int idx, int x, int y, int w)
 {
 
     int i;
@@ -79,7 +79,7 @@ static int atlasInsertNode(struct fons_atlas *atlas, int idx, int x, int y, int 
 
 }
 
-static void atlasRemoveNode(struct fons_atlas *atlas, int idx)
+static void atlasremovenode(struct fons_atlas *atlas, int idx)
 {
 
     int i;
@@ -94,12 +94,12 @@ static void atlasRemoveNode(struct fons_atlas *atlas, int idx)
 
 }
 
-static int atlasAddSkylineLevel(struct fons_atlas *atlas, int idx, int x, int y, int w, int h)
+static int atlasaddskylinelevel(struct fons_atlas *atlas, int idx, int x, int y, int w, int h)
 {
 
     int i;
 
-    if (!atlasInsertNode(atlas, idx, x, y + h, w))
+    if (!atlasinsertnode(atlas, idx, x, y + h, w))
         return 0;
 
     for (i = idx + 1; i < atlas->nnodes; i++)
@@ -116,7 +116,7 @@ static int atlasAddSkylineLevel(struct fons_atlas *atlas, int idx, int x, int y,
             if (atlas->nodes[i].width <= 0)
             {
 
-                atlasRemoveNode(atlas, i);
+                atlasremovenode(atlas, i);
 
                 i--;
 
@@ -148,7 +148,7 @@ static int atlasAddSkylineLevel(struct fons_atlas *atlas, int idx, int x, int y,
 
             atlas->nodes[i].width += atlas->nodes[i + 1].width;
 
-            atlasRemoveNode(atlas, i + 1);
+            atlasremovenode(atlas, i + 1);
 
             i--;
 
@@ -160,7 +160,7 @@ static int atlasAddSkylineLevel(struct fons_atlas *atlas, int idx, int x, int y,
 
 }
 
-static int atlasRectFits(struct fons_atlas *atlas, int i, int w, int h)
+static int atlasrectfits(struct fons_atlas *atlas, int i, int w, int h)
 {
 
     int x = atlas->nodes[i].x;
@@ -192,7 +192,7 @@ static int atlasRectFits(struct fons_atlas *atlas, int i, int w, int h)
 
 }
 
-static int atlasAddRect(struct fons_atlas *atlas, int rw, int rh, int *rx, int *ry)
+static int atlasaddrect(struct fons_atlas *atlas, int rw, int rh, int *rx, int *ry)
 {
 
     int besth = atlas->height;
@@ -200,12 +200,12 @@ static int atlasAddRect(struct fons_atlas *atlas, int rw, int rh, int *rx, int *
     int besti = -1;
     int bestx = -1;
     int besty = -1;
-    int i;
+    unsigned int i;
 
     for (i = 0; i < atlas->nnodes; i++)
     {
 
-        int y = atlasRectFits(atlas, i, rw, rh);
+        int y = atlasrectfits(atlas, i, rw, rh);
 
         if (y != -1)
         {
@@ -228,7 +228,7 @@ static int atlasAddRect(struct fons_atlas *atlas, int rw, int rh, int *rx, int *
     if (besti == -1)
         return 0;
 
-    if (!atlasAddSkylineLevel(atlas, besti, bestx, besty, rw, rh))
+    if (!atlasaddskylinelevel(atlas, besti, bestx, besty, rw, rh))
         return 0;
 
     *rx = bestx;
@@ -238,16 +238,16 @@ static int atlasAddRect(struct fons_atlas *atlas, int rw, int rh, int *rx, int *
 
 }
 
-static void addWhiteRect(struct fons_context *fsctx, int w, int h)
+static void addwhiterect(struct fons_context *fsctx, int w, int h)
 {
 
     int x, y, gx, gy;
     unsigned char *dst;
 
-    if (!atlasAddRect(&fsctx->atlas, w, h, &gx, &gy))
+    if (!atlasaddrect(&fsctx->atlas, w, h, &gx, &gy))
         return;
 
-    dst = &fsctx->texData[gx + gy * fsctx->width];
+    dst = &fsctx->texdata[gx + gy * fsctx->width];
 
     for (y = 0; y < h; y++)
     {
@@ -281,19 +281,19 @@ void fons_create(struct fons_context *fsctx, int width, int height, unsigned cha
     fsctx->nfonts = 0;
     fsctx->itw = 1.0f / fsctx->width;
     fsctx->ith = 1.0f / fsctx->height;
-    fsctx->texData = malloc(fsctx->width * fsctx->height);
+    fsctx->texdata = malloc(fsctx->width * fsctx->height);
 
-    if (!fsctx->texData)
+    if (!fsctx->texdata)
         return;
 
-    memset(fsctx->texData, 0, fsctx->width * fsctx->height);
+    memset(fsctx->texdata, 0, fsctx->width * fsctx->height);
 
     fsctx->dirtyRect[0] = fsctx->width;
     fsctx->dirtyRect[1] = fsctx->height;
     fsctx->dirtyRect[2] = 0;
     fsctx->dirtyRect[3] = 0;
 
-    addWhiteRect(fsctx, 2, 2);
+    addwhiterect(fsctx, 2, 2);
     fons_initstate(fsctx);
 
 }
@@ -385,7 +385,7 @@ int fons_addfontmem(struct fons_context *fsctx, unsigned char *data, int dataSiz
 
 }
 
-static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font *font, unsigned int codepoint, short size, int bitmapOption)
+static struct fons_glyph *getglyph(struct fons_context *fsctx, struct fons_font *font, unsigned int codepoint, short size, int bitmapOption)
 {
 
     int i, g, advance, lsb;
@@ -440,7 +440,7 @@ static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font 
     if (bitmapOption == FONS_GLYPH_BITMAP_REQUIRED)
     {
 
-        added = atlasAddRect(&fsctx->atlas, gw, gh, &gx, &gy);
+        added = atlasaddrect(&fsctx->atlas, gw, gh, &gx, &gy);
 
         if (!added)
             return 0;
@@ -480,11 +480,11 @@ static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font 
     if (bitmapOption == FONS_GLYPH_BITMAP_OPTIONAL)
         return glyph;
 
-    dst = &fsctx->texData[(glyph->x0 + pad) + (glyph->y0 + pad) * fsctx->width];
+    dst = &fsctx->texdata[(glyph->x0 + pad) + (glyph->y0 + pad) * fsctx->width];
 
     stbtt_MakeGlyphBitmap(&font->font, dst, gw - pad * 2, gh - pad * 2, fsctx->width, scale, scale, g);
 
-    dst = &fsctx->texData[glyph->x0 + glyph->y0 * fsctx->width];
+    dst = &fsctx->texdata[glyph->x0 + glyph->y0 * fsctx->width];
 
     for (y = 0; y < gh; y++)
     {
@@ -511,7 +511,7 @@ static struct fons_glyph *getGlyph(struct fons_context *fsctx, struct fons_font 
 
 }
 
-static void getQuad(struct fons_context *fsctx, struct fons_font *font, int prevGlyphIndex, struct fons_glyph *glyph, float scale, float spacing, float *x, float *y, struct fons_quad *q)
+static void getquad(struct fons_context *fsctx, struct fons_font *font, int prevGlyphIndex, struct fons_glyph *glyph, float scale, float spacing, float *x, float *y, struct fons_quad *q)
 {
 
     float rx, ry;
@@ -570,7 +570,7 @@ static void getQuad(struct fons_context *fsctx, struct fons_font *font, int prev
 
 }
 
-static float getVertAlign(struct fons_context *fsctx, struct fons_font *font, int align, short size)
+static float getvertalign(struct fons_context *fsctx, struct fons_font *font, int align, short size)
 {
 
     if (fsctx->flags & FONS_ZERO_TOPLEFT)
@@ -631,7 +631,7 @@ int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, float 
 
     }
 
-    y += getVertAlign(fsctx, iter->font, fsctx->state.align, iter->size);
+    y += getvertalign(fsctx, iter->font, fsctx->state.align, iter->size);
     iter->x = iter->nextx = x;
     iter->y = iter->nexty = y;
     iter->spacing = fsctx->state.spacing;
@@ -668,10 +668,10 @@ int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct
         str++;
         iter->x = iter->nextx;
         iter->y = iter->nexty;
-        glyph = getGlyph(fsctx, iter->font, iter->codepoint, iter->size, iter->bitmapOption);
+        glyph = getglyph(fsctx, iter->font, iter->codepoint, iter->size, iter->bitmapOption);
 
         if (glyph)
-            getQuad(fsctx, iter->font, iter->prevGlyphIndex, glyph, iter->scale, iter->spacing, &iter->nextx, &iter->nexty, quad);
+            getquad(fsctx, iter->font, iter->prevGlyphIndex, glyph, iter->scale, iter->spacing, &iter->nextx, &iter->nexty, quad);
 
         iter->prevGlyphIndex = glyph != 0 ? glyph->index : -1;
 
@@ -694,7 +694,7 @@ float fons_getwidth(struct fons_context *fsctx, float x, float y, const char *st
     int prevGlyphIndex = -1;
     float startx = x;
 
-    y += getVertAlign(fsctx, font, fsctx->state.align, fsctx->state.size);
+    y += getvertalign(fsctx, font, fsctx->state.align, fsctx->state.size);
 
     for (; str != end; ++str)
     {
@@ -706,10 +706,10 @@ float fons_getwidth(struct fons_context *fsctx, float x, float y, const char *st
         if (decutf8(&utf8state, &codepoint, *(const unsigned char *)str))
             continue;
 
-        glyph = getGlyph(fsctx, font, codepoint, fsctx->state.size, FONS_GLYPH_BITMAP_OPTIONAL);
+        glyph = getglyph(fsctx, font, codepoint, fsctx->state.size, FONS_GLYPH_BITMAP_OPTIONAL);
 
         if (glyph)
-            getQuad(fsctx, font, prevGlyphIndex, glyph, scale, fsctx->state.spacing, &x, &y, &q);
+            getquad(fsctx, font, prevGlyphIndex, glyph, scale, fsctx->state.spacing, &x, &y, &q);
 
         prevGlyphIndex = glyph != 0 ? glyph->index : -1;
 
@@ -745,7 +745,7 @@ int fons_validate(struct fons_context *fsctx, int *dirty)
 void fons_delete(struct fons_context *fsctx)
 {
 
-    int i;
+    unsigned int i;
 
     for (i = 0; i < fsctx->nfonts; ++i)
     {
@@ -755,8 +755,8 @@ void fons_delete(struct fons_context *fsctx)
 
     }
 
-    if (fsctx->texData)
-        free(fsctx->texData);
+    if (fsctx->texdata)
+        free(fsctx->texdata);
 
 }
 

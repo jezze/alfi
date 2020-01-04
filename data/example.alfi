@@ -31,7 +31,7 @@
 + text in list2 label "Item 2-2"
 
 # An anchor link to another site
-+ anchor label "This is a link" link "http://www.blunder.se/" "text/alfi" target blank
++ anchor label "This is a link" link "http://www.blunder.se/" "text/alfi"
 
 # A row of images
 + hstack id gallery halign left valign top
@@ -43,11 +43,6 @@
 # Add some items to the previous list
 + text in list1 label "Item 1-3"
 + text in list2 label "Item 2-3"
-
-# Under construction
-# tab id tab1 label "Tab1"
-# tab id tab2 label "Tab2"
-# tab id tab3 label "Tab3"
 
 # A divider
 + divider label "There is a table below"
@@ -74,3 +69,4 @@
 # Add some text and then modify the text at once
 + text id extra2 label "This text will be replaced."
 = extra2 label "This is even more text!"
++ text label "This is a \"quote\" followed by\na newline."

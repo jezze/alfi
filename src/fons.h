@@ -83,7 +83,7 @@ struct fons_font
     float descender;
     float lineh;
     struct fons_glyph glyphs[FONS_INIT_GLYPHS];
-    int nglyphs;
+    unsigned int nglyphs;
     int lut[FONS_HASH_LUT_SIZE];
 
 };
@@ -101,7 +101,7 @@ struct fons_atlas
 
     int width, height;
     struct fons_atlasnode nodes[FONS_INIT_ATLAS_NODES];
-    int nnodes;
+    unsigned int nnodes;
 
 };
 
@@ -122,13 +122,13 @@ struct fons_context
     int width, height;
     unsigned char flags;
     float itw, ith;
-    unsigned char *texData;
+    unsigned char *texdata;
     int dirtyRect[4];
     struct fons_atlas atlas;
     struct fons_font fonts[FONS_INIT_FONTS];
-    int nfonts;
+    unsigned int nfonts;
     float verts[FONS_VERTEX_COUNT * 2];
-    int nverts;
+    unsigned int nverts;
     float tcoords[FONS_VERTEX_COUNT * 2];
     unsigned int colors[FONS_VERTEX_COUNT];
     struct fons_state state;

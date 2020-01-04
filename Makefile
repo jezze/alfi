@@ -1,7 +1,7 @@
 BIN_ALFI:=alfi
-OBJ_ALFI:=src/alfi.o src/list.o src/parser.o src/call.o src/resource.o src/pool.o
+OBJ_ALFI:=src/alfi.o src/list.o src/parser.o src/resource.o src/pool.o
 BIN_NAVI:=navi
-OBJ_NAVI:=src/navi.o src/list.o src/parser.o src/call.o src/resource.o src/pool.o src/style.o src/nvg.o src/nvg_gl.o src/fons.o
+OBJ_NAVI:=src/navi.o src/list.o src/parser.o src/resource.o src/pool.o src/call.o src/style.o src/nvg.o src/nvg_gl.o src/fons.o
 BIN_NAVI_RESOLVE:=navi-resolve
 
 all: $(BIN_ALFI) $(BIN_NAVI) $(BIN_NAVI_RESOLVE)
@@ -12,7 +12,7 @@ all: $(BIN_ALFI) $(BIN_NAVI) $(BIN_NAVI_RESOLVE)
 
 $(BIN_ALFI): $(OBJ_ALFI)
 	@echo LD $@
-	@$(CC) -o $@ -Wall -Werror -pedantic $^
+	@$(CC) -o $@ -Wall -Werror -pedantic $^ -lm
 
 $(BIN_NAVI): $(OBJ_NAVI)
 	@echo LD $@

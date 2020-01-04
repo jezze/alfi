@@ -1,41 +1,74 @@
 #!/bin/sh
 
-browsedir() {
-    echo "= window label \"Index of $1\""
-    echo "+ header label \"Index of $1\""
-    echo "+ divider"
-    echo "+ table id table1 grid 24 0 0 0 8 0"
-    echo "+ subheader in table1 label \"Name\""
-    echo "+ subheader in table1 label \"Size\""
-    echo "+ subheader in table1 label \"Modified\""
+resolve_navi_address() {
+    echo "= window label \"Lookup address\""
+    echo "+ header label \"Lookup address\""
+    echo "+ field id \"url\" label \"URL\" data \"http://\""
+    echo "+ button label \"Lookup\" link \"navi://lookup\" \"text/alfi\""
+    echo "+ subheader label \"Quick links\""
+    echo "+ anchor label \"blunder.se\" link \"http://www.blunder.se/\" \"text/alfi\""
+    echo "+ anchor label \"example\" link \"file:///usr/share/navi/example.alfi\" \"text/alfi\""
+}
 
-    find $1 -mindepth 1 -maxdepth 1 -type d | while read entry
-    do
-        name=$(stat --printf="%n" "$entry")
-        name=$(basename "$name")
-        size=$(stat --printf="%s" "$entry")
-        size=$(numfmt --to=si $size)
-        modified=$(stat --printf="%Y" "$entry")
-        modified=$(date -d @$modified)
+resolve_navi_bookmarks() {
+    echo "= window label \"Bookmarks\""
+    echo "+ header label \"Bookmarks\""
 
-        echo "+ anchor in table1 label \"$name/\" link \"file://$entry\" \"text/alfi\""
-        echo "+ text in table1 label \"$size\""
-        echo "+ text in table1 label \"$modified\""
-    done
+    if [ -f ~/.navi_bookmarks ]
+    then
+        cat ~/.navi_bookmarks | while read line
+        do
+            label=$(echo $line | cut -d ',' -f 1 | tr -d '"')
+            link=$(echo $line | cut -d ',' -f 2 | tr -d '"')
 
-    find $1 -mindepth 1 -maxdepth 1 -type f | while read entry
-    do
-        name=$(stat --printf="%n" "$entry")
-        name=$(basename "$name")
-        size=$(stat --printf="%s" "$entry")
-        size=$(numfmt --to=si $size)
-        modified=$(stat --printf="%Y" "$entry")
-        modified=$(date -d @$modified)
+            echo "+ anchor label \"$label\" link \"$link\" \"text/alfi\""
+        done
+    else
+        echo "+ text label \"No bookmarks found.\""
+    fi
+}
 
-        echo "+ text in table1 label \"$name\""
-        echo "+ text in table1 label \"$size\""
-        echo "+ text in table1 label \"$modified\""
-    done
+resolve_navi_error() {
+    echo "= window label \"Internal error\""
+    echo "+ header label \"Internal error\""
+    echo "+ text label \"An internal error occured.\""
+}
+
+resolve_navi_history() {
+    item=${2#item=}
+
+    if [ -f ~/.navi_history ]
+    then
+        url=$(tail -$item ~/.navi_history | head -1)
+
+        resolve "$url"
+    fi
+}
+
+resolve_navi_lookup() {
+    url=${2#url=}
+
+    resolve "$url"
+}
+
+resolve_navi() {
+    case "$1" in
+    navi://address) 
+        resolve_navi_address $@
+        ;;
+    navi://bookmarks)
+        resolve_navi_bookmarks $@
+        ;;
+    navi://error) 
+        resolve_navi_error $@
+        ;;
+    navi://history)
+        resolve_navi_history $@
+        ;;
+    navi://lookup)
+        resolve_navi_lookup $@
+        ;;
+    esac
 }
 
 resolve_file() {
@@ -48,10 +81,41 @@ resolve_file() {
 
     if test -d $path
     then
-        browsedir $path
-    elif test -f $path
-    then
-        cat $path
+        echo "= window label \"Index of $path\""
+        echo "+ header label \"Index of $path\""
+        echo "+ divider"
+        echo "+ table id table1 grid 24 0 0 0 8 0"
+        echo "+ subheader in table1 label \"Name\""
+        echo "+ subheader in table1 label \"Size\""
+        echo "+ subheader in table1 label \"Modified\""
+
+        find $path -mindepth 1 -maxdepth 1 -type d | while read entry
+        do
+            name=$(stat --printf="%n" "$entry")
+            name=$(basename "$name")
+            size=$(stat --printf="%s" "$entry")
+            size=$(numfmt --to=si $size)
+            modified=$(stat --printf="%Y" "$entry")
+            modified=$(date -d @$modified)
+
+            echo "+ anchor in table1 label \"$name/\" link \"file://$entry\" \"text/alfi\""
+            echo "+ text in table1 label \"$size\""
+            echo "+ text in table1 label \"$modified\""
+        done
+
+        find $path -mindepth 1 -maxdepth 1 -type f | while read entry
+        do
+            name=$(stat --printf="%n" "$entry")
+            name=$(basename "$name")
+            size=$(stat --printf="%s" "$entry")
+            size=$(numfmt --to=si $size)
+            modified=$(stat --printf="%Y" "$entry")
+            modified=$(date -d @$modified)
+
+            echo "+ text in table1 label \"$name\""
+            echo "+ text in table1 label \"$size\""
+            echo "+ text in table1 label \"$modified\""
+        done
     fi
 }
 
@@ -59,22 +123,29 @@ resolve_http() {
     curl -A "Navi/1.0" $1
 }
 
+resolve_https() {
+    curl -A "Navi/1.0" $1
+}
+
 resolve() {
     case "$1" in
+    navi://*)
+        resolve_navi $@
+        ;;
     file://*)
-        resolve_file $1
+        resolve_file $@
         ;;
     http://*)
-        resolve_http $1
+        resolve_http $@
         ;;
     https://*)
-        resolve_http $1
+        resolve_https $@
         ;;
     esac
 }
 
-if [ $# -eq 1 ]
+if [ $# -ge 1 ]
 then
-    resolve "$1"
+    resolve $@
 fi
 

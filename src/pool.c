@@ -3,7 +3,6 @@
 #include "list.h"
 #include "style.h"
 #include "widgets.h"
-#include "call.h"
 
 #define NWIDGETS                        512
 
@@ -29,6 +28,13 @@ static struct alfi_widget *next(struct list *list, struct alfi_widget *widget)
 
 }
 
+struct alfi_widget *pool_prev(struct alfi_widget *widget)
+{
+
+    return prev(&usedlist, widget);
+
+}
+
 struct alfi_widget *pool_next(struct alfi_widget *widget)
 {
 
@@ -44,10 +50,10 @@ struct alfi_widget *pool_findbyname(char *name)
     while ((widget = pool_next(widget)))
     {
 
-        if (!strlen(widget->id.name))
+        if (!strlen(widget->header.id.name))
             continue;
 
-        if (!strcmp(widget->id.name, name))
+        if (!strcmp(widget->header.id.name, name))
             return widget;
 
     }
@@ -62,37 +68,7 @@ struct alfi_widget *pool_nextchild(struct alfi_widget *widget, struct alfi_widge
     while ((widget = pool_next(widget)))
     {
 
-        if (pool_findbyname(widget->in.name) == parent)
-            return widget;
-
-    }
-
-    return 0;
-
-}
-
-struct alfi_widget *pool_prevflag(struct alfi_widget *widget, unsigned int flag)
-{
-
-    while ((widget = prev(&usedlist, widget)))
-    {
-
-        if (call_checkflag(widget, flag))
-            return widget;
-
-    }
-
-    return 0;
-
-}
-
-struct alfi_widget *pool_nextflag(struct alfi_widget *widget, unsigned int flag)
-{
-
-    while ((widget = next(&usedlist, widget)))
-    {
-
-        if (call_checkflag(widget, flag))
+        if (pool_findbyname(widget->header.in.name) == parent)
             return widget;
 
     }
@@ -119,7 +95,33 @@ void pool_destroy(struct alfi_widget *widget)
 
 }
 
-void pool_init(void)
+char *pool_allocate(char *string, unsigned int size, unsigned int count, char *content)
+{
+
+    if (string)
+    {
+
+        free(string);
+
+        string = 0;
+
+    }
+
+    if (size)
+    {
+
+        string = malloc(size);
+
+        if (count)
+            memcpy(string, content, count);
+
+    }
+
+    return string;
+
+}
+
+void pool_setup(void)
 {
 
     unsigned int i;
