@@ -79,7 +79,10 @@ resolve_file() {
         path=$(pwd)
     fi
 
-    if test -d $path
+    if test -f $path
+    then
+        cat $path
+    elif test -d $path
     then
         echo "= window label \"Index of $path\""
         echo "+ header label \"Index of $path\""
