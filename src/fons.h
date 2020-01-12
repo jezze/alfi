@@ -1,6 +1,5 @@
-#define FONS_SCRATCH_BUF_SIZE 96000
 #define FONS_HASH_LUT_SIZE 256
-#define FONS_INIT_FONTS 4
+#define FONS_INIT_FONTS 8
 #define FONS_INIT_GLYPHS 256
 #define FONS_INIT_ATLAS_NODES 256
 #define FONS_VERTEX_COUNT 1024
@@ -52,12 +51,12 @@ struct fons_textiter
     unsigned int codepoint;
     short size;
     struct fons_font *font;
-    int prevGlyphIndex;
+    int prevglyphindex;
     const char *str;
     const char *next;
     const char *end;
     unsigned int utf8state;
-    int bitmapOption;
+    int bitmapoption;
 
 };
 
@@ -78,7 +77,6 @@ struct fons_font
 
     stbtt_fontinfo font;
     unsigned char *data;
-    int dataSize;
     float ascender;
     float descender;
     float lineh;
@@ -105,42 +103,22 @@ struct fons_atlas
 
 };
 
-struct fons_state
-{
-
-    int font;
-    int align;
-    float size;
-    unsigned int color;
-    float spacing;
-
-};
-
 struct fons_context
 {
 
     int width, height;
     unsigned char flags;
-    float itw, ith;
     unsigned char *texdata;
-    int dirtyRect[4];
+    int dirtyrect[4];
     struct fons_atlas atlas;
     struct fons_font fonts[FONS_INIT_FONTS];
     unsigned int nfonts;
-    float verts[FONS_VERTEX_COUNT * 2];
-    unsigned int nverts;
-    float tcoords[FONS_VERTEX_COUNT * 2];
-    unsigned int colors[FONS_VERTEX_COUNT];
-    struct fons_state state;
 
 };
 
 void fons_create(struct fons_context *fsctx, int width, int height, unsigned char flags);
 void fons_delete(struct fons_context *fsctx);
-int fons_addfontfile(struct fons_context *fsctx, const char *path);
-int fons_addfontmem(struct fons_context *fsctx, unsigned char *data, int ndata);
-void fons_initstate(struct fons_context *fsctx);
-float fons_getwidth(struct fons_context *fsctx, float x, float y, const char *string, const char *end);
-int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, float x, float y, const char *str, const char *end, int bitmapOption);
+int fons_addfont(struct fons_context *fsctx, unsigned char *data, unsigned int count);
+int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, int font, int align, float size, float spacing, float x, float y, const char *str, const char *end, int bitmapoption);
 int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct fons_quad *quad);
 int fons_validate(struct fons_context *fsctx, int *dirty);

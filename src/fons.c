@@ -1,7 +1,4 @@
 #include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "stb_truetype.h"
 #include "fons.h"
@@ -259,10 +256,10 @@ static void addwhiterect(struct fons_context *fsctx, int w, int h)
 
     }
 
-    fsctx->dirtyRect[0] = mini(fsctx->dirtyRect[0], gx);
-    fsctx->dirtyRect[1] = mini(fsctx->dirtyRect[1], gy);
-    fsctx->dirtyRect[2] = maxi(fsctx->dirtyRect[2], gx + w);
-    fsctx->dirtyRect[3] = maxi(fsctx->dirtyRect[3], gy + h);
+    fsctx->dirtyrect[0] = mini(fsctx->dirtyrect[0], gx);
+    fsctx->dirtyrect[1] = mini(fsctx->dirtyrect[1], gy);
+    fsctx->dirtyrect[2] = maxi(fsctx->dirtyrect[2], gx + w);
+    fsctx->dirtyrect[3] = maxi(fsctx->dirtyrect[3], gy + h);
 
 }
 
@@ -279,8 +276,6 @@ void fons_create(struct fons_context *fsctx, int width, int height, unsigned cha
     fsctx->atlas.nodes[0].width = width;
     fsctx->atlas.nnodes = 1;
     fsctx->nfonts = 0;
-    fsctx->itw = 1.0f / fsctx->width;
-    fsctx->ith = 1.0f / fsctx->height;
     fsctx->texdata = malloc(fsctx->width * fsctx->height);
 
     if (!fsctx->texdata)
@@ -288,74 +283,16 @@ void fons_create(struct fons_context *fsctx, int width, int height, unsigned cha
 
     memset(fsctx->texdata, 0, fsctx->width * fsctx->height);
 
-    fsctx->dirtyRect[0] = fsctx->width;
-    fsctx->dirtyRect[1] = fsctx->height;
-    fsctx->dirtyRect[2] = 0;
-    fsctx->dirtyRect[3] = 0;
+    fsctx->dirtyrect[0] = fsctx->width;
+    fsctx->dirtyrect[1] = fsctx->height;
+    fsctx->dirtyrect[2] = 0;
+    fsctx->dirtyrect[3] = 0;
 
     addwhiterect(fsctx, 2, 2);
-    fons_initstate(fsctx);
 
 }
 
-void fons_initstate(struct fons_context *fsctx)
-{
-
-    fsctx->state.size = 12.0f;
-    fsctx->state.color = 0xffffffff;
-    fsctx->state.font = 0;
-    fsctx->state.spacing = 0;
-    fsctx->state.align = FONS_ALIGN_LEFT | FONS_ALIGN_BASELINE;
-
-}
-
-int fons_addfontfile(struct fons_context *fsctx, const char *path)
-{
-
-    FILE *fp = 0;
-    int dataSize = 0;
-    size_t readed;
-    unsigned char *data = 0;
-
-    fp = fopen(path, "rb");
-
-    if (!fp)
-        goto error;
-
-    fseek(fp, 0, SEEK_END);
-
-    dataSize = (int)ftell(fp);
-
-    fseek(fp, 0, SEEK_SET);
-
-    data = malloc(dataSize);
-
-    if (!data)
-        goto error;
-
-    readed = fread(data, 1, dataSize, fp);
-
-    fclose(fp);
-
-    fp = 0;
-
-    if (readed != dataSize)
-        goto error;
-
-    return fons_addfontmem(fsctx, data, dataSize);
-
-error:
-    if (data)
-        free(data);
-
-    if (fp)
-        fclose(fp);
-
-    return -1;
-
-}
-
-int fons_addfontmem(struct fons_context *fsctx, unsigned char *data, int dataSize)
+int fons_addfont(struct fons_context *fsctx, unsigned char *data, unsigned int count)
 {
 
     int i, ascent, descent, fh, lineGap;
@@ -366,7 +303,6 @@ int fons_addfontmem(struct fons_context *fsctx, unsigned char *data, int dataSiz
     for (i = 0; i < FONS_HASH_LUT_SIZE; ++i)
         font->lut[i] = -1;
 
-    font->dataSize = dataSize;
     font->data = data;
 
     if (!stbtt_InitFont(&font->font, font->data, 0))
@@ -385,7 +321,7 @@ int fons_addfontmem(struct fons_context *fsctx, unsigned char *data, int dataSiz
 
 }
 
-static struct fons_glyph *getglyph(struct fons_context *fsctx, struct fons_font *font, unsigned int codepoint, short size, int bitmapOption)
+static struct fons_glyph *getglyph(struct fons_context *fsctx, struct fons_font *font, unsigned int codepoint, short size, int bitmapoption)
 {
 
     int i, g, advance, lsb;
@@ -413,7 +349,7 @@ static struct fons_glyph *getglyph(struct fons_context *fsctx, struct fons_font 
 
             glyph = &font->glyphs[i];
 
-            if (bitmapOption == FONS_GLYPH_BITMAP_OPTIONAL || (glyph->x0 >= 0 && glyph->y0 >= 0))
+            if (bitmapoption == FONS_GLYPH_BITMAP_OPTIONAL || (glyph->x0 >= 0 && glyph->y0 >= 0))
                 return glyph;
 
             break;
@@ -437,7 +373,7 @@ static struct fons_glyph *getglyph(struct fons_context *fsctx, struct fons_font 
     gw = x1 - x0 + pad * 2;
     gh = y1 - y0 + pad * 2;
 
-    if (bitmapOption == FONS_GLYPH_BITMAP_REQUIRED)
+    if (bitmapoption == FONS_GLYPH_BITMAP_REQUIRED)
     {
 
         added = atlasaddrect(&fsctx->atlas, gw, gh, &gx, &gy);
@@ -477,7 +413,7 @@ static struct fons_glyph *getglyph(struct fons_context *fsctx, struct fons_font 
     glyph->xoff = x0 - pad;
     glyph->yoff = y0 - pad;
 
-    if (bitmapOption == FONS_GLYPH_BITMAP_OPTIONAL)
+    if (bitmapoption == FONS_GLYPH_BITMAP_OPTIONAL)
         return glyph;
 
     dst = &fsctx->texdata[(glyph->x0 + pad) + (glyph->y0 + pad) * fsctx->width];
@@ -502,26 +438,27 @@ static struct fons_glyph *getglyph(struct fons_context *fsctx, struct fons_font 
 
     }
 
-    fsctx->dirtyRect[0] = mini(fsctx->dirtyRect[0], glyph->x0);
-    fsctx->dirtyRect[1] = mini(fsctx->dirtyRect[1], glyph->y0);
-    fsctx->dirtyRect[2] = maxi(fsctx->dirtyRect[2], glyph->x1);
-    fsctx->dirtyRect[3] = maxi(fsctx->dirtyRect[3], glyph->y1);
+    fsctx->dirtyrect[0] = mini(fsctx->dirtyrect[0], glyph->x0);
+    fsctx->dirtyrect[1] = mini(fsctx->dirtyrect[1], glyph->y0);
+    fsctx->dirtyrect[2] = maxi(fsctx->dirtyrect[2], glyph->x1);
+    fsctx->dirtyrect[3] = maxi(fsctx->dirtyrect[3], glyph->y1);
 
     return glyph;
 
 }
 
-static void getquad(struct fons_context *fsctx, struct fons_font *font, int prevGlyphIndex, struct fons_glyph *glyph, float scale, float spacing, float *x, float *y, struct fons_quad *q)
+static void getquad(struct fons_context *fsctx, struct fons_font *font, int prevglyphindex, struct fons_glyph *glyph, float scale, float spacing, float *x, float *y, struct fons_quad *q)
 {
 
     float rx, ry;
     float xoff, yoff;
     float x0, y0, x1, y1;
+    float itw, ith;
 
-    if (prevGlyphIndex != -1)
+    if (prevglyphindex != -1)
     {
 
-        float adv = stbtt_GetGlyphKernAdvance(&font->font, prevGlyphIndex, glyph->index) * scale;
+        float adv = stbtt_GetGlyphKernAdvance(&font->font, prevglyphindex, glyph->index) * scale;
 
         *x += (int)(adv + spacing + 0.5f);
 
@@ -533,6 +470,8 @@ static void getquad(struct fons_context *fsctx, struct fons_font *font, int prev
     y0 = glyph->y0 + 1;
     x1 = glyph->x1 - 1;
     y1 = glyph->y1 - 1;
+    itw = 1.0f / fsctx->width;
+    ith = 1.0f / fsctx->height;
 
     if (fsctx->flags & FONS_ZERO_TOPLEFT)
     {
@@ -543,10 +482,10 @@ static void getquad(struct fons_context *fsctx, struct fons_font *font, int prev
         q->y0 = ry;
         q->x1 = rx + x1 - x0;
         q->y1 = ry + y1 - y0;
-        q->s0 = x0 * fsctx->itw;
-        q->t0 = y0 * fsctx->ith;
-        q->s1 = x1 * fsctx->itw;
-        q->t1 = y1 * fsctx->ith;
+        q->s0 = x0 * itw;
+        q->t0 = y0 * ith;
+        q->s1 = x1 * itw;
+        q->t1 = y1 * ith;
 
     }
 
@@ -559,10 +498,10 @@ static void getquad(struct fons_context *fsctx, struct fons_font *font, int prev
         q->y0 = ry;
         q->x1 = rx + x1 - x0;
         q->y1 = ry - y1 + y0;
-        q->s0 = x0 * fsctx->itw;
-        q->t0 = y0 * fsctx->ith;
-        q->s1 = x1 * fsctx->itw;
-        q->t1 = y1 * fsctx->ith;
+        q->s0 = x0 * itw;
+        q->t0 = y0 * ith;
+        q->s1 = x1 * itw;
+        q->t1 = y1 * ith;
 
     }
 
@@ -605,42 +544,75 @@ static float getvertalign(struct fons_context *fsctx, struct fons_font *font, in
 
 }
 
-int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, float x, float y, const char *str, const char *end, int bitmapOption)
+static float getwidth(struct fons_context *fsctx, struct fons_font *font, int align, float size, float spacing, float x, float y, const char *str, const char *end)
 {
 
-    iter->font = &fsctx->fonts[fsctx->state.font];
-    iter->size = fsctx->state.size;
+    float scale = stbtt_ScaleForPixelHeight(&font->font, size);
+    unsigned int utf8state = 0;
+    int prevglyphindex = -1;
+    float startx = x;
+
+    y += getvertalign(fsctx, font, align, size);
+
+    for (; str != end; ++str)
+    {
+
+        struct fons_glyph *glyph;
+        struct fons_quad q;
+        unsigned int codepoint;
+
+        if (decutf8(&utf8state, &codepoint, *(const unsigned char *)str))
+            continue;
+
+        glyph = getglyph(fsctx, font, codepoint, size, FONS_GLYPH_BITMAP_OPTIONAL);
+
+        if (glyph)
+            getquad(fsctx, font, prevglyphindex, glyph, scale, spacing, &x, &y, &q);
+
+        prevglyphindex = glyph != 0 ? glyph->index : -1;
+
+    }
+
+    return x - startx;
+
+}
+
+int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, int font, int align, float size, float spacing, float x, float y, const char *str, const char *end, int bitmapoption)
+{
+
+    iter->font = &fsctx->fonts[font];
+    iter->size = size;
     iter->scale = stbtt_ScaleForPixelHeight(&iter->font->font, iter->size);
 
-    if (fsctx->state.align & FONS_ALIGN_LEFT)
+    if (align & FONS_ALIGN_LEFT)
     {
 
     }
 
-    else if (fsctx->state.align & FONS_ALIGN_RIGHT)
+    else if (align & FONS_ALIGN_RIGHT)
     {
 
-        x -= fons_getwidth(fsctx, x, y, str, end);
+        x -= getwidth(fsctx, iter->font, align, iter->size, spacing, x, y, str, end);
 
     }
 
-    else if (fsctx->state.align & FONS_ALIGN_CENTER)
+    else if (align & FONS_ALIGN_CENTER)
     {
 
-        x -= fons_getwidth(fsctx, x, y, str, end) * 0.5f;
+        x -= getwidth(fsctx, iter->font, align, iter->size, spacing, x, y, str, end) * 0.5f;
 
     }
 
-    y += getvertalign(fsctx, iter->font, fsctx->state.align, iter->size);
+    y += getvertalign(fsctx, iter->font, align, iter->size);
     iter->x = iter->nextx = x;
     iter->y = iter->nexty = y;
-    iter->spacing = fsctx->state.spacing;
+    iter->spacing = spacing;
     iter->str = str;
     iter->next = str;
     iter->end = end;
     iter->codepoint = 0;
-    iter->prevGlyphIndex = -1;
-    iter->bitmapOption = bitmapOption;
+    iter->prevglyphindex = -1;
+    iter->bitmapoption = bitmapoption;
     iter->utf8state = 0;
 
     return 1;
@@ -668,12 +640,12 @@ int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct
         str++;
         iter->x = iter->nextx;
         iter->y = iter->nexty;
-        glyph = getglyph(fsctx, iter->font, iter->codepoint, iter->size, iter->bitmapOption);
+        glyph = getglyph(fsctx, iter->font, iter->codepoint, iter->size, iter->bitmapoption);
 
         if (glyph)
-            getquad(fsctx, iter->font, iter->prevGlyphIndex, glyph, iter->scale, iter->spacing, &iter->nextx, &iter->nexty, quad);
+            getquad(fsctx, iter->font, iter->prevglyphindex, glyph, iter->scale, iter->spacing, &iter->nextx, &iter->nexty, quad);
 
-        iter->prevGlyphIndex = glyph != 0 ? glyph->index : -1;
+        iter->prevglyphindex = glyph != 0 ? glyph->index : -1;
 
         break;
 
@@ -685,54 +657,20 @@ int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct
 
 }
 
-float fons_getwidth(struct fons_context *fsctx, float x, float y, const char *str, const char *end)
-{
-
-    struct fons_font *font = &fsctx->fonts[fsctx->state.font];
-    float scale = stbtt_ScaleForPixelHeight(&font->font, fsctx->state.size);
-    unsigned int utf8state = 0;
-    int prevGlyphIndex = -1;
-    float startx = x;
-
-    y += getvertalign(fsctx, font, fsctx->state.align, fsctx->state.size);
-
-    for (; str != end; ++str)
-    {
-
-        struct fons_glyph *glyph;
-        struct fons_quad q;
-        unsigned int codepoint;
-
-        if (decutf8(&utf8state, &codepoint, *(const unsigned char *)str))
-            continue;
-
-        glyph = getglyph(fsctx, font, codepoint, fsctx->state.size, FONS_GLYPH_BITMAP_OPTIONAL);
-
-        if (glyph)
-            getquad(fsctx, font, prevGlyphIndex, glyph, scale, fsctx->state.spacing, &x, &y, &q);
-
-        prevGlyphIndex = glyph != 0 ? glyph->index : -1;
-
-    }
-
-    return x - startx;
-
-}
-
 int fons_validate(struct fons_context *fsctx, int *dirty)
 {
 
-    if (fsctx->dirtyRect[0] < fsctx->dirtyRect[2] && fsctx->dirtyRect[1] < fsctx->dirtyRect[3])
+    if (fsctx->dirtyrect[0] < fsctx->dirtyrect[2] && fsctx->dirtyrect[1] < fsctx->dirtyrect[3])
     {
 
-        dirty[0] = fsctx->dirtyRect[0];
-        dirty[1] = fsctx->dirtyRect[1];
-        dirty[2] = fsctx->dirtyRect[2];
-        dirty[3] = fsctx->dirtyRect[3];
-        fsctx->dirtyRect[0] = fsctx->width;
-        fsctx->dirtyRect[1] = fsctx->height;
-        fsctx->dirtyRect[2] = 0;
-        fsctx->dirtyRect[3] = 0;
+        dirty[0] = fsctx->dirtyrect[0];
+        dirty[1] = fsctx->dirtyrect[1];
+        dirty[2] = fsctx->dirtyrect[2];
+        dirty[3] = fsctx->dirtyrect[3];
+        fsctx->dirtyrect[0] = fsctx->width;
+        fsctx->dirtyrect[1] = fsctx->height;
+        fsctx->dirtyrect[2] = 0;
+        fsctx->dirtyrect[3] = 0;
 
         return 1;
 
@@ -744,16 +682,6 @@ int fons_validate(struct fons_context *fsctx, int *dirty)
 
 void fons_delete(struct fons_context *fsctx)
 {
-
-    unsigned int i;
-
-    for (i = 0; i < fsctx->nfonts; ++i)
-    {
-
-        if (fsctx->fonts[i].data)
-            free(fsctx->fonts[i].data);
-
-    }
 
     if (fsctx->texdata)
         free(fsctx->texdata);

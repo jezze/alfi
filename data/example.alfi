@@ -20,7 +20,11 @@
 + choice in select2 label "Finland"
 + choice in select2 label "Norway"
 + choice in select2 label "Sweden"
-+ button id submit label "SEND"
++ toggle id toggle1 label "Toggle 1"
++ toggle id toggle2 label "Toggle 2" mode "on"
++ toggle id toggle3 label "Toggle 3"
++ button id submit label "SEND" mode "on"
++ button id cancel label "CANCEL"
 
 # Two nested lists
 + list id list1
@@ -35,10 +39,10 @@
 
 # A row of images
 + hstack id gallery halign left valign top
-+ image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
-+ image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
-+ image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
-+ image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
++ image in gallery link "image6.jpg" "image/jpeg"
++ image in gallery link "image6.jpg" "image/jpeg"
++ image in gallery link "image6.jpg" "image/jpeg"
++ image in gallery link "image6.jpg" "image/jpeg"
 
 # Add some items to the previous list
 + text in list1 label "Item 1-3"
@@ -48,14 +52,14 @@
 + divider label "There is a table below"
 
 # A table
-+ table id table1 grid 24 0 0 0 6 0
++ table id table1 grid 3 0
 + text in table1 label "Cell 0-0"
 + text in table1 label "Cell 0-1"
 + text in table1 label "Cell 0-2 containing a lot of extra text"
 + text in table1 label "Cell 0-3"
 + text in table1 label "Cell 1-0"
 + text in table1 label "Cell 1-1"
-+ image in table1 link "file:///usr/share/navi/image6.jpg" "image/jpeg"
++ image in table1 link "image6.jpg" "image/jpeg"
 + text in table1 label "Cell 1-3"
 + text in table1 label "Cell 2-0"
 + text in table1

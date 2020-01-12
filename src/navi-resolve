@@ -1,13 +1,26 @@
 #!/bin/sh
 
-resolve_navi_address() {
+resolve_navi_blank() {
     echo "= window label \"Lookup address\""
     echo "+ header label \"Lookup address\""
-    echo "+ field id \"url\" label \"URL\" data \"http://\""
-    echo "+ button label \"Lookup\" link \"navi://lookup\" \"text/alfi\""
+    echo "+ field id \"url\" label \"URL\" data \"$1\""
+    echo "+ button label \"Lookup\" link \"navi://lookup\" \"text/alfi\" mode \"on\""
     echo "+ subheader label \"Quick links\""
     echo "+ anchor label \"blunder.se\" link \"http://www.blunder.se/\" \"text/alfi\""
     echo "+ anchor label \"example\" link \"file:///usr/share/navi/example.alfi\" \"text/alfi\""
+    exit 0
+}
+
+resolve_navi_back() {
+    item=${2#item=}
+
+    if [ -f ~/.navi_history ]
+    then
+        url=$(tail -$item ~/.navi_history | head -1)
+
+        resolve "$url"
+        exit $?
+    fi
 }
 
 resolve_navi_bookmarks() {
@@ -26,35 +39,58 @@ resolve_navi_bookmarks() {
     else
         echo "+ text label \"No bookmarks found.\""
     fi
+    exit 0
 }
 
 resolve_navi_error() {
     echo "= window label \"Internal error\""
     echo "+ header label \"Internal error\""
     echo "+ text label \"An internal error occured.\""
+    exit 0
 }
 
 resolve_navi_history() {
-    item=${2#item=}
+    echo "= window label \"History\""
+    echo "+ header label \"History\""
 
     if [ -f ~/.navi_history ]
     then
-        url=$(tail -$item ~/.navi_history | head -1)
+        cat ~/.navi_history | while read line
+        do
+            label=$(echo $line | cut -d ',' -f 1 | tr -d '"')
+            link=$(echo $line | cut -d ',' -f 2 | tr -d '"')
 
-        resolve "$url"
+            echo "+ anchor label \"$label\" link \"$link\" \"text/alfi\""
+        done
+    else
+        echo "+ text label \"No history found.\""
     fi
+    exit 0
 }
 
 resolve_navi_lookup() {
     url=${2#url=}
 
-    resolve "$url"
+    if [ -z "$url" ]
+    then
+        echo "= window label \"No data\""
+        echo "+ header label \"No data\""
+        echo "+ text label \"No data was provided. Please resubmit.\""
+        exit 0
+    else
+        resolve "$url"
+        exit $?
+    fi
+    exit 1
 }
 
 resolve_navi() {
     case "$1" in
-    navi://address) 
-        resolve_navi_address $@
+    navi://blank) 
+        resolve_navi_blank $@
+        ;;
+    navi://back)
+        resolve_navi_back $@
         ;;
     navi://bookmarks)
         resolve_navi_bookmarks $@
@@ -82,12 +118,13 @@ resolve_file() {
     if test -f $path
     then
         cat $path
+        exit 0
     elif test -d $path
     then
         echo "= window label \"Index of $path\""
         echo "+ header label \"Index of $path\""
         echo "+ divider"
-        echo "+ table id table1 grid 24 0 0 0 8 0"
+        echo "+ table id table1 grid 4 0"
         echo "+ subheader in table1 label \"Name\""
         echo "+ subheader in table1 label \"Size\""
         echo "+ subheader in table1 label \"Modified\""
@@ -119,15 +156,21 @@ resolve_file() {
             echo "+ text in table1 label \"$size\""
             echo "+ text in table1 label \"$modified\""
         done
+
+        exit 0
     fi
+
+    exit 1
 }
 
 resolve_http() {
     curl -A "Navi/1.0" $1
+    exit $?
 }
 
 resolve_https() {
     curl -A "Navi/1.0" $1
+    exit $?
 }
 
 resolve() {

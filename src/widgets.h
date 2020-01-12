@@ -20,9 +20,10 @@
 #define ALFI_WIDGET_SUBHEADER           14
 #define ALFI_WIDGET_TABLE               15
 #define ALFI_WIDGET_TEXT                16
-#define ALFI_WIDGET_VIDEO               17
-#define ALFI_WIDGET_VSTACK              18
-#define ALFI_WIDGET_WINDOW              19
+#define ALFI_WIDGET_TOGGLE              17
+#define ALFI_WIDGET_VIDEO               18
+#define ALFI_WIDGET_VSTACK              19
+#define ALFI_WIDGET_WINDOW              20
 #define ALFI_ATTRIBUTE_NONE             0
 #define ALFI_ATTRIBUTE_DATA             1
 #define ALFI_ATTRIBUTE_GRID             2
@@ -32,10 +33,11 @@
 #define ALFI_ATTRIBUTE_IN               6
 #define ALFI_ATTRIBUTE_LABEL            7
 #define ALFI_ATTRIBUTE_LINK             8
-#define ALFI_ATTRIBUTE_RANGE            9
-#define ALFI_ATTRIBUTE_TARGET           10
-#define ALFI_ATTRIBUTE_TYPE             11
-#define ALFI_ATTRIBUTE_VALIGN           12
+#define ALFI_ATTRIBUTE_MODE             9
+#define ALFI_ATTRIBUTE_RANGE            10
+#define ALFI_ATTRIBUTE_TARGET           11
+#define ALFI_ATTRIBUTE_TYPE             12
+#define ALFI_ATTRIBUTE_VALIGN           13
 #define ALFI_HALIGN_LEFT                1
 #define ALFI_HALIGN_CENTER              2
 #define ALFI_HALIGN_RIGHT               3
@@ -44,6 +46,8 @@
 #define ALFI_VALIGN_BOTTOM              3
 #define ALFI_TARGET_BLANK               0
 #define ALFI_TARGET_SELF                1
+#define ALFI_MODE_OFF                   0
+#define ALFI_MODE_ON                    1
 #define ALFI_TYPE_REGULAR               0
 #define ALFI_TYPE_PASSWORD              1
 #define ALFI_STATE_NORMAL               0
@@ -54,14 +58,15 @@
 #define ALFI_CURSOR_ARROW               0
 #define ALFI_CURSOR_IBEAM               1
 #define ALFI_CURSOR_HAND                2
+#define ALFI_THEME_LIGHT                0
+#define ALFI_THEME_DARK                 1
 #define ALFI_ICON_BURGER                1
 #define ALFI_ICON_SEARCH                2
-#define ALFI_FLAG_CONTAINER             1
-#define ALFI_FLAG_ITEM                  2
-#define ALFI_FLAG_FOCUSABLE             4
+#define ALFI_FLAG_NONE                  0
+#define ALFI_FLAG_FOCUSABLE             1
 #define ALFI_DATASIZE                   128
 
-struct alfi_attribute_data
+struct attribute_data
 {
 
     char *content;
@@ -70,54 +75,50 @@ struct alfi_attribute_data
 
 };
 
-struct alfi_attribute_grid
+struct attribute_grid
 {
 
     unsigned int csize;
     unsigned int rsize;
-    unsigned int coffset;
-    unsigned int roffset;
-    unsigned int clength;
-    unsigned int rlength;
 
 };
 
-struct alfi_attribute_halign
+struct attribute_halign
 {
 
     unsigned int direction;
 
 };
 
-struct alfi_attribute_icon
+struct attribute_icon
 {
 
     unsigned int type;
 
 };
 
-struct alfi_attribute_id
+struct attribute_id
 {
 
     char *name;
 
 };
 
-struct alfi_attribute_in
+struct attribute_in
 {
 
     char *name;
 
 };
 
-struct alfi_attribute_label
+struct attribute_label
 {
 
     char *content;
 
 };
 
-struct alfi_attribute_link
+struct attribute_link
 {
 
     char *url;
@@ -125,7 +126,14 @@ struct alfi_attribute_link
 
 };
 
-struct alfi_attribute_range
+struct attribute_mode
+{
+
+    int mode;
+
+};
+
+struct attribute_range
 {
 
     int min;
@@ -133,330 +141,230 @@ struct alfi_attribute_range
 
 };
 
-struct alfi_attribute_target
+struct attribute_target
 {
 
     int type;
 
 };
 
-struct alfi_attribute_type
+struct attribute_type
 {
 
     int type;
 
 };
 
-struct alfi_attribute_valign
+struct attribute_valign
 {
 
     unsigned int direction;
 
 };
 
-struct alfi_resource
-{
-
-    int ref;
-    int w;
-    int h;
-
-};
-
-struct alfi_frame_anchor
-{
-
-    struct alfi_style background;
-    struct alfi_style label;
-
-};
-
-struct alfi_frame_button
-{
-
-    struct alfi_style background;
-    struct alfi_style border;
-    struct alfi_style label;
-
-};
-
-struct alfi_frame_choice
-{
-
-    struct alfi_style background;
-    struct alfi_style label;
-
-};
-
-struct alfi_frame_divider
-{
-
-    struct alfi_style background;
-    struct alfi_style border;
-    struct alfi_style label;
-
-};
-
-struct alfi_frame_field
-{
-
-    struct alfi_style background;
-    struct alfi_style border;
-    struct alfi_style label;
-    struct alfi_style data;
-
-};
-
-struct alfi_frame_header
-{
-
-    struct alfi_style background;
-    struct alfi_style label;
-
-};
-
-struct alfi_frame_image
-{
-
-    struct alfi_style background;
-    struct alfi_style frame;
-
-};
-
-struct alfi_frame_list
-{
-
-    struct alfi_style dot;
-
-};
-
-struct alfi_frame_select
-{
-
-    struct alfi_style background;
-    struct alfi_style border;
-    struct alfi_style label;
-    struct alfi_style data;
-
-};
-
-struct alfi_frame_subheader
-{
-
-    struct alfi_style background;
-    struct alfi_style label;
-
-};
-
-struct alfi_frame_text
-{
-
-    struct alfi_style background;
-    struct alfi_style label;
-
-};
-
-struct alfi_frame_window
-{
-
-    struct alfi_style background;
-
-};
-
-union alfi_frame
-{
-
-    struct alfi_frame_button button;
-    struct alfi_frame_choice choice;
-    struct alfi_frame_divider divider;
-    struct alfi_frame_field field;
-    struct alfi_frame_header header;
-    struct alfi_frame_image image;
-    struct alfi_frame_anchor anchor;
-    struct alfi_frame_list list;
-    struct alfi_frame_select select;
-    struct alfi_frame_subheader subheader;
-    struct alfi_frame_text text;
-    struct alfi_frame_window window;
-
-};
-
-struct alfi_header
+struct header
 {
 
     unsigned int type;
-    struct alfi_attribute_id id;
-    struct alfi_attribute_in in;
+    struct attribute_id id;
+    struct attribute_in in;
 
 };
 
-struct alfi_payload_anchor
+struct payload_anchor
 {
 
-    struct alfi_attribute_label label;
-    struct alfi_attribute_link link;
-    struct alfi_attribute_target target;
+    struct attribute_label label;
+    struct attribute_link link;
+    struct attribute_target target;
 
 };
 
-struct alfi_payload_audio
+struct payload_audio
 {
 
-    struct alfi_attribute_link link;
+    struct attribute_link link;
 
 };
 
-struct alfi_payload_button
+struct payload_button
 {
 
-    struct alfi_attribute_icon icon;
-    struct alfi_attribute_label label;
-    struct alfi_attribute_link link;
-    struct alfi_attribute_target target;
+    struct attribute_icon icon;
+    struct attribute_label label;
+    struct attribute_link link;
+    struct attribute_target target;
+    struct attribute_mode mode;
 
 };
 
-struct alfi_payload_choice
+struct payload_choice
 {
 
-    struct alfi_attribute_label label;
+    struct attribute_label label;
 
 };
 
-struct alfi_payload_divider
+struct payload_divider
 {
 
-    struct alfi_attribute_label label;
+    struct attribute_label label;
 
 };
 
-struct alfi_payload_field
+struct payload_field
 {
 
-    struct alfi_attribute_data data;
-    struct alfi_attribute_icon icon;
-    struct alfi_attribute_label label;
-    struct alfi_attribute_range range;
-    struct alfi_attribute_type type;
+    struct attribute_data data;
+    struct attribute_icon icon;
+    struct attribute_label label;
+    struct attribute_range range;
+    struct attribute_type type;
 
 };
 
-struct alfi_payload_header
+struct payload_header
 {
 
-    struct alfi_attribute_label label;
+    struct attribute_label label;
 
 };
 
-struct alfi_payload_hstack
+struct payload_hstack
 {
 
-    struct alfi_attribute_grid grid;
-    struct alfi_attribute_halign halign;
-    struct alfi_attribute_valign valign;
+    struct attribute_grid grid;
+    struct attribute_halign halign;
+    struct attribute_valign valign;
 
 };
 
-struct alfi_payload_image
+struct payload_image
 {
 
-    struct alfi_attribute_link link;
-    struct alfi_resource resource;
+    struct attribute_link link;
 
 };
 
-struct alfi_payload_list
+struct payload_list
 {
 
-    struct alfi_attribute_label label;
+    struct attribute_label label;
 
 };
 
-struct alfi_payload_select
+struct payload_select
 {
 
-    struct alfi_attribute_data data;
-    struct alfi_attribute_label label;
-    struct alfi_attribute_range range;
+    struct attribute_data data;
+    struct attribute_label label;
+    struct attribute_range range;
 
 };
 
-struct alfi_payload_subheader
+struct payload_subheader
 {
 
-    struct alfi_attribute_label label;
+    struct attribute_label label;
 
 };
 
-struct alfi_payload_table
+struct payload_table
 {
 
-    struct alfi_attribute_grid grid;
+    struct attribute_grid grid;
 
 };
 
-struct alfi_payload_text
+struct payload_text
 {
 
-    struct alfi_attribute_label label;
+    struct attribute_label label;
 
 };
 
-struct alfi_payload_window
+struct payload_toggle
 {
 
-    struct alfi_attribute_label label;
+    struct attribute_label label;
+    struct attribute_mode mode;
 
 };
 
-struct alfi_payload_video
+struct payload_window
 {
 
-    struct alfi_attribute_link link;
+    struct attribute_label label;
 
 };
 
-struct alfi_payload_vstack
+struct payload_video
 {
 
-    struct alfi_attribute_grid grid;
-    struct alfi_attribute_halign halign;
-    struct alfi_attribute_valign valign;
+    struct attribute_link link;
 
 };
 
-union alfi_payload
+struct payload_vstack
 {
 
-    struct alfi_payload_anchor anchor;
-    struct alfi_payload_audio audio;
-    struct alfi_payload_button button;
-    struct alfi_payload_choice choice;
-    struct alfi_payload_divider divider;
-    struct alfi_payload_field field;
-    struct alfi_payload_hstack hstack;
-    struct alfi_payload_header header;
-    struct alfi_payload_image image;
-    struct alfi_payload_list list;
-    struct alfi_payload_select select;
-    struct alfi_payload_subheader subheader;
-    struct alfi_payload_table table;
-    struct alfi_payload_text text;
-    struct alfi_payload_video video;
-    struct alfi_payload_vstack vstack;
-    struct alfi_payload_window window;
+    struct attribute_grid grid;
+    struct attribute_halign halign;
+    struct attribute_valign valign;
 
 };
 
-struct alfi_widget
+union payload
 {
 
-    struct alfi_box bb;
+    struct payload_anchor anchor;
+    struct payload_audio audio;
+    struct payload_button button;
+    struct payload_choice choice;
+    struct payload_divider divider;
+    struct payload_field field;
+    struct payload_hstack hstack;
+    struct payload_header header;
+    struct payload_image image;
+    struct payload_list list;
+    struct payload_select select;
+    struct payload_subheader subheader;
+    struct payload_table table;
+    struct payload_text text;
+    struct payload_toggle toggle;
+    struct payload_video video;
+    struct payload_vstack vstack;
+    struct payload_window window;
+
+};
+
+struct frame
+{
+
+    struct style_box bounds;
+    struct style styles[8];
+    unsigned int nstyles;
+    unsigned int animating;
+
+};
+
+struct widget
+{
+
     unsigned int state;
     struct list_item item;
-    struct alfi_header header;
-    union alfi_payload payload;
-    union alfi_frame frame;
+    struct header header;
+    union payload payload;
+    struct frame frame;
+    union
+    {
+
+        struct resource_image image;
+
+    } resource;
 
 };
 
+void widgets_setupfonts(void);
+void widgets_settheme(unsigned int type);
+void widgets_setup(void);

@@ -4,56 +4,50 @@
 #include <unistd.h>
 #include "list.h"
 #include "style.h"
+#include "url.h"
+#include "resource.h"
 #include "widgets.h"
 #include "parser.h"
 #include "pool.h"
 
 static struct parser parser;
 
-static char *createstring(char *string, char *content)
+static struct widget *parser_create(unsigned int type, char *id, char *in)
 {
 
-    return pool_allocate(string, strlen(content) + 1, strlen(content) + 1, content);
-
-}
-
-static char *destroystring(char *string)
-{
-
-    return pool_allocate(string, 0, 0, 0);
-
-}
-
-static struct alfi_widget *parser_createwidget(unsigned int type, char *in)
-{
-
-    struct alfi_widget *widget = pool_create();
-
-    memset(&widget->payload, 0, sizeof (union alfi_payload));
-    memset(&widget->frame, 0, sizeof (union alfi_frame));
+    struct widget *widget = pool_widget_create();
 
     widget->header.type = type;
-    widget->header.id.name = createstring(widget->header.id.name, "");
-    widget->header.in.name = createstring(widget->header.in.name, in);
+    widget->header.id.name = pool_string_create(widget->header.id.name, id);
+    widget->header.in.name = pool_string_create(widget->header.in.name, in);
 
     return widget;
 
 }
 
-static struct alfi_widget *parser_destroywidget(struct alfi_widget *widget)
+static struct widget *parser_destroy(struct widget *widget)
 {
 
-    struct alfi_widget *child = 0;
+    widget->header.id.name = pool_string_destroy(widget->header.id.name);
+    widget->header.in.name = pool_string_destroy(widget->header.in.name);
 
-    while ((child = pool_nextchild(child, widget)))
-        child = parser_destroywidget(child);
+    return pool_widget_destroy(widget);
 
-    widget->header.id.name = destroystring(widget->header.id.name);
-    widget->header.in.name = destroystring(widget->header.in.name);
+}
 
-    pool_destroy(widget);
+static void parser_clear(struct widget *widget)
+{
 
-    return 0;
+    struct widget *child = 0;
+
+    while ((child = pool_widget_nextchild(child, widget)))
+    {
+
+        parser_clear(child);
+
+        child = parser_destroy(child);
+
+    }
 
 }
 
@@ -65,45 +59,18 @@ static void parser_fail(void)
 
 }
 
-static void loadbase(void)
-{
-
-    struct alfi_widget *widget;
-
-    widget = parser_createwidget(ALFI_WIDGET_WINDOW, "");
-
-    if (widget)
-    {
-
-        widget->header.id.name = createstring(widget->header.id.name, "window");
-        widget->payload.window.label.content = createstring(widget->payload.window.label.content, "undefined");
-
-    }
-
-    widget = parser_createwidget(ALFI_WIDGET_VSTACK, "window");
-
-    if (widget)
-    {
-
-        widget->header.id.name = createstring(widget->header.id.name, "main");
-        widget->payload.vstack.halign.direction = ALFI_HALIGN_LEFT;
-        widget->payload.vstack.valign.direction = ALFI_VALIGN_TOP;
-
-    }
-
-}
-
 int main(int argc, char **argv)
 {
 
-    char data[4096];
+    char data[RESOURCE_PAGESIZE];
     int count;
 
     pool_setup();
-    parser_init(&parser, parser_fail, pool_findbyname, parser_createwidget, parser_destroywidget, pool_allocate);
-    loadbase();
+    parser_init(&parser, parser_fail, pool_widget_find, parser_create, parser_destroy, parser_clear, pool_allocate);
+    parser_create(ALFI_WIDGET_WINDOW, "window", "");
+    parser_create(ALFI_WIDGET_VSTACK, "main", "window");
 
-    while ((count = read(0, data, 4096)))
+    while ((count = read(0, data, RESOURCE_PAGESIZE)))
         parser_parse(&parser, "main", count, data);
 
     return 0;

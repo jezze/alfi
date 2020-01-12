@@ -1,7 +1,7 @@
 BIN_ALFI:=alfi
-OBJ_ALFI:=src/alfi.o src/list.o src/parser.o src/resource.o src/pool.o
+OBJ_ALFI:=src/alfi.o src/list.o src/parser.o src/url.o src/resource.o src/pool.o
 BIN_NAVI:=navi
-OBJ_NAVI:=src/navi.o src/list.o src/parser.o src/resource.o src/pool.o src/call.o src/style.o src/nvg.o src/nvg_gl.o src/fons.o
+OBJ_NAVI:=src/navi.o src/list.o src/parser.o src/url.o src/resource.o src/pool.o src/view.o src/call.o src/style.o src/nvg.o src/nvg_gl.o src/fons.o src/render.o src/widgets.o src/history.o
 BIN_NAVI_RESOLVE:=navi-resolve
 
 all: $(BIN_ALFI) $(BIN_NAVI) $(BIN_NAVI_RESOLVE)
@@ -35,6 +35,9 @@ install:
 	cp data/roboto-bold.ttf /usr/share/navi/roboto-bold.ttf
 	cp data/roboto-light.ttf /usr/share/navi/roboto-light.ttf
 	cp data/roboto-regular.ttf /usr/share/navi/roboto-regular.ttf
+	cp data/robotomono-bold.ttf /usr/share/navi/robotomono-bold.ttf
+	cp data/robotomono-light.ttf /usr/share/navi/robotomono-light.ttf
+	cp data/robotomono-regular.ttf /usr/share/navi/robotomono-regular.ttf
 	cp data/image6.jpg /usr/share/navi/image6.jpg
 	cp data/example.alfi /usr/share/navi/example.alfi
 

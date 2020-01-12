@@ -1,80 +1,147 @@
 #include <stdlib.h>
-#include <string.h>
 #include "list.h"
 #include "style.h"
+#include "url.h"
+#include "resource.h"
 #include "widgets.h"
+#include "view.h"
 #include "call.h"
+
+struct call
+{
+
+    unsigned int flags;
+    void (*create)(struct widget *widget);
+    void (*destroy)(struct widget *widget);
+    int (*animate)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u);
+    void (*render)(struct widget *widget, struct frame *frame, struct view *view);
+    unsigned int (*setstate)(struct widget *widget, unsigned int state);
+    unsigned int (*getcursor)(struct widget *widget, struct frame *frame, int x, int y);
+
+};
 
 static struct call calls[64];
 
-unsigned int call_checkflag(struct alfi_widget *widget, unsigned int flag)
+unsigned int call_checkflag(struct widget *widget, unsigned int flag)
 {
 
     return calls[widget->header.type].flags & flag;
 
 }
 
-void call_create(struct alfi_widget *widget)
+void call_create(struct widget *widget)
 {
 
-    if (calls[widget->header.type].create)
-        calls[widget->header.type].create(widget);
+    calls[widget->header.type].create(widget);
 
 }
 
-void call_destroy(struct alfi_widget *widget)
+void call_destroy(struct widget *widget)
 {
 
-    if (calls[widget->header.type].destroy)
-        calls[widget->header.type].destroy(widget);
+    calls[widget->header.type].destroy(widget);
 
 }
 
-void call_place(struct alfi_widget *widget, float x, float y, float w, float h, float u)
+static void initframe(struct frame *frame, int x, int y, int w)
 {
 
-    calls[widget->header.type].place(widget, x, y, w, h, u);
+    unsigned int i;
+
+    style_box_init(&frame->bounds, x, y, w, 0, 0);
+
+    for (i = 0; i < 8; i++)
+        style_init(&frame->styles[i]);
 
 }
 
-void call_render(struct alfi_widget *widget)
+static void tweenframe(struct frame *frame, struct frame *keyframe, float u)
 {
 
-    calls[widget->header.type].render(widget);
+    unsigned int i;
+
+    style_box_tween(&frame->bounds, &keyframe->bounds, u);
+
+    for (i = 0; i < 8; i++)
+        style_tween(&frame->styles[i], &keyframe->styles[i], u);
 
 }
 
-void call_setstate(struct alfi_widget *widget, unsigned int state)
+static unsigned int compareframe(struct frame *frame, struct frame *keyframe)
+{
+
+    unsigned int i;
+
+    style_box_compare(&frame->bounds, &keyframe->bounds);
+        return 1;
+
+    for (i = 0; i < 8; i++)
+    {
+
+        if (style_compare(&frame->styles[i], &keyframe->styles[i]))
+            return 1;
+
+    }
+
+    return 0;
+
+}
+
+int call_animate(struct widget *widget, int x, int y, int w, struct view *view, float u)
+{
+
+    struct frame *frame = &widget->frame;
+    struct frame keyframe;
+
+    initframe(&keyframe, x, y, w);
+
+    keyframe.bounds.h = calls[widget->header.type].animate(widget, &keyframe, x, y, w, view, u);
+
+    if (widget->header.type == ALFI_WIDGET_WINDOW)
+        tweenframe(frame, &keyframe, 1.0);
+    else
+        tweenframe(frame, &keyframe, u);
+
+    frame->animating = compareframe(frame, &keyframe);
+
+    return frame->bounds.h;
+
+}
+
+void call_render(struct widget *widget, struct view *view)
+{
+
+    struct frame *frame = &widget->frame;
+
+    calls[widget->header.type].render(widget, frame, view);
+
+}
+
+void call_setstate(struct widget *widget, unsigned int state)
 {
 
     widget->state = calls[widget->header.type].setstate(widget, state);
 
 }
 
-void call_onclick(struct alfi_widget *widget)
+unsigned int call_getcursor(struct widget *widget, int x, int y)
 {
 
-    calls[widget->header.type].onclick(widget);
+    struct frame *frame = &widget->frame;
+
+    return calls[widget->header.type].getcursor(widget, frame, x, y);
 
 }
 
-unsigned int call_getcursor(struct alfi_widget *widget, float x, float y)
-{
-
-    return calls[widget->header.type].getcursor(widget, x, y);
-
-}
-
-void call_register(unsigned int type, unsigned int flags, void (*create)(struct alfi_widget *widget), void (*destroy)(struct alfi_widget *widget), void (*place)(struct alfi_widget *widget, float x, float y, float w, float h, float u), void (*render)(struct alfi_widget *widget), unsigned int (*setstate)(struct alfi_widget *widget, unsigned int state), void (*onclick)(struct alfi_widget *widget), unsigned int (*getcursor)(struct alfi_widget *widget, float x, float y))
+void call_register(unsigned int type, unsigned int flags, void (*create)(struct widget *widget), void (*destroy)(struct widget *widget), int (*animate)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u), void (*render)(struct widget *widget, struct frame *frame, struct view *view), unsigned int (*setstate)(struct widget *widget, unsigned int state), unsigned int (*getcursor)(struct widget *widget, struct frame *frame, int x, int y))
 {
 
     calls[type].flags = flags;
     calls[type].create = create;
     calls[type].destroy = destroy;
-    calls[type].place = place;
+    calls[type].animate = animate;
     calls[type].render = render;
     calls[type].setstate = setstate;
-    calls[type].onclick = onclick;
     calls[type].getcursor = getcursor;
 
 }

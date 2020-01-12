@@ -15,12 +15,13 @@ struct parser
     } expr;
 
     void (*fail)(void);
-    struct alfi_widget *(*findwidget)(char *name);
-    struct alfi_widget *(*createwidget)(unsigned int type, char *in);
-    struct alfi_widget *(*destroywidget)(struct alfi_widget *widget);
+    struct widget *(*find)(char *name);
+    struct widget *(*create)(unsigned int type, char *id, char *in);
+    struct widget *(*destroy)(struct widget *widget);
+    void (*clear)(struct widget *widget);
     char *(*allocate)(char *string, unsigned int size, unsigned int count, char *content);
 
 };
 
 void parser_parse(struct parser *parser, char *in, unsigned int count, void *data);
-void parser_init(struct parser *parser, void (*fail)(void), struct alfi_widget *(*findwidget)(char *name), struct alfi_widget *(*createwidget)(unsigned int type, char *in), struct alfi_widget *(*destroywidget)(struct alfi_widget *widget), char *(*allocate)(char *string, unsigned int size, unsigned int count, char *content));
+void parser_init(struct parser *parser, void (*fail)(void), struct widget *(*find)(char *name), struct widget *(*create)(unsigned int type, char *id, char *in), struct widget *(*destroy)(struct widget *widget), void (*clear)(struct widget *widget), char *(*allocate)(char *string, unsigned int size, unsigned int count, char *content));

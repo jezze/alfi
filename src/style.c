@@ -3,14 +3,14 @@
 #include "list.h"
 #include "style.h"
 
-float flerp(float t, float c, float u)
+static float flerp(float t, float c, float u)
 {
 
     return c + roundf((t - c) * u);
 
 }
 
-void box_init(struct alfi_box *box, float x, float y, float w, float h, float r)
+void style_box_init(struct style_box *box, float x, float y, float w, float h, float r)
 {
 
     box->x = x;
@@ -21,7 +21,7 @@ void box_init(struct alfi_box *box, float x, float y, float w, float h, float r)
 
 }
 
-void box_clone(struct alfi_box *box, struct alfi_box *target)
+void style_box_clone(struct style_box *box, struct style_box *target)
 {
 
     box->x = target->x;
@@ -32,7 +32,7 @@ void box_clone(struct alfi_box *box, struct alfi_box *target)
 
 }
 
-void box_move(struct alfi_box *box, float x, float y)
+void style_box_move(struct style_box *box, float x, float y)
 {
 
     box->x = x;
@@ -40,7 +40,7 @@ void box_move(struct alfi_box *box, float x, float y)
 
 }
 
-void box_scale(struct alfi_box *box, float w, float h)
+void style_box_scale(struct style_box *box, float w, float h)
 {
 
     box->w = w;
@@ -48,7 +48,7 @@ void box_scale(struct alfi_box *box, float w, float h)
 
 }
 
-void box_translate(struct alfi_box *box, float x, float y)
+void style_box_translate(struct style_box *box, float x, float y)
 {
 
     box->x += x;
@@ -56,7 +56,7 @@ void box_translate(struct alfi_box *box, float x, float y)
 
 }
 
-void box_resize(struct alfi_box *box, float w, float h)
+void style_box_resize(struct style_box *box, float w, float h)
 {
 
     box->w += w;
@@ -64,7 +64,7 @@ void box_resize(struct alfi_box *box, float w, float h)
 
 }
 
-void box_pad(struct alfi_box *box, float px, float py)
+void style_box_pad(struct style_box *box, float px, float py)
 {
 
     box->x += px;
@@ -80,7 +80,7 @@ void box_pad(struct alfi_box *box, float px, float py)
 
 }
 
-float box_halign(struct alfi_box *box, float x, float w, int align)
+float style_box_halign(struct style_box *box, float x, float w, int align)
 {
 
 /*
@@ -103,7 +103,7 @@ float box_halign(struct alfi_box *box, float x, float w, int align)
 
 }
 
-float box_valign(struct alfi_box *box, float y, float h, int align)
+float style_box_valign(struct style_box *box, float y, float h, int align)
 {
 
 /*
@@ -126,7 +126,7 @@ float box_valign(struct alfi_box *box, float y, float h, int align)
 
 }
 
-unsigned int box_istouching(struct alfi_box *box, float x, float y)
+unsigned int style_box_istouching(struct style_box *box, float x, float y)
 {
 
     if (x < box->x || x >= box->x + box->w)
@@ -139,18 +139,18 @@ unsigned int box_istouching(struct alfi_box *box, float x, float y)
 
 }
 
-void box_expand2(struct alfi_box *box, float x, float y, float w, float h)
+void style_box_expand(struct style_box *box, struct style_box *child, float px, float py)
 {
 
-    if (box->x + box->w < x + w)
-        box->w += (x + w) - (box->x + box->w);
+    if (box->w < child->w + px * 2)
+        box->w = child->w + px * 2;
 
-    if (box->y + box->h < y + h)
-        box->h += (y + h) - (box->y + box->h);
+    if (box->h < child->h + py * 2)
+        box->h = child->h + py * 2;
 
 }
 
-void box_lerp(struct alfi_box *box, float x, float y, float w, float h, float r, float u)
+void style_box_lerp(struct style_box *box, float x, float y, float w, float h, float r, float u)
 {
 
     box->x = flerp(x, box->x, u);
@@ -161,14 +161,36 @@ void box_lerp(struct alfi_box *box, float x, float y, float w, float h, float r,
 
 }
 
-void box_lerpfrom(struct alfi_box *box, struct alfi_box *from, float u)
+void style_box_tween(struct style_box *box, struct style_box *from, float u)
 {
 
-    box_lerp(box, from->x, from->y, from->w, from->h, from->r, u);
+    style_box_lerp(box, from->x, from->y, from->w, from->h, from->r, u);
 
 }
 
-void color_init(struct alfi_color *color, unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+unsigned int style_box_compare(struct style_box *b1, struct style_box *b2)
+{
+
+    if (b1->x != b2->x)
+        return 1;
+
+    if (b1->y != b2->y)
+        return 1;
+
+    if (b1->w != b2->w)
+        return 1;
+
+    if (b1->h != b2->h)
+        return 1;
+
+    if (b1->r != b2->r)
+        return 1;
+
+    return 0;
+
+}
+
+void style_color_init(struct style_color *color, unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {
 
     color->r = r;
@@ -178,7 +200,7 @@ void color_init(struct alfi_color *color, unsigned char r, unsigned char g, unsi
 
 }
 
-void color_clone(struct alfi_color *color, struct alfi_color *target)
+void style_color_clone(struct style_color *color, struct style_color *target)
 {
 
     color->r = target->r;
@@ -188,7 +210,7 @@ void color_clone(struct alfi_color *color, struct alfi_color *target)
 
 }
 
-void color_lerp(struct alfi_color *color, float r, float g, float b, float a, float u)
+void style_color_lerp(struct style_color *color, float r, float g, float b, float a, float u)
 {
 
     color->r = flerp(r, color->r, u);
@@ -198,14 +220,33 @@ void color_lerp(struct alfi_color *color, float r, float g, float b, float a, fl
 
 }
 
-void color_lerpfrom(struct alfi_color *color, struct alfi_color *from, float u)
+void style_color_tween(struct style_color *color, struct style_color *from, float u)
 {
 
-    color_lerp(color, from->r, from->g, from->b, from->a, u);
+    style_color_lerp(color, from->r, from->g, from->b, from->a, u);
 
 }
 
-void font_init(struct alfi_font *font, int face, float size, int align)
+unsigned int style_color_compare(struct style_color *c1, struct style_color *c2)
+{
+
+    if (c1->r != c2->r)
+        return 1;
+
+    if (c1->g != c2->g)
+        return 1;
+
+    if (c1->b != c2->b)
+        return 1;
+
+    if (c1->a != c2->a)
+        return 1;
+
+    return 0;
+
+}
+
+void style_font_init(struct style_font *font, int face, float size, int align)
 {
 
     font->face = face;
@@ -214,7 +255,7 @@ void font_init(struct alfi_font *font, int face, float size, int align)
 
 }
 
-void font_lerp(struct alfi_font *font, int face, float size, int align, float u)
+void style_font_lerp(struct style_font *font, int face, float size, int align, float u)
 {
 
     font->face = face;
@@ -223,10 +264,54 @@ void font_lerp(struct alfi_font *font, int face, float size, int align, float u)
 
 }
 
-void font_lerpfrom(struct alfi_font *font, struct alfi_font *from, float u)
+void style_font_tween(struct style_font *font, struct style_font *from, float u)
 {
 
-    font_lerp(font, from->face, from->size, from->align, u);
+    style_font_lerp(font, from->face, from->size, from->align, u);
+
+}
+
+unsigned int style_font_compare(struct style_font *f1, struct style_font *f2)
+{
+
+    if (f1->size != f2->size)
+        return 1;
+
+    return 0;
+
+}
+
+void style_tween(struct style *s1, struct style *s2, float u)
+{
+
+    style_box_tween(&s1->box, &s2->box, u);
+    style_color_tween(&s1->color, &s2->color, u);
+    style_font_tween(&s1->font, &s2->font, u);
+
+}
+
+void style_init(struct style *style)
+{
+
+    style_box_init(&style->box, 0, 0, 0, 0, 0);
+    style_color_init(&style->color, 0, 0, 0, 0);
+    style_font_init(&style->font, 0, 0, 0);
+
+}
+
+unsigned int style_compare(struct style *s1, struct style *s2)
+{
+
+    if (style_box_compare(&s1->box, &s2->box))
+        return 1;
+
+    if (style_color_compare(&s1->color, &s2->color))
+        return 1;
+
+    if (style_font_compare(&s1->font, &s2->font))
+        return 1;
+
+    return 0;
 
 }
 

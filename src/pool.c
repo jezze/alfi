@@ -2,15 +2,21 @@
 #include <string.h>
 #include "list.h"
 #include "style.h"
+#include "url.h"
+#include "resource.h"
 #include "widgets.h"
 
 #define NWIDGETS                        512
+#define NRESOURCES                      128
 
-static struct alfi_widget widgets[NWIDGETS];
-static struct list freelist;
-static struct list usedlist;
+static struct widget widgets[NWIDGETS];
+static struct resource resources[NRESOURCES];
+static struct list freewidgets;
+static struct list usedwidgets;
+static struct list freeresources;
+static struct list usedresources;
 
-static struct alfi_widget *prev(struct list *list, struct alfi_widget *widget)
+static struct widget *prevwidget(struct list *list, struct widget *widget)
 {
 
     struct list_item *current = (widget) ? widget->item.prev : list->tail;
@@ -19,7 +25,7 @@ static struct alfi_widget *prev(struct list *list, struct alfi_widget *widget)
 
 }
 
-static struct alfi_widget *next(struct list *list, struct alfi_widget *widget)
+static struct widget *nextwidget(struct list *list, struct widget *widget)
 {
 
     struct list_item *current = (widget) ? widget->item.next : list->head;
@@ -28,26 +34,26 @@ static struct alfi_widget *next(struct list *list, struct alfi_widget *widget)
 
 }
 
-struct alfi_widget *pool_prev(struct alfi_widget *widget)
+struct widget *pool_widget_prev(struct widget *widget)
 {
 
-    return prev(&usedlist, widget);
+    return prevwidget(&usedwidgets, widget);
 
 }
 
-struct alfi_widget *pool_next(struct alfi_widget *widget)
+struct widget *pool_widget_next(struct widget *widget)
 {
 
-    return next(&usedlist, widget);
+    return nextwidget(&usedwidgets, widget);
 
 }
 
-struct alfi_widget *pool_findbyname(char *name)
+struct widget *pool_widget_find(char *name)
 {
 
-    struct alfi_widget *widget = 0;
+    struct widget *widget = 0;
 
-    while ((widget = pool_next(widget)))
+    while ((widget = pool_widget_next(widget)))
     {
 
         if (!strlen(widget->header.id.name))
@@ -62,13 +68,13 @@ struct alfi_widget *pool_findbyname(char *name)
 
 }
 
-struct alfi_widget *pool_nextchild(struct alfi_widget *widget, struct alfi_widget *parent)
+struct widget *pool_widget_nextchild(struct widget *widget, struct widget *parent)
 {
 
-    while ((widget = pool_next(widget)))
+    while ((widget = pool_widget_next(widget)))
     {
 
-        if (pool_findbyname(widget->header.in.name) == parent)
+        if (pool_widget_find(widget->header.in.name) == parent)
             return widget;
 
     }
@@ -77,21 +83,78 @@ struct alfi_widget *pool_nextchild(struct alfi_widget *widget, struct alfi_widge
 
 }
 
-struct alfi_widget *pool_create(void)
+struct widget *pool_widget_create(void)
 {
 
-    struct list_item *item = list_pickhead(&freelist);
+    struct list_item *item = list_pickhead(&freewidgets);
 
-    list_add(&usedlist, item);
+    if (!item)
+        return 0;
+
+    list_add(&usedwidgets, item);
 
     return item->data;
 
 }
 
-void pool_destroy(struct alfi_widget *widget)
+struct widget *pool_widget_destroy(struct widget *widget)
 {
 
-    list_move(&freelist, &usedlist, &widget->item);
+    list_move(&freewidgets, &usedwidgets, &widget->item);
+
+    return 0;
+
+}
+
+static struct resource *nextresource(struct list *list, struct resource *resource)
+{
+
+    struct list_item *current = (resource) ? resource->item.next : list->head;
+
+    return (current) ? current->data : 0;
+
+}
+
+struct resource *pool_resource_find(char *name)
+{
+
+    struct resource *resource = 0;
+
+    while ((resource = nextresource(&usedresources, resource)))
+    {
+
+        if (!strlen(resource->urlinfo.url))
+            continue;
+
+        if (!strcmp(resource->urlinfo.url, name))
+            return resource;
+
+    }
+
+    return 0;
+
+}
+
+struct resource *pool_resource_create(void)
+{
+
+    struct list_item *item = list_pickhead(&freeresources);
+
+    if (!item)
+        return 0;
+
+    list_add(&usedresources, item);
+
+    return item->data;
+
+}
+
+struct resource *pool_resource_destroy(struct resource *resource)
+{
+
+    list_move(&freeresources, &usedresources, &resource->item);
+
+    return 0;
 
 }
 
@@ -121,6 +184,20 @@ char *pool_allocate(char *string, unsigned int size, unsigned int count, char *c
 
 }
 
+char *pool_string_create(char *string, char *content)
+{
+
+    return pool_allocate(string, strlen(content) + 1, strlen(content) + 1, content);
+
+}
+
+char *pool_string_destroy(char *string)
+{
+
+    return pool_allocate(string, 0, 0, 0);
+
+}
+
 void pool_setup(void)
 {
 
@@ -130,7 +207,15 @@ void pool_setup(void)
     {
 
         list_inititem(&widgets[i].item, &widgets[i]);
-        list_add(&freelist, &widgets[i].item);
+        list_add(&freewidgets, &widgets[i].item);
+
+    }
+
+    for (i = 0; i < NRESOURCES; i++)
+    {
+
+        list_inititem(&resources[i].item, &resources[i]);
+        list_add(&freeresources, &resources[i].item);
 
     }
 

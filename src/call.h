@@ -1,23 +1,8 @@
-struct call
-{
-
-    unsigned int flags;
-    void (*create)(struct alfi_widget *widget);
-    void (*destroy)(struct alfi_widget *widget);
-    void (*place)(struct alfi_widget *widget, float x, float y, float w, float h, float u);
-    void (*render)(struct alfi_widget *widget);
-    unsigned int (*setstate)(struct alfi_widget *widget, unsigned int state);
-    void (*onclick)(struct alfi_widget *widget);
-    unsigned int (*getcursor)(struct alfi_widget *widget, float x, float y);
-
-};
-
-unsigned int call_checkflag(struct alfi_widget *widget, unsigned int flag);
-void call_create(struct alfi_widget *widget);
-void call_destroy(struct alfi_widget *widget);
-void call_place(struct alfi_widget *widget, float x, float y, float w, float h, float u);
-void call_render(struct alfi_widget *widget);
-void call_setstate(struct alfi_widget *widget, unsigned int state);
-void call_onclick(struct alfi_widget *widget);
-unsigned int call_getcursor(struct alfi_widget *widget, float x, float y);
-void call_register(unsigned int type, unsigned int flags, void (*create)(struct alfi_widget *widget), void (*destroy)(struct alfi_widget *widget), void (*place)(struct alfi_widget *widget, float x, float y, float w, float h, float u), void (*render)(struct alfi_widget *widget), unsigned int (*setstate)(struct alfi_widget *widget, unsigned int state), void (*onclick)(struct alfi_widget *widget), unsigned int (*getcursor)(struct alfi_widget *widget, float x, float y));
+unsigned int call_checkflag(struct widget *widget, unsigned int flag);
+void call_create(struct widget *widget);
+void call_destroy(struct widget *widget);
+int call_animate(struct widget *widget, int x, int y, int w, struct view *view, float u);
+void call_render(struct widget *widget, struct view *view);
+void call_setstate(struct widget *widget, unsigned int state);
+unsigned int call_getcursor(struct widget *widget, int x, int y);
+void call_register(unsigned int type, unsigned int flags, void (*create)(struct widget *widget), void (*destroy)(struct widget *widget), int (*animate)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u), void (*render)(struct widget *widget, struct frame *frame, struct view *view), unsigned int (*setstate)(struct widget *widget, unsigned int state), unsigned int (*getcursor)(struct widget *widget, struct frame *frame, int x, int y));
