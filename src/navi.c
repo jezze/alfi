@@ -80,7 +80,7 @@ struct textrow
 
 };
 
-unsigned int append(void *out, unsigned int ocount, void *in, unsigned int icount, unsigned int offset)
+static unsigned int stringappend(void *out, unsigned int ocount, void *in, unsigned int icount, unsigned int offset)
 {
 
     unsigned char *op = out;
@@ -95,6 +95,20 @@ unsigned int append(void *out, unsigned int ocount, void *in, unsigned int icoun
     memcpy(op + offset, ip, icount);
 
     return icount;
+
+}
+
+static unsigned int buildkeyvalue(void *buffer, unsigned int count, unsigned int offset, char *key, char *value)
+{
+
+    if (offset)
+        offset += stringappend(buffer, count, "&", 1, offset);
+
+    offset += stringappend(buffer, count, key, strlen(key), offset);
+    offset += stringappend(buffer, count, "=", 1, offset);
+    offset += stringappend(buffer, count, value, strlen(value), offset);
+
+    return offset;
 
 }
 
@@ -114,22 +128,12 @@ static unsigned int builddata(void *buffer, unsigned int count)
         {
 
         case ALFI_WIDGET_FIELD:
-            if (offset)
-                offset += append(buffer, count, "&", 1, offset);
-
-            offset += append(buffer, count, widget->header.id.name, strlen(widget->header.id.name), offset);
-            offset += append(buffer, count, "=", 1, offset);
-            offset += append(buffer, count, widget->payload.field.data.content, strlen(widget->payload.field.data.content), offset);
+            offset += buildkeyvalue(buffer, count, offset, widget->header.id.name, widget->payload.field.data.content);
 
             break;
 
         case ALFI_WIDGET_SELECT:
-            if (offset)
-                offset += append(buffer, count, "&", 1, offset);
-
-            offset += append(buffer, count, widget->header.id.name, strlen(widget->header.id.name), offset);
-            offset += append(buffer, count, "=", 1, offset);
-            offset += append(buffer, count, widget->payload.select.data.content, strlen(widget->payload.select.data.content), offset);
+            offset += buildkeyvalue(buffer, count, offset, widget->header.id.name, widget->payload.select.data.content);
 
             break;
 
@@ -137,7 +141,7 @@ static unsigned int builddata(void *buffer, unsigned int count)
 
     }
 
-    offset += append(buffer, count, "", 1, offset);
+    offset += stringappend(buffer, count, "", 1, offset);
 
     return offset;
 
