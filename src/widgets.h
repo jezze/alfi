@@ -12,18 +12,17 @@
 #define ALFI_WIDGET_DIVIDER             6
 #define ALFI_WIDGET_FIELD               7
 #define ALFI_WIDGET_HEADER              8
-#define ALFI_WIDGET_HSTACK              9
-#define ALFI_WIDGET_IMAGE               10
-#define ALFI_WIDGET_LIST                11
-#define ALFI_WIDGET_MAP                 12
-#define ALFI_WIDGET_SELECT              13
+#define ALFI_WIDGET_IMAGE               9
+#define ALFI_WIDGET_LIST                10
+#define ALFI_WIDGET_MAP                 11
+#define ALFI_WIDGET_SELECT              12
+#define ALFI_WIDGET_STACK               13
 #define ALFI_WIDGET_SUBHEADER           14
 #define ALFI_WIDGET_TABLE               15
 #define ALFI_WIDGET_TEXT                16
 #define ALFI_WIDGET_TOGGLE              17
 #define ALFI_WIDGET_VIDEO               18
-#define ALFI_WIDGET_VSTACK              19
-#define ALFI_WIDGET_WINDOW              20
+#define ALFI_WIDGET_WINDOW              19
 #define ALFI_ATTRIBUTE_NONE             0
 #define ALFI_ATTRIBUTE_DATA             1
 #define ALFI_ATTRIBUTE_GRID             2
@@ -48,6 +47,7 @@
 #define ALFI_TARGET_SELF                1
 #define ALFI_MODE_OFF                   0
 #define ALFI_MODE_ON                    1
+#define ALFI_MODE_DISABLED              2
 #define ALFI_TYPE_REGULAR               0
 #define ALFI_TYPE_PASSWORD              1
 #define ALFI_STATE_NORMAL               0
@@ -79,7 +79,6 @@ struct attribute_grid
 {
 
     unsigned int csize;
-    unsigned int rsize;
 
 };
 
@@ -202,6 +201,7 @@ struct payload_choice
 {
 
     struct attribute_label label;
+    struct attribute_mode mode;
 
 };
 
@@ -227,15 +227,6 @@ struct payload_header
 {
 
     struct attribute_label label;
-
-};
-
-struct payload_hstack
-{
-
-    struct attribute_grid grid;
-    struct attribute_halign halign;
-    struct attribute_valign valign;
 
 };
 
@@ -305,10 +296,9 @@ struct payload_video
 
 };
 
-struct payload_vstack
+struct payload_stack
 {
 
-    struct attribute_grid grid;
     struct attribute_halign halign;
     struct attribute_valign valign;
 
@@ -323,7 +313,6 @@ union payload
     struct payload_choice choice;
     struct payload_divider divider;
     struct payload_field field;
-    struct payload_hstack hstack;
     struct payload_header header;
     struct payload_image image;
     struct payload_list list;
@@ -333,7 +322,7 @@ union payload
     struct payload_text text;
     struct payload_toggle toggle;
     struct payload_video video;
-    struct payload_vstack vstack;
+    struct payload_stack stack;
     struct payload_window window;
 
 };

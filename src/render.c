@@ -512,7 +512,7 @@ void render_filltextinput(struct style *style, char *text, int offset, struct st
 
 }
 
-void render_fillborder(struct style *border, float bordersize)
+void render_fillrectborder(struct style *border, float bordersize)
 {
 
     struct nvg_scissor scissor;
@@ -528,7 +528,7 @@ void render_fillborder(struct style *border, float bordersize)
 
 }
 
-void render_fillbordergap(struct style *border, float bordersize, float x, float w)
+void render_fillrectbordergap(struct style *border, float bordersize, float x, float w)
 {
 
     struct nvg_scissor scissor;

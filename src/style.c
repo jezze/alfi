@@ -64,7 +64,7 @@ void style_box_resize(struct style_box *box, float w, float h)
 
 }
 
-void style_box_pad(struct style_box *box, float px, float py)
+void style_box_shrink(struct style_box *box, float px, float py)
 {
 
     box->x += px;

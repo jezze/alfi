@@ -47,14 +47,15 @@ static int anchor_animate(struct widget *widget, struct frame *frame, int x, int
 {
 
     struct payload_anchor *payload = &widget->payload.anchor;
+    struct style *text = &frame->styles[0];
 
-    style_font_init(&frame->styles[0].font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-    style_color_clone(&frame->styles[0].color, &color_focus);
-    style_box_init(&frame->styles[0].box, x, y, w, 0, 0);
-    style_box_pad(&frame->styles[0].box, view->marginw, view->marginh);
-    style_box_scale(&frame->styles[0].box, render_textwidth(&frame->styles[0], payload->label.content), render_textheight(&frame->styles[0], payload->label.content));
+    style_font_init(&text->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&text->color, &color_focus);
+    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_shrink(&text->box, view->marginw, view->marginh);
+    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    return frame->styles[0].box.h + view->marginh * 2;
+    return text->box.h + view->marginh * 2;
 
 }
 
@@ -62,22 +63,25 @@ static void anchor_render(struct widget *widget, struct frame *frame, struct vie
 {
 
     struct payload_anchor *payload = &widget->payload.anchor;
+    struct style *text = &frame->styles[0];
 
-    render_filltext(&frame->styles[0], payload->label.content);
+    render_filltext(text, payload->label.content);
 
 }
 
 static unsigned int anchor_setstate(struct widget *widget, unsigned int state)
 {
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
 static unsigned int anchor_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    if (style_box_istouching(&frame->styles[0].box, x, y))
+    struct style *text = &frame->styles[0];
+
+    if (style_box_istouching(&text->box, x, y))
         return ALFI_CURSOR_HAND;
     else
         return ALFI_CURSOR_ARROW;
@@ -110,35 +114,30 @@ static int button_animate(struct widget *widget, struct frame *frame, int x, int
 {
 
     struct payload_button *payload = &widget->payload.button;
+    struct style *surface = &frame->styles[0];
+    struct style *text = &frame->styles[1];
 
-    style_font_init(&frame->styles[2].font, res_font_bold.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&text->font, res_font_bold.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
 
     if (payload->mode.mode == ALFI_MODE_ON)
-    {
-
-        style_color_clone(&frame->styles[1].color, &color_focus);
-        style_color_clone(&frame->styles[2].color, &color_focustext);
-
-    }
-
+        style_color_clone(&text->color, &color_focustext);
     else
-    {
+        style_color_clone(&text->color, &color_text);
 
-        style_color_clone(&frame->styles[1].color, &color_line);
-        style_color_clone(&frame->styles[2].color, &color_text);
+    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_shrink(&text->box, 3 * view->marginw, 3 * view->marginh);
+    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    }
+    if (payload->mode.mode == ALFI_MODE_ON)
+        style_color_clone(&surface->color, &color_focus);
+    else
+        style_color_clone(&surface->color, &color_line);
 
-    style_box_init(&frame->styles[0].box, x, y, w, view->unith * 3, 4);
-    style_box_clone(&frame->styles[1].box, &frame->styles[0].box);
-    style_box_pad(&frame->styles[1].box, view->marginw, view->marginh);
-    style_box_clone(&frame->styles[2].box, &frame->styles[1].box);
-    style_box_pad(&frame->styles[2].box, view->unitw - view->marginw, view->unith - view->marginh);
-    style_box_scale(&frame->styles[2].box, render_textwidth(&frame->styles[2], payload->label.content), render_textheight(&frame->styles[2], payload->label.content));
-    style_box_expand(&frame->styles[1].box, &frame->styles[2].box, view->unitw - view->marginw, view->unith - view->marginh);
-    style_box_expand(&frame->styles[0].box, &frame->styles[1].box, view->marginw, view->marginh);
+    style_box_init(&surface->box, x, y, w, 0, 4);
+    style_box_shrink(&surface->box, view->marginw, view->marginh);
+    style_box_expand(&surface->box, &text->box, 0, 2 * view->marginh);
 
-    return frame->styles[0].box.h;
+    return surface->box.h + 2 * view->marginh;
 
 }
 
@@ -146,11 +145,13 @@ static void button_render(struct widget *widget, struct frame *frame, struct vie
 {
 
     struct payload_button *payload = &widget->payload.button;
+    struct style *surface = &frame->styles[0];
+    struct style *text = &frame->styles[1];
 
-    render_fillrect(&frame->styles[1]);
+    render_fillrect(surface);
 
     if (strlen(payload->label.content))
-        render_filltext(&frame->styles[2], payload->label.content);
+        render_filltext(text, payload->label.content);
 
 }
 
@@ -161,30 +162,22 @@ static unsigned int button_setstate(struct widget *widget, unsigned int state)
     {
 
     case ALFI_STATE_HOVER:
-        if (widget->state == ALFI_STATE_FOCUS)
-            return ALFI_STATE_FOCUS;
-        else
-            return ALFI_STATE_HOVER;
-
     case ALFI_STATE_UNHOVER:
         if (widget->state == ALFI_STATE_FOCUS)
             return ALFI_STATE_FOCUS;
-        else
-            return ALFI_STATE_NORMAL;
-
-    case ALFI_STATE_FOCUS:
-        return ALFI_STATE_FOCUS;
 
     }
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
 static unsigned int button_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    if (style_box_istouching(&frame->styles[1].box, x, y))
+    struct style *surface = &frame->styles[0];
+
+    if (style_box_istouching(&surface->box, x, y))
         return ALFI_CURSOR_HAND;
     else
         return ALFI_CURSOR_ARROW;
@@ -213,20 +206,22 @@ static int choice_animate(struct widget *widget, struct frame *frame, int x, int
 {
 
     struct payload_choice *payload = &widget->payload.choice;
+    struct style *background = &frame->styles[0];
+    struct style *text = &frame->styles[1];
 
-    style_font_init(&frame->styles[1].font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-    style_color_clone(&frame->styles[1].color, &color_text);
+    style_font_init(&text->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&text->color, &color_text);
+    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_shrink(&text->box, view->marginw, view->marginh);
+    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
     if (widget->state == ALFI_STATE_HOVER)
-        style_color_clone(&frame->styles[0].color, &color_line);
+        style_color_clone(&background->color, &color_line);
 
-    style_box_init(&frame->styles[0].box, x, y, w, 0, 4);
-    style_box_clone(&frame->styles[1].box, &frame->styles[0].box);
-    style_box_pad(&frame->styles[1].box, view->marginw, view->marginh);
-    style_box_scale(&frame->styles[1].box, render_textwidth(&frame->styles[1], payload->label.content), render_textheight(&frame->styles[1], payload->label.content));
-    style_box_expand(&frame->styles[0].box, &frame->styles[1].box, view->marginw, view->marginh);
+    style_box_init(&background->box, x, y, w, 0, 4);
+    style_box_expand(&background->box, &text->box, view->marginw, view->marginh);
 
-    return frame->styles[0].box.h;
+    return background->box.h;
 
 }
 
@@ -234,30 +229,21 @@ static void choice_render(struct widget *widget, struct frame *frame, struct vie
 {
 
     struct payload_choice *payload = &widget->payload.choice;
+    struct style *background = &frame->styles[0];
+    struct style *text = &frame->styles[1];
 
     if (widget->state == ALFI_STATE_HOVER)
-        render_fillrect(&frame->styles[0]);
+        render_fillrect(background);
 
     if (strlen(payload->label.content))
-        render_filltext(&frame->styles[1], payload->label.content);
+        render_filltext(text, payload->label.content);
 
 }
 
 static unsigned int choice_setstate(struct widget *widget, unsigned int state)
 {
 
-    switch (state)
-    {
-
-    case ALFI_STATE_HOVER:
-        return ALFI_STATE_HOVER;
-
-    case ALFI_STATE_UNHOVER:
-        return ALFI_STATE_NORMAL;
-
-    }
-
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
@@ -290,23 +276,25 @@ static int divider_animate(struct widget *widget, struct frame *frame, int x, in
 {
 
     struct payload_divider *payload = &widget->payload.divider;
+    struct style *line = &frame->styles[0];
+    struct style *text = &frame->styles[1];
 
-    style_font_init(&frame->styles[2].font, res_font_regular.index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-    style_color_clone(&frame->styles[2].color, &color_text);
-    style_color_clone(&frame->styles[1].color, &color_line);
-    style_box_init(&frame->styles[0].box, x, y, w, view->unith * 2, 0);
-    style_box_init(&frame->styles[1].box, x + view->marginw, y + view->unith - 1, w - view->marginw * 2, 2, 0);
-    style_box_init(&frame->styles[2].box, x, y, w, 0, 0);
+    style_font_init(&text->font, res_font_regular.index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&text->color, &color_text);
+    style_box_init(&text->box, x, y, w, 0, 0);
 
     if (strlen(payload->label.content))
     {
 
-        style_box_scale(&frame->styles[2].box, render_textwidth(&frame->styles[2], payload->label.content), render_textheight(&frame->styles[2], payload->label.content));
-        style_box_translate(&frame->styles[2].box, w / 2 - frame->styles[2].box.w / 2, view->unith / 2 + 2);
+        style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+        style_box_translate(&text->box, w / 2 - text->box.w / 2, view->unith / 2 + 2);
 
     }
 
-    return frame->styles[0].box.h;
+    style_color_clone(&line->color, &color_line);
+    style_box_init(&line->box, x + view->marginw, y + view->unith - 1, w - view->marginw * 2, 2, 0);
+
+    return view->unith * 2;
 
 }
 
@@ -314,19 +302,21 @@ static void divider_render(struct widget *widget, struct frame *frame, struct vi
 {
 
     struct payload_divider *payload = &widget->payload.divider;
+    struct style *line = &frame->styles[0];
+    struct style *text = &frame->styles[1];
 
     if (strlen(payload->label.content))
     {
 
-        render_fillrectgap(&frame->styles[1], frame->styles[2].box.x - view->marginw, frame->styles[2].box.w + view->marginw * 2);
-        render_filltext(&frame->styles[2], payload->label.content);
+        render_fillrectgap(line, text->box.x - view->marginw, text->box.w + view->marginw * 2);
+        render_filltext(text, payload->label.content);
 
     }
 
     else
     {
 
-        render_fillrect(&frame->styles[1]);
+        render_fillrect(line);
 
     }
 
@@ -335,14 +325,16 @@ static void divider_render(struct widget *widget, struct frame *frame, struct vi
 static unsigned int divider_setstate(struct widget *widget, unsigned int state)
 {
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
 static unsigned int divider_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    if (style_box_istouching(&frame->styles[2].box, x, y))
+    struct style *text = &frame->styles[1];
+
+    if (style_box_istouching(&text->box, x, y))
         return ALFI_CURSOR_IBEAM;
     else
         return ALFI_CURSOR_ARROW;
@@ -375,62 +367,62 @@ static int field_animate(struct widget *widget, struct frame *frame, int x, int 
 {
 
     struct payload_field *payload = &widget->payload.field;
+    struct style *border = &frame->styles[0];
+    struct style *label = &frame->styles[1];
+    struct style *data = &frame->styles[2];
+
+    style_font_init(&data->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&data->color, &color_text);
+    style_box_init(&data->box, x, y, w, 0, 0);
+
+    if (widget->state == ALFI_STATE_FOCUS)
+        style_box_shrink(&data->box, view->unitw + view->marginw, view->unith + view->marginh);
+    else
+        style_box_shrink(&data->box, view->unitw, view->unith);
+
+    style_box_scale(&data->box, data->box.w, render_textheight(data, payload->data.content));
+    style_box_init(&label->box, x, y, w, 0, 0);
 
     if (widget->state == ALFI_STATE_FOCUS || strlen(payload->data.content))
-        style_font_init(&frame->styles[2].font, res_font_regular.index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+        style_font_init(&label->font, res_font_regular.index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     else
-        style_font_init(&frame->styles[2].font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-
-    style_font_init(&frame->styles[3].font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+        style_font_init(&label->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
 
     if (widget->state == ALFI_STATE_FOCUS)
-        style_color_clone(&frame->styles[2].color, &color_focus);
+        style_color_clone(&label->color, &color_focus);
     else
-        style_color_clone(&frame->styles[2].color, &color_line);
-
-    if (widget->state == ALFI_STATE_FOCUS)
-        style_color_clone(&frame->styles[1].color, &color_focus);
-    else
-        style_color_clone(&frame->styles[1].color, &color_line);
-
-    style_color_clone(&frame->styles[3].color, &color_text);
-    style_box_init(&frame->styles[0].box, x, y, w, 0, 4);
-    style_box_clone(&frame->styles[1].box, &frame->styles[0].box);
-    style_box_clone(&frame->styles[2].box, &frame->styles[0].box);
-    style_box_clone(&frame->styles[3].box, &frame->styles[0].box);
-    style_box_pad(&frame->styles[1].box, view->marginw, view->marginh);
+        style_color_clone(&label->color, &color_line);
 
     if (widget->state == ALFI_STATE_FOCUS || strlen(payload->data.content))
     {
 
-        style_box_pad(&frame->styles[2].box, view->unitw, view->marginh - frame->styles[2].font.size / 2);
-        style_box_scale(&frame->styles[2].box, render_textwidth(&frame->styles[2], payload->label.content), render_textheight(&frame->styles[2], payload->label.content));
+        style_box_shrink(&label->box, view->unitw, view->marginh - label->font.size / 2);
+        style_box_scale(&label->box, render_textwidth(label, payload->label.content), render_textheight(label, payload->label.content));
 
     }
 
     else
     {
 
-        style_box_pad(&frame->styles[2].box, view->unitw, view->unith);
-        style_box_scale(&frame->styles[2].box, frame->styles[2].box.w, render_textheight(&frame->styles[2], payload->label.content));
+        style_box_shrink(&label->box, view->unitw, view->unith);
+        style_box_scale(&label->box, label->box.w, render_textheight(label, payload->label.content));
 
     }
 
-    if (widget->state == ALFI_STATE_FOCUS)
-        style_box_pad(&frame->styles[3].box, view->unitw + view->marginw, view->unith + view->marginh);
-    else
-        style_box_pad(&frame->styles[3].box, view->unitw, view->unith);
-
-    style_box_scale(&frame->styles[3].box, frame->styles[3].box.w, render_textheight(&frame->styles[3], payload->data.content));
+    style_box_init(&border->box, x, y, w, 0, 4);
+    style_box_shrink(&border->box, view->marginw, view->marginh);
 
     if (widget->state == ALFI_STATE_FOCUS)
-        style_box_expand(&frame->styles[1].box, &frame->styles[3].box, view->unitw, view->unith);
+        style_color_clone(&border->color, &color_focus);
     else
-        style_box_expand(&frame->styles[1].box, &frame->styles[3].box, view->unitw - view->marginw, view->unith - view->marginh);
+        style_color_clone(&border->color, &color_line);
 
-    style_box_expand(&frame->styles[0].box, &frame->styles[1].box, view->marginw, view->marginh);
+    if (widget->state == ALFI_STATE_FOCUS)
+        style_box_expand(&border->box, &data->box, view->unitw, view->unith);
+    else
+        style_box_expand(&border->box, &data->box, view->unitw - view->marginw, view->unith - view->marginh);
 
-    return frame->styles[0].box.h;
+    return border->box.h + view->marginh * 2;
 
 }
 
@@ -438,6 +430,9 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
 {
 
     struct payload_field *payload = &widget->payload.field;
+    struct style *border = &frame->styles[0];
+    struct style *label = &frame->styles[1];
+    struct style *data = &frame->styles[2];
 
     if (widget->state == ALFI_STATE_FOCUS || strlen(payload->data.content))
     {
@@ -445,15 +440,15 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
         if (strlen(payload->label.content))
         {
 
-            render_fillbordergap(&frame->styles[1], 2.0, frame->styles[2].box.x - view->marginw, frame->styles[2].box.w + view->marginw * 2);
-            render_filltext(&frame->styles[2], payload->label.content);
+            render_fillrectbordergap(border, 2.0, label->box.x - view->marginw, label->box.w + view->marginw * 2);
+            render_filltext(label, payload->label.content);
 
         }
 
         else
         {
 
-            render_fillborder(&frame->styles[1], 2.0);
+            render_fillrectborder(border, 2.0);
 
         }
 
@@ -462,10 +457,10 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
     else
     {
 
-        render_fillborder(&frame->styles[1], 2.0);
+        render_fillrectborder(border, 2.0);
 
         if (strlen(payload->label.content))
-            render_filltext(&frame->styles[2], payload->label.content);
+            render_filltext(label, payload->label.content);
 
     }
 
@@ -473,9 +468,9 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
     {
 
         if (widget->state == ALFI_STATE_FOCUS)
-            render_filltextinput(&frame->styles[3], payload->data.content, payload->data.offset, &frame->styles[1].color);
+            render_filltextinput(data, payload->data.content, payload->data.offset, &border->color);
         else
-            render_filltext(&frame->styles[3], payload->data.content);
+            render_filltext(data, payload->data.content);
 
     }
 
@@ -488,30 +483,22 @@ static unsigned int field_setstate(struct widget *widget, unsigned int state)
     {
 
     case ALFI_STATE_HOVER:
-        if (widget->state == ALFI_STATE_FOCUS)
-            return ALFI_STATE_FOCUS;
-        else
-            return ALFI_STATE_HOVER;
-
     case ALFI_STATE_UNHOVER:
         if (widget->state == ALFI_STATE_FOCUS)
             return ALFI_STATE_FOCUS;
-        else
-            return ALFI_STATE_NORMAL;
-
-    case ALFI_STATE_FOCUS:
-        return ALFI_STATE_FOCUS;
 
     }
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
 static unsigned int field_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    if (style_box_istouching(&frame->styles[3].box, x, y))
+    struct style *data = &frame->styles[2];
+
+    if (style_box_istouching(&data->box, x, y))
         return ALFI_CURSOR_IBEAM;
     else
         return ALFI_CURSOR_ARROW;
@@ -540,14 +527,15 @@ static int header_animate(struct widget *widget, struct frame *frame, int x, int
 {
 
     struct payload_header *payload = &widget->payload.header;
+    struct style *text = &frame->styles[0];
 
-    style_font_init(&frame->styles[0].font, res_font_bold.index, view->fontsizexlarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-    style_color_clone(&frame->styles[0].color, &color_header);
-    style_box_init(&frame->styles[0].box, x, y, w, 0, 0);
-    style_box_pad(&frame->styles[0].box, view->marginw, view->marginh);
-    style_box_scale(&frame->styles[0].box, render_textwidth(&frame->styles[0], payload->label.content), render_textheight(&frame->styles[0], payload->label.content));
+    style_font_init(&text->font, res_font_bold.index, view->fontsizexlarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&text->color, &color_header);
+    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_shrink(&text->box, view->marginw, view->marginh);
+    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    return frame->styles[0].box.h + view->marginh * 2;
+    return text->box.h + view->marginh * 2;
 
 }
 
@@ -555,85 +543,29 @@ static void header_render(struct widget *widget, struct frame *frame, struct vie
 {
 
     struct payload_header *payload = &widget->payload.header;
+    struct style *text = &frame->styles[0];
 
     if (strlen(payload->label.content))
-        render_filltext(&frame->styles[0], payload->label.content);
+        render_filltext(text, payload->label.content);
 
 }
 
 static unsigned int header_setstate(struct widget *widget, unsigned int state)
 {
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
 static unsigned int header_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    if (style_box_istouching(&frame->styles[0].box, x, y))
+    struct style *text = &frame->styles[0];
+
+    if (style_box_istouching(&text->box, x, y))
         return ALFI_CURSOR_IBEAM;
     else
         return ALFI_CURSOR_ARROW;
-
-}
-
-static void hstack_create(struct widget *widget)
-{
-
-}
-
-static void hstack_destroy(struct widget *widget)
-{
-
-}
-
-static int hstack_animate(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
-{
-
-    struct widget *child = 0;
-    int cx = x;
-    int cy = y;
-    int cw = 0;
-    int h = 0;
-
-    while ((child = pool_widget_nextchild(child, widget)))
-    {
-
-        int ch = call_animate(child, cx, cy, cw, view, u);
-
-        if (h < cy + ch - y)
-            h = cy + ch - y;
-
-        cx += child->frame.bounds.w;
-
-    }
-
-    return h;
-
-}
-
-static void hstack_render(struct widget *widget, struct frame *frame, struct view *view)
-{
-
-    struct widget *child = 0;
-
-    while ((child = pool_widget_nextchild(child, widget)))
-        call_render(child, view);
-
-}
-
-static unsigned int hstack_setstate(struct widget *widget, unsigned int state)
-{
-
-    return ALFI_STATE_NORMAL;
-
-}
-
-static unsigned int hstack_getcursor(struct widget *widget, struct frame *frame, int x, int y)
-{
-
-    return ALFI_CURSOR_ARROW;
 
 }
 
@@ -655,13 +587,18 @@ static int image_animate(struct widget *widget, struct frame *frame, int x, int 
 {
 
     struct resource_image *resource = &widget->resource.image;
+    struct style *surface = &frame->styles[0];
 
-    style_box_init(&frame->styles[1].box, x, y, resource->w, resource->h, 0);
-    style_box_translate(&frame->styles[1].box, view->marginw, view->marginh);
-    style_box_clone(&frame->styles[0].box, &frame->styles[1].box);
-    style_box_pad(&frame->styles[0].box, -((int)view->marginw), -((int)view->marginh));
+    /* This is if you want to scale with an aspect ration
+    float ratio = (float)w / (float)resource->w;
+    style_box_init(&surface->box, x, y, resource->w * ratio, resource->h * ratio, 0);
+    style_box_shrink(&surface->box, view->marginw, view->marginh);
+    */
 
-    return frame->styles[0].box.h;
+    style_box_init(&surface->box, x, y, resource->w, resource->h, 0);
+    style_box_translate(&surface->box, view->marginw, view->marginh);
+
+    return surface->box.h + view->marginh * 2;
 
 }
 
@@ -669,15 +606,16 @@ static void image_render(struct widget *widget, struct frame *frame, struct view
 {
 
     struct resource_image *resource = &widget->resource.image;
+    struct style *surface = &frame->styles[0];
 
-    render_fillimage(&frame->styles[1], resource->ref);
+    render_fillimage(surface, resource->ref);
 
 }
 
 static unsigned int image_setstate(struct widget *widget, unsigned int state)
 {
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
@@ -716,7 +654,7 @@ static int list_animate(struct widget *widget, struct frame *frame, int x, int y
         if (h < cy + ch - y)
             h = cy + ch - y;
 
-        cy += child->frame.bounds.h;
+        cy += ch;
 
     }
 
@@ -741,11 +679,7 @@ static void list_render(struct widget *widget, struct frame *frame, struct view 
 
             style_init(&dot);
             style_color_clone(&dot.color, &color_header);
-
-            dot.box.r = 3.0;
-            dot.box.x = child->frame.bounds.x - view->unitw / 2 + view->marginw;
-            dot.box.y = child->frame.bounds.y + child->frame.bounds.h / 2;
-
+            style_box_init(&dot.box, child->frame.bounds.x - view->unitw / 2 + view->marginw, child->frame.bounds.y + child->frame.bounds.h / 2, 0, 0, 3);
             render_fillcircle(&dot);
 
         }
@@ -757,7 +691,7 @@ static void list_render(struct widget *widget, struct frame *frame, struct view 
 static unsigned int list_setstate(struct widget *widget, unsigned int state)
 {
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
@@ -794,6 +728,9 @@ static int select_animate(struct widget *widget, struct frame *frame, int x, int
 {
 
     struct payload_select *payload = &widget->payload.select;
+    struct style *border = &frame->styles[0];
+    struct style *label = &frame->styles[1];
+    struct style *data = &frame->styles[2];
     struct widget *child = 0;
     int cx = view->unitw;
     int cy = view->unith * 3;
@@ -817,65 +754,63 @@ static int select_animate(struct widget *widget, struct frame *frame, int x, int
 
     }
 
-    switch (widget->state)
+    style_font_init(&data->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&data->color, &color_text);
+    style_box_init(&data->box, x, y, w, h, 0);
+
+    if (widget->state == ALFI_STATE_FOCUS)
     {
 
-    case ALFI_STATE_FOCUS:
-        style_font_init(&frame->styles[2].font, res_font_regular.index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-        style_box_init(&frame->styles[2].box, x, y, w, h, 0);
-        style_box_translate(&frame->styles[2].box, view->unitw, 0);
-        style_box_scale(&frame->styles[2].box, render_textwidth(&frame->styles[2], payload->label.content), render_textheight(&frame->styles[2], payload->label.content));
-        style_color_clone(&frame->styles[2].color, &color_focus);
-        style_font_init(&frame->styles[3].font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-        style_box_init(&frame->styles[3].box, x, y, w, h, 0);
-        style_box_pad(&frame->styles[3].box, view->unitw + view->marginw, view->unith + view->marginh);
-        style_box_scale(&frame->styles[3].box, frame->styles[3].box.w, render_textheight(&frame->styles[3], payload->data.content));
-        style_color_clone(&frame->styles[3].color, &color_text);
-        style_box_init(&frame->styles[1].box, x, y, w, h, 4);
-        style_box_pad(&frame->styles[1].box, view->marginw, view->marginh);
-        style_color_clone(&frame->styles[1].color, &color_focus);
-        style_box_init(&frame->styles[0].box, x, y, w, h, 0);
-
-        break;
-
-    default:
-        if (strlen(payload->data.content))
-        {
-
-            style_font_init(&frame->styles[2].font, res_font_regular.index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-            style_box_init(&frame->styles[2].box, x, y, w, h, 0);
-            style_box_translate(&frame->styles[2].box, view->unitw, 0);
-            style_box_scale(&frame->styles[2].box, render_textwidth(&frame->styles[2], payload->label.content), render_textheight(&frame->styles[2], payload->label.content));
-            style_color_clone(&frame->styles[2].color, &color_line);
-
-        }
-
-        else
-        {
-
-            style_font_init(&frame->styles[2].font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-            style_box_init(&frame->styles[2].box, x, y, w, h, 0);
-            style_box_translate(&frame->styles[2].box, view->unitw, view->unith);
-            style_box_scale(&frame->styles[2].box, frame->styles[2].box.w, render_textheight(&frame->styles[2], payload->label.content));
-            style_color_clone(&frame->styles[2].color, &color_line);
-
-        }
-
-        style_font_init(&frame->styles[3].font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-        style_box_init(&frame->styles[3].box, x, y, w, h, 0);
-        style_box_pad(&frame->styles[3].box, view->unitw, view->unith);
-        style_box_scale(&frame->styles[3].box, frame->styles[3].box.w, render_textheight(&frame->styles[3], payload->data.content));
-        style_color_clone(&frame->styles[3].color, &color_text);
-        style_box_init(&frame->styles[1].box, x, y, w, h, 4);
-        style_box_pad(&frame->styles[1].box, view->marginw, view->marginh);
-        style_color_clone(&frame->styles[1].color, &color_line);
-        style_box_init(&frame->styles[0].box, x, y, w, h, 0);
-
-        break;
+        style_box_shrink(&data->box, view->unitw + view->marginw, view->unith + view->marginh);
+        style_box_scale(&data->box, data->box.w, render_textheight(data, payload->data.content));
 
     }
 
-    return frame->styles[0].box.h;
+    else
+    {
+
+        style_box_shrink(&data->box, view->unitw, view->unith);
+        style_box_scale(&data->box, data->box.w, render_textheight(data, payload->data.content));
+
+    }
+
+    if (widget->state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+        style_font_init(&label->font, res_font_regular.index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    else
+        style_font_init(&label->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+
+    if (widget->state == ALFI_STATE_FOCUS)
+        style_color_clone(&label->color, &color_focus);
+    else
+        style_color_clone(&label->color, &color_line);
+
+    style_box_init(&label->box, x, y, w, h, 0);
+
+    if (widget->state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    {
+
+        style_box_translate(&label->box, view->unitw, 0);
+        style_box_scale(&label->box, render_textwidth(label, payload->label.content), render_textheight(label, payload->label.content));
+
+    }
+
+    else
+    {
+
+        style_box_translate(&label->box, view->unitw, view->unith);
+        style_box_scale(&label->box, label->box.w, render_textheight(label, payload->label.content));
+
+    }
+
+    if (widget->state == ALFI_STATE_FOCUS)
+        style_color_clone(&border->color, &color_focus);
+    else
+        style_color_clone(&border->color, &color_line);
+
+    style_box_init(&border->box, x, y, w, h, 4);
+    style_box_shrink(&border->box, view->marginw, view->marginh);
+
+    return border->box.h + view->marginh * 2;
 
 }
 
@@ -883,6 +818,9 @@ static void select_render(struct widget *widget, struct frame *frame, struct vie
 {
 
     struct payload_select *payload = &widget->payload.select;
+    struct style *border = &frame->styles[0];
+    struct style *label = &frame->styles[1];
+    struct style *data = &frame->styles[2];
     struct widget *child = 0;
 
     if (widget->state == ALFI_STATE_FOCUS || strlen(payload->data.content))
@@ -891,15 +829,15 @@ static void select_render(struct widget *widget, struct frame *frame, struct vie
         if (strlen(payload->label.content))
         {
 
-            render_fillbordergap(&frame->styles[1], 2.0, frame->styles[2].box.x - view->marginw, frame->styles[2].box.w + view->marginw * 2);
-            render_filltext(&frame->styles[2], payload->label.content);
+            render_fillrectbordergap(border, 2.0, label->box.x - view->marginw, label->box.w + view->marginw * 2);
+            render_filltext(label, payload->label.content);
 
         }
 
         else
         {
 
-            render_fillborder(&frame->styles[1], 2.0);
+            render_fillrectborder(border, 2.0);
 
         }
 
@@ -908,15 +846,15 @@ static void select_render(struct widget *widget, struct frame *frame, struct vie
     else
     {
 
-        render_fillborder(&frame->styles[1], 2.0);
+        render_fillrectborder(border, 2.0);
 
         if (strlen(payload->label.content))
-            render_filltext(&frame->styles[2], payload->label.content);
+            render_filltext(label, payload->label.content);
 
     }
 
     if (strlen(payload->data.content))
-        render_filltext(&frame->styles[3], payload->data.content);
+        render_filltext(data, payload->data.content);
 
     if (widget->state == ALFI_STATE_FOCUS)
     {
@@ -935,30 +873,22 @@ static unsigned int select_setstate(struct widget *widget, unsigned int state)
     {
 
     case ALFI_STATE_HOVER:
-        if (widget->state == ALFI_STATE_FOCUS)
-            return ALFI_STATE_FOCUS;
-        else
-            return ALFI_STATE_HOVER;
-
     case ALFI_STATE_UNHOVER:
         if (widget->state == ALFI_STATE_FOCUS)
             return ALFI_STATE_FOCUS;
-        else
-            return ALFI_STATE_NORMAL;
-
-    case ALFI_STATE_FOCUS:
-        return ALFI_STATE_FOCUS;
 
     }
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
 static unsigned int select_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    if (style_box_istouching(&frame->styles[1].box, x, y))
+    struct style *border = &frame->styles[0];
+
+    if (style_box_istouching(&border->box, x, y))
         return ALFI_CURSOR_HAND;
     else
         return ALFI_CURSOR_ARROW;
@@ -987,14 +917,15 @@ static int subheader_animate(struct widget *widget, struct frame *frame, int x, 
 {
 
     struct payload_subheader *payload = &widget->payload.subheader;
+    struct style *text = &frame->styles[0];
 
-    style_font_init(&frame->styles[0].font, res_font_bold.index, view->fontsizelarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-    style_color_clone(&frame->styles[0].color, &color_header);
-    style_box_init(&frame->styles[0].box, x, y, w, 0, 0);
-    style_box_pad(&frame->styles[0].box, view->marginw, view->marginh);
-    style_box_scale(&frame->styles[0].box, render_textwidth(&frame->styles[0], payload->label.content), render_textheight(&frame->styles[0], payload->label.content));
+    style_font_init(&text->font, res_font_bold.index, view->fontsizelarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&text->color, &color_header);
+    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_shrink(&text->box, view->marginw, view->marginh);
+    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    return frame->styles[0].box.h + view->marginh * 2;
+    return text->box.h + view->marginh * 2;
 
 }
 
@@ -1002,23 +933,26 @@ static void subheader_render(struct widget *widget, struct frame *frame, struct 
 {
 
     struct payload_subheader *payload = &widget->payload.subheader;
+    struct style *text = &frame->styles[0];
 
     if (strlen(payload->label.content))
-        render_filltext(&frame->styles[0], payload->label.content);
+        render_filltext(text, payload->label.content);
 
 }
 
 static unsigned int subheader_setstate(struct widget *widget, unsigned int state)
 {
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
 static unsigned int subheader_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    if (style_box_istouching(&frame->styles[0].box, x, y))
+    struct style *text = &frame->styles[0];
+
+    if (style_box_istouching(&text->box, x, y))
         return ALFI_CURSOR_IBEAM;
     else
         return ALFI_CURSOR_ARROW;
@@ -1082,7 +1016,7 @@ static void table_render(struct widget *widget, struct frame *frame, struct view
 static unsigned int table_setstate(struct widget *widget, unsigned int state)
 {
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
@@ -1115,14 +1049,15 @@ static int text_animate(struct widget *widget, struct frame *frame, int x, int y
 {
 
     struct payload_text *payload = &widget->payload.text;
+    struct style *text = &frame->styles[0];
 
-    style_font_init(&frame->styles[0].font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-    style_color_clone(&frame->styles[0].color, &color_text);
-    style_box_init(&frame->styles[0].box, x, y, w, 0, 0);
-    style_box_pad(&frame->styles[0].box, view->marginw, view->marginh);
-    style_box_scale(&frame->styles[0].box, render_textwidth(&frame->styles[0], payload->label.content), render_textheight(&frame->styles[0], payload->label.content));
+    style_font_init(&text->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&text->color, &color_text);
+    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_shrink(&text->box, view->marginw, view->marginh);
+    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    return frame->styles[0].box.h + view->marginh * 2;
+    return text->box.h + view->marginh * 2;
 
 }
 
@@ -1130,23 +1065,26 @@ static void text_render(struct widget *widget, struct frame *frame, struct view 
 {
 
     struct payload_text *payload = &widget->payload.text;
+    struct style *text = &frame->styles[0];
 
     if (strlen(payload->label.content))
-        render_filltext(&frame->styles[0], payload->label.content);
+        render_filltext(text, payload->label.content);
 
 }
 
 static unsigned int text_setstate(struct widget *widget, unsigned int state)
 {
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
 static unsigned int text_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    if (style_box_istouching(&frame->styles[0].box, x, y))
+    struct style *text = &frame->styles[0];
+
+    if (style_box_istouching(&text->box, x, y))
         return ALFI_CURSOR_IBEAM;
     else
         return ALFI_CURSOR_ARROW;
@@ -1175,25 +1113,45 @@ static int toggle_animate(struct widget *widget, struct frame *frame, int x, int
 {
 
     struct payload_toggle *payload = &widget->payload.toggle;
+    struct style *groove = &frame->styles[0];
+    struct style *text = &frame->styles[1];
+    struct style *ohandle = &frame->styles[2];
+    struct style *ihandle = &frame->styles[3];
 
-    style_font_init(&frame->styles[2].font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-    style_color_clone(&frame->styles[2].color, &color_text);
-    style_box_init(&frame->styles[0].box, x, y, w, 0, 0);
-    style_box_clone(&frame->styles[2].box, &frame->styles[0].box);
-    style_box_pad(&frame->styles[2].box, view->unitw + view->marginw, view->marginh);
-    style_box_translate(&frame->styles[2].box, view->unitw, 0);
-    style_box_scale(&frame->styles[2].box, render_textwidth(&frame->styles[2], payload->label.content), render_textheight(&frame->styles[2], payload->label.content));
-    style_box_init(&frame->styles[1].box, x, y, view->unitw * 2 - view->unitw / 2, view->fontsizemedium, 8);
-    style_box_translate(&frame->styles[1].box, view->marginw, view->marginh);
+    style_color_clone(&ihandle->color, &color_background);
+    style_box_init(&ihandle->box, x, y, view->unitw * 2 - view->unitw / 2, view->fontsizemedium, 14);
+    style_box_translate(&ihandle->box, view->marginw * 2, view->marginh * 2 + 4);
+
+    if (payload->mode.mode == ALFI_MODE_ON)
+        style_box_translate(&ihandle->box, 2 * view->unitw - 2 * view->marginw, 0);
 
     if (widget->state == ALFI_STATE_FOCUS)
-        style_color_clone(&frame->styles[1].color, &color_focus);
+        style_color_clone(&ohandle->color, &color_focus);
     else
-        style_color_clone(&frame->styles[1].color, &color_line);
+        style_color_clone(&ohandle->color, &color_text);
 
-    style_box_expand(&frame->styles[0].box, &frame->styles[2].box, view->marginw, view->marginh);
+    style_box_init(&ohandle->box, x, y, view->unitw * 2 - view->unitw / 2, view->fontsizemedium, 16);
+    style_box_translate(&ohandle->box, view->marginw * 2, view->marginh * 2 + 4);
 
-    return frame->styles[0].box.h;
+    if (payload->mode.mode == ALFI_MODE_ON)
+        style_box_translate(&ohandle->box, 2 * view->unitw - 2 * view->marginw, 0);
+
+    style_font_init(&text->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&text->color, &color_text);
+    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_shrink(&text->box, 3 * view->unitw + view->marginw, view->marginh);
+    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+
+    if (payload->mode.mode == ALFI_MODE_ON)
+        style_color_clone(&groove->color, &color_focus);
+    else
+        style_color_clone(&groove->color, &color_line);
+
+    style_box_init(&groove->box, x, y, 2 * view->unitw, view->fontsizemedium, 8);
+    style_box_translate(&groove->box, view->marginw, view->marginh);
+    style_box_shrink(&groove->box, 4, 4);
+
+    return text->box.h + view->marginh * 2;
 
 }
 
@@ -1201,40 +1159,17 @@ static void toggle_render(struct widget *widget, struct frame *frame, struct vie
 {
 
     struct payload_toggle *payload = &widget->payload.toggle;
+    struct style *groove = &frame->styles[0];
+    struct style *text = &frame->styles[1];
+    struct style *ohandle = &frame->styles[2];
+    struct style *ihandle = &frame->styles[3];
 
-    render_fillborder(&frame->styles[1], 2.0);
-
-    if (payload->mode.mode == ALFI_MODE_ON)
-    {
-
-        struct style checkmark;
-
-        style_init(&checkmark);
-        style_color_clone(&checkmark.color, &color_focus);
-        style_box_clone(&checkmark.box, &frame->styles[1].box);
-        style_box_pad(&checkmark.box, 18, 6);
-        style_box_translate(&checkmark.box, 12, 0);
-        render_fillrect(&checkmark);
-
-    }
-
-    if (payload->mode.mode == ALFI_MODE_OFF)
-    {
-
-        struct style checkmark;
-
-        style_init(&checkmark);
-        style_color_clone(&checkmark.color, &color_line);
-        style_box_clone(&checkmark.box, &frame->styles[1].box);
-        style_box_pad(&checkmark.box, 18, 6);
-        style_box_translate(&checkmark.box, -12, 0);
-        render_fillrect(&checkmark);
-
-    }
-
+    render_fillrect(groove);
+    render_fillcircle(ohandle);
+    render_fillcircle(ihandle);
 
     if (strlen(payload->label.content))
-        render_filltext(&frame->styles[2], payload->label.content);
+        render_filltext(text, payload->label.content);
 
 }
 
@@ -1245,49 +1180,42 @@ static unsigned int toggle_setstate(struct widget *widget, unsigned int state)
     {
 
     case ALFI_STATE_HOVER:
-        if (widget->state == ALFI_STATE_FOCUS)
-            return ALFI_STATE_FOCUS;
-        else
-            return ALFI_STATE_HOVER;
-
     case ALFI_STATE_UNHOVER:
         if (widget->state == ALFI_STATE_FOCUS)
             return ALFI_STATE_FOCUS;
-        else
-            return ALFI_STATE_NORMAL;
-
-    case ALFI_STATE_FOCUS:
-        return ALFI_STATE_FOCUS;
 
     }
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
 static unsigned int toggle_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    if (style_box_istouching(&frame->styles[1].box, x, y))
+    struct style *groove = &frame->styles[0];
+    struct style *text = &frame->styles[1];
+
+    if (style_box_istouching(&groove->box, x, y))
         return ALFI_CURSOR_HAND;
-    else if (style_box_istouching(&frame->styles[2].box, x, y))
+    else if (style_box_istouching(&text->box, x, y))
         return ALFI_CURSOR_IBEAM;
     else
         return ALFI_CURSOR_ARROW;
 
 }
 
-static void vstack_create(struct widget *widget)
+static void stack_create(struct widget *widget)
 {
 
 }
 
-static void vstack_destroy(struct widget *widget)
+static void stack_destroy(struct widget *widget)
 {
 
 }
 
-static int vstack_animate(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int stack_animate(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
     struct widget *child = 0;
@@ -1304,7 +1232,7 @@ static int vstack_animate(struct widget *widget, struct frame *frame, int x, int
         if (h < cy + ch - y)
             h = cy + ch - y;
 
-        cy += child->frame.bounds.h;
+        cy += ch;
 
     }
 
@@ -1312,7 +1240,7 @@ static int vstack_animate(struct widget *widget, struct frame *frame, int x, int
 
 }
 
-static void vstack_render(struct widget *widget, struct frame *frame, struct view *view)
+static void stack_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget *child = 0;
@@ -1322,14 +1250,14 @@ static void vstack_render(struct widget *widget, struct frame *frame, struct vie
 
 }
 
-static unsigned int vstack_setstate(struct widget *widget, unsigned int state)
+static unsigned int stack_setstate(struct widget *widget, unsigned int state)
 {
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
-static unsigned int vstack_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int stack_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
     return ALFI_CURSOR_ARROW;
@@ -1394,7 +1322,7 @@ static void window_render(struct widget *widget, struct frame *frame, struct vie
 static unsigned int window_setstate(struct widget *widget, unsigned int state)
 {
 
-    return ALFI_STATE_NORMAL;
+    return state;
 
 }
 
@@ -1454,15 +1382,14 @@ void widgets_setup(void)
     call_register(ALFI_WIDGET_DIVIDER, ALFI_FLAG_NONE, divider_create, divider_destroy, divider_animate, divider_render, divider_setstate, divider_getcursor);
     call_register(ALFI_WIDGET_FIELD, ALFI_FLAG_FOCUSABLE, field_create, field_destroy, field_animate, field_render, field_setstate, field_getcursor);
     call_register(ALFI_WIDGET_HEADER, ALFI_FLAG_NONE, header_create, header_destroy, header_animate, header_render, header_setstate, header_getcursor);
-    call_register(ALFI_WIDGET_HSTACK, ALFI_FLAG_NONE, hstack_create, hstack_destroy, hstack_animate, hstack_render, hstack_setstate, hstack_getcursor);
     call_register(ALFI_WIDGET_IMAGE, ALFI_FLAG_NONE, image_create, image_destroy, image_animate, image_render, image_setstate, image_getcursor);
     call_register(ALFI_WIDGET_LIST, ALFI_FLAG_NONE, list_create, list_destroy, list_animate, list_render, list_setstate, list_getcursor);
     call_register(ALFI_WIDGET_SELECT, ALFI_FLAG_FOCUSABLE, select_create, select_destroy, select_animate, select_render, select_setstate, select_getcursor);
+    call_register(ALFI_WIDGET_STACK, ALFI_FLAG_NONE, stack_create, stack_destroy, stack_animate, stack_render, stack_setstate, stack_getcursor);
     call_register(ALFI_WIDGET_SUBHEADER, ALFI_FLAG_NONE, subheader_create, subheader_destroy, subheader_animate, subheader_render, subheader_setstate, subheader_getcursor);
     call_register(ALFI_WIDGET_TABLE, ALFI_FLAG_NONE, table_create, table_destroy, table_animate, table_render, table_setstate, table_getcursor);
     call_register(ALFI_WIDGET_TEXT, ALFI_FLAG_NONE, text_create, text_destroy, text_animate, text_render, text_setstate, text_getcursor);
     call_register(ALFI_WIDGET_TOGGLE, ALFI_FLAG_FOCUSABLE, toggle_create, toggle_destroy, toggle_animate, toggle_render, toggle_setstate, toggle_getcursor);
-    call_register(ALFI_WIDGET_VSTACK, ALFI_FLAG_NONE, vstack_create, vstack_destroy, vstack_animate, vstack_render, vstack_setstate, vstack_getcursor);
     call_register(ALFI_WIDGET_WINDOW, ALFI_FLAG_NONE, window_create, window_destroy, window_animate, window_render, window_setstate, window_getcursor);
 
 }

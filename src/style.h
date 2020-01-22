@@ -56,7 +56,7 @@ void style_box_move(struct style_box *box, float x, float y);
 void style_box_scale(struct style_box *box, float w, float h);
 void style_box_translate(struct style_box *box, float x, float y);
 void style_box_resize(struct style_box *box, float w, float h);
-void style_box_pad(struct style_box *box, float px, float py);
+void style_box_shrink(struct style_box *box, float px, float py);
 float style_box_halign(struct style_box *box, float x, float w, int align);
 float style_box_valign(struct style_box *box, float y, float h, int align);
 unsigned int style_box_istouching(struct style_box *box, float x, float y);

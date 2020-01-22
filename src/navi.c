@@ -691,7 +691,7 @@ static void onclick_button(struct widget *widget, float x, float y)
     struct frame *frame = &widget->frame;
     char data[RESOURCE_PAGESIZE];
 
-    if (!style_box_istouching(&frame->styles[1].box, x, y))
+    if (!style_box_istouching(&frame->styles[0].box, x, y))
         return;
 
     setfocus(widget);
@@ -739,7 +739,7 @@ static void onclick_field(struct widget *widget, float x, float y)
 
     struct frame *frame = &widget->frame;
 
-    if (!style_box_istouching(&frame->styles[1].box, x, y))
+    if (!style_box_istouching(&frame->styles[0].box, x, y))
         return;
 
     setfocus(widget);
@@ -751,7 +751,7 @@ static void onclick_select(struct widget *widget, float x, float y)
 
     struct frame *frame = &widget->frame;
 
-    if (!style_box_istouching(&frame->styles[1].box, x, y))
+    if (!style_box_istouching(&frame->styles[0].box, x, y))
         return;
 
     setfocus(widget);
@@ -764,7 +764,7 @@ static void onclick_toggle(struct widget *widget, float x, float y)
     struct payload_toggle *payload = &widget->payload.toggle;
     struct frame *frame = &widget->frame;
 
-    if (!style_box_istouching(&frame->styles[1].box, x, y))
+    if (!style_box_istouching(&frame->styles[0].box, x, y))
         return;
 
     setfocus(widget);
@@ -933,11 +933,11 @@ static void create(char *title)
 {
 
     widget_root = parser_create(ALFI_WIDGET_WINDOW, "window", "");
-    widget_main = parser_create(ALFI_WIDGET_VSTACK, "main", "window");
+    widget_main = parser_create(ALFI_WIDGET_STACK, "main", "window");
 
     widget_root->payload.window.label.content = pool_string_create(widget_root->payload.window.label.content, title);
-    widget_main->payload.vstack.halign.direction = ALFI_HALIGN_LEFT;
-    widget_main->payload.vstack.valign.direction = ALFI_VALIGN_TOP;
+    widget_main->payload.stack.halign.direction = ALFI_HALIGN_LEFT;
+    widget_main->payload.stack.valign.direction = ALFI_VALIGN_TOP;
 
 }
 

@@ -38,7 +38,7 @@
 + anchor label "This is a link" link "http://www.blunder.se/" "text/alfi"
 
 # A row of images
-+ hstack id gallery halign left valign top
++ table id gallery grid 2
 + image in gallery link "image6.jpg" "image/jpeg"
 + image in gallery link "image6.jpg" "image/jpeg"
 + image in gallery link "image6.jpg" "image/jpeg"
@@ -52,7 +52,7 @@
 + divider label "There is a table below"
 
 # A table
-+ table id table1 grid 3 0
++ table id table1 grid 3
 + text in table1 label "Cell 0-0"
 + text in table1 label "Cell 0-1"
 + text in table1 label "Cell 0-2 containing a lot of extra text"
