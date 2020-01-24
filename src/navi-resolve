@@ -1,28 +1,5 @@
 #!/bin/sh
 
-resolve_navi_blank() {
-    echo "= window label \"Lookup address\""
-    echo "+ header label \"Lookup address\""
-    echo "+ field id \"url\" label \"URL\" data \"$1\""
-    echo "+ button label \"Lookup\" link \"navi://lookup\" \"text/alfi\" mode \"on\""
-    echo "+ subheader label \"Quick links\""
-    echo "+ anchor label \"blunder.se\" link \"http://www.blunder.se/\" \"text/alfi\""
-    echo "+ anchor label \"example\" link \"file:///usr/share/navi/example.alfi\" \"text/alfi\""
-    exit 0
-}
-
-resolve_navi_back() {
-    item=${2#item=}
-
-    if [ -f ~/.navi_history ]
-    then
-        url=$(tail -$item ~/.navi_history | head -1)
-
-        resolve "$url"
-        exit $?
-    fi
-}
-
 resolve_navi_bookmarks() {
     echo "= window label \"Bookmarks\""
     echo "+ header label \"Bookmarks\""
@@ -39,13 +16,6 @@ resolve_navi_bookmarks() {
     else
         echo "+ text label \"No bookmarks found.\""
     fi
-    exit 0
-}
-
-resolve_navi_error() {
-    echo "= window label \"Internal error\""
-    echo "+ header label \"Internal error\""
-    echo "+ text label \"An internal error occured.\""
     exit 0
 }
 
@@ -68,41 +38,13 @@ resolve_navi_history() {
     exit 0
 }
 
-resolve_navi_lookup() {
-    url=${2#url=}
-
-    if [ -z "$url" ]
-    then
-        echo "= window label \"No data\""
-        echo "+ header label \"No data\""
-        echo "+ text label \"No data was provided. Please resubmit.\""
-        exit 0
-    else
-        resolve "$url"
-        exit $?
-    fi
-    exit 1
-}
-
 resolve_navi() {
     case "$1" in
-    navi://blank) 
-        resolve_navi_blank $@
-        ;;
-    navi://back)
-        resolve_navi_back $@
-        ;;
     navi://bookmarks)
         resolve_navi_bookmarks $@
         ;;
-    navi://error) 
-        resolve_navi_error $@
-        ;;
     navi://history)
         resolve_navi_history $@
-        ;;
-    navi://lookup)
-        resolve_navi_lookup $@
         ;;
     esac
 }
@@ -163,16 +105,6 @@ resolve_file() {
     exit 1
 }
 
-resolve_http() {
-    curl -A "Navi/1.0" $1
-    exit $?
-}
-
-resolve_https() {
-    curl -A "Navi/1.0" $1
-    exit $?
-}
-
 resolve() {
     case "$1" in
     navi://*)
@@ -180,12 +112,6 @@ resolve() {
         ;;
     file://*)
         resolve_file $@
-        ;;
-    http://*)
-        resolve_http $@
-        ;;
-    https://*)
-        resolve_https $@
         ;;
     esac
 }

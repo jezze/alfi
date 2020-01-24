@@ -306,13 +306,19 @@ static void urlself(char *url, unsigned int count, void *data)
     struct resource temp;
 
     resource_init(&temp, url);
-    resource_load(&temp, count, data);
-    parser_parse(&parser, "main", temp.count, temp.data);
-    resource_destroy(&temp);
-    loadresources();
-    call_animate(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, 1.0);
 
-    updatetitle = 1;
+    if (resource_load(&temp, count, data))
+    {
+
+        parser_parse(&parser, "main", temp.count, temp.data);
+        loadresources();
+        call_animate(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, 1.0);
+
+        updatetitle = 1;
+
+    }
+
+    resource_destroy(&temp);
 
 }
 
