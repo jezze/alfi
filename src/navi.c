@@ -39,8 +39,8 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
     memset(frame, 0, sizeof (struct frame));
 
     widget->header.type = type;
-    widget->header.id.name = pool_string_create(widget->header.id.name, id);
-    widget->header.in.name = pool_string_create(widget->header.in.name, in);
+    widget->header.id.name = pool_string_create(ALFI_ATTRIBUTE_ID, widget->header.id.name, id);
+    widget->header.in.name = pool_string_create(ALFI_ATTRIBUTE_IN, widget->header.in.name, in);
 
     call_create(widget);
     call_setstate(widget, ALFI_STATE_NORMAL);
@@ -52,8 +52,8 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 static struct widget *parser_destroy(struct widget *widget)
 {
 
-    widget->header.id.name = pool_string_destroy(widget->header.id.name);
-    widget->header.in.name = pool_string_destroy(widget->header.in.name);
+    widget->header.id.name = pool_string_destroy(ALFI_ATTRIBUTE_ID, widget->header.id.name);
+    widget->header.in.name = pool_string_destroy(ALFI_ATTRIBUTE_IN, widget->header.in.name);
 
     call_destroy(widget);
 
@@ -732,7 +732,7 @@ static void onclick_choice(struct widget *widget, float x, float y)
     {
 
     case ALFI_WIDGET_SELECT:
-        parent->payload.select.data.content = pool_string_create(parent->payload.select.data.content, payload->label.content);
+        parent->payload.select.data.content = pool_string_create(ALFI_ATTRIBUTE_DATA, parent->payload.select.data.content, payload->label.content);
 
         break;
 
@@ -941,7 +941,7 @@ static void create(char *title)
     widget_root = parser_create(ALFI_WIDGET_WINDOW, "window", "");
     widget_main = parser_create(ALFI_WIDGET_STACK, "main", "window");
 
-    widget_root->payload.window.label.content = pool_string_create(widget_root->payload.window.label.content, title);
+    widget_root->payload.window.label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, widget_root->payload.window.label.content, title);
     widget_main->payload.stack.halign.direction = ALFI_HALIGN_LEFT;
     widget_main->payload.stack.valign.direction = ALFI_VALIGN_TOP;
 

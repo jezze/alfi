@@ -226,13 +226,13 @@ static unsigned int parseuint(struct parser *parser, unsigned int base)
 
 }
 
-static char *parsestring(char *string, struct parser *parser)
+static char *parsestring(struct parser *parser, unsigned int type, char *string)
 {
 
     char word[RESOURCE_PAGESIZE];
     unsigned int count = readword(parser, word, RESOURCE_PAGESIZE);
 
-    return (count) ? parser->allocate(string, count + 1, count + 1, word) : 0;
+    return (count) ? parser->allocate(type, string, count + 1, count + 1, word) : 0;
 
 }
 
@@ -379,7 +379,7 @@ static void parse_attribute_data(struct parser *parser, struct attribute_data *a
 {
 
     attribute->total = ALFI_DATASIZE;
-    attribute->content = parser->allocate(attribute->content, attribute->total, 0, 0);
+    attribute->content = parser->allocate(ALFI_ATTRIBUTE_DATA, attribute->content, attribute->total, 0, 0);
     attribute->offset = readword(parser, attribute->content, attribute->total);
 
 }
@@ -408,29 +408,29 @@ static void parse_attribute_icon(struct parser *parser, struct attribute_icon *a
 static void parse_attribute_id(struct parser *parser, struct attribute_id *attribute)
 {
 
-    attribute->name = parsestring(attribute->name, parser);
+    attribute->name = parsestring(parser, ALFI_ATTRIBUTE_ID, attribute->name);
 
 }
 
 static void parse_attribute_in(struct parser *parser, struct attribute_in *attribute)
 {
 
-    attribute->name = parsestring(attribute->name, parser);
+    attribute->name = parsestring(parser, ALFI_ATTRIBUTE_IN, attribute->name);
 
 }
 
 static void parse_attribute_label(struct parser *parser, struct attribute_label *attribute)
 {
 
-    attribute->content = parsestring(attribute->content, parser);
+    attribute->content = parsestring(parser, ALFI_ATTRIBUTE_LABEL, attribute->content);
 
 }
 
 static void parse_attribute_link(struct parser *parser, struct attribute_link *attribute)
 {
 
-    attribute->url = parsestring(attribute->url, parser);
-    attribute->mime = parsestring(attribute->mime, parser);
+    attribute->url = parsestring(parser, ALFI_ATTRIBUTE_LINK, attribute->url);
+    attribute->mime = parsestring(parser, ALFI_ATTRIBUTE_LINK, attribute->mime);
 
 }
 
@@ -1250,7 +1250,7 @@ void parser_parse(struct parser *parser, char *in, unsigned int count, void *dat
 
 }
 
-void parser_init(struct parser *parser, void (*fail)(void), struct widget *(*find)(char *name), struct widget *(*create)(unsigned int type, char *id, char *in), struct widget *(*destroy)(struct widget *widget), void (*clear)(struct widget *widget), char *(*allocate)(char *string, unsigned int size, unsigned int count, char *content))
+void parser_init(struct parser *parser, void (*fail)(void), struct widget *(*find)(char *name), struct widget *(*create)(unsigned int type, char *id, char *in), struct widget *(*destroy)(struct widget *widget), void (*clear)(struct widget *widget), char *(*allocate)(unsigned int type, char *string, unsigned int size, unsigned int count, char *content))
 {
 
     parser->fail = fail;

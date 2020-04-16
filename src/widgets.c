@@ -26,9 +26,9 @@ static void anchor_create(struct widget *widget)
 
     struct payload_anchor *payload = &widget->payload.anchor;
 
-    payload->label.content = pool_string_create(payload->label.content, "");
-    payload->link.url = pool_string_create(payload->link.url, "");
-    payload->link.mime = pool_string_create(payload->link.mime, "");
+    payload->label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, payload->label.content, "");
+    payload->link.url = pool_string_create(ALFI_ATTRIBUTE_LINK, payload->link.url, "");
+    payload->link.mime = pool_string_create(ALFI_ATTRIBUTE_LINK, payload->link.mime, "");
 
 }
 
@@ -37,9 +37,9 @@ static void anchor_destroy(struct widget *widget)
 
     struct payload_anchor *payload = &widget->payload.anchor;
 
-    payload->label.content = pool_string_destroy(payload->label.content);
-    payload->link.url = pool_string_destroy(payload->link.url);
-    payload->link.mime = pool_string_destroy(payload->link.mime);
+    payload->label.content = pool_string_destroy(ALFI_ATTRIBUTE_LABEL, payload->label.content);
+    payload->link.url = pool_string_destroy(ALFI_ATTRIBUTE_LINK, payload->link.url);
+    payload->link.mime = pool_string_destroy(ALFI_ATTRIBUTE_LINK, payload->link.mime);
 
 }
 
@@ -93,9 +93,9 @@ static void button_create(struct widget *widget)
 
     struct payload_button *payload = &widget->payload.button;
 
-    payload->label.content = pool_string_create(payload->label.content, "undefined");
-    payload->link.url = pool_string_create(payload->link.url, "");
-    payload->link.mime = pool_string_create(payload->link.mime, "");
+    payload->label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, payload->label.content, "undefined");
+    payload->link.url = pool_string_create(ALFI_ATTRIBUTE_LINK, payload->link.url, "");
+    payload->link.mime = pool_string_create(ALFI_ATTRIBUTE_LINK, payload->link.mime, "");
 
 }
 
@@ -104,9 +104,9 @@ static void button_destroy(struct widget *widget)
 
     struct payload_button *payload = &widget->payload.button;
 
-    payload->label.content = pool_string_destroy(payload->label.content);
-    payload->link.url = pool_string_destroy(payload->link.url);
-    payload->link.mime = pool_string_destroy(payload->link.mime);
+    payload->label.content = pool_string_destroy(ALFI_ATTRIBUTE_LABEL, payload->label.content);
+    payload->link.url = pool_string_destroy(ALFI_ATTRIBUTE_LINK, payload->link.url);
+    payload->link.mime = pool_string_destroy(ALFI_ATTRIBUTE_LINK, payload->link.mime);
 
 }
 
@@ -189,7 +189,7 @@ static void choice_create(struct widget *widget)
 
     struct payload_choice *payload = &widget->payload.choice;
 
-    payload->label.content = pool_string_create(payload->label.content, "");
+    payload->label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, payload->label.content, "");
 
 }
 
@@ -198,7 +198,7 @@ static void choice_destroy(struct widget *widget)
 
     struct payload_choice *payload = &widget->payload.choice;
 
-    payload->label.content = pool_string_destroy(payload->label.content);
+    payload->label.content = pool_string_destroy(ALFI_ATTRIBUTE_LABEL, payload->label.content);
 
 }
 
@@ -259,7 +259,7 @@ static void divider_create(struct widget *widget)
 
     struct payload_divider *payload = &widget->payload.divider;
 
-    payload->label.content = pool_string_create(payload->label.content, "");
+    payload->label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, payload->label.content, "");
 
 }
 
@@ -268,7 +268,7 @@ static void divider_destroy(struct widget *widget)
 
     struct payload_divider *payload = &widget->payload.divider;
 
-    payload->label.content = pool_string_destroy(payload->label.content);
+    payload->label.content = pool_string_destroy(ALFI_ATTRIBUTE_LABEL, payload->label.content);
 
 }
 
@@ -346,8 +346,8 @@ static void field_create(struct widget *widget)
 
     struct payload_field *payload = &widget->payload.field;
 
-    payload->label.content = pool_string_create(payload->label.content, "");
-    payload->data.content = pool_allocate(payload->data.content, ALFI_DATASIZE, 1, "");
+    payload->label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, payload->label.content, "");
+    payload->data.content = pool_allocate(ALFI_ATTRIBUTE_DATA, payload->data.content, ALFI_DATASIZE, 1, "");
     payload->data.total = ALFI_DATASIZE;
     payload->data.offset = 0;
 
@@ -358,8 +358,8 @@ static void field_destroy(struct widget *widget)
 
     struct payload_field *payload = &widget->payload.field;
 
-    payload->label.content = pool_string_destroy(payload->label.content);
-    payload->data.content = pool_string_destroy(payload->data.content);
+    payload->label.content = pool_string_destroy(ALFI_ATTRIBUTE_LABEL, payload->label.content);
+    payload->data.content = pool_string_destroy(ALFI_ATTRIBUTE_DATA, payload->data.content);
 
 }
 
@@ -510,7 +510,7 @@ static void header_create(struct widget *widget)
 
     struct payload_header *payload = &widget->payload.header;
 
-    payload->label.content = pool_string_create(payload->label.content, "");
+    payload->label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, payload->label.content, "");
 
 }
 
@@ -519,7 +519,7 @@ static void header_destroy(struct widget *widget)
 
     struct payload_header *payload = &widget->payload.header;
 
-    payload->label.content = pool_string_destroy(payload->label.content);
+    payload->label.content = pool_string_destroy(ALFI_ATTRIBUTE_LABEL, payload->label.content);
 
 }
 
@@ -707,8 +707,8 @@ static void select_create(struct widget *widget)
 
     struct payload_select *payload = &widget->payload.select;
 
-    payload->label.content = pool_string_create(payload->label.content, "");
-    payload->data.content = pool_allocate(payload->data.content, ALFI_DATASIZE, 1, "");
+    payload->label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, payload->label.content, "");
+    payload->data.content = pool_allocate(ALFI_ATTRIBUTE_DATA, payload->data.content, ALFI_DATASIZE, 1, "");
     payload->data.total = ALFI_DATASIZE;
     payload->data.offset = 0;
 
@@ -719,8 +719,8 @@ static void select_destroy(struct widget *widget)
 
     struct payload_select *payload = &widget->payload.select;
 
-    payload->label.content = pool_string_destroy(payload->label.content);
-    payload->data.content = pool_string_destroy(payload->data.content);
+    payload->label.content = pool_string_destroy(ALFI_ATTRIBUTE_LABEL, payload->label.content);
+    payload->data.content = pool_string_destroy(ALFI_ATTRIBUTE_DATA, payload->data.content);
 
 }
 
@@ -900,7 +900,7 @@ static void subheader_create(struct widget *widget)
 
     struct payload_subheader *payload = &widget->payload.subheader;
 
-    payload->label.content = pool_string_create(payload->label.content, "");
+    payload->label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, payload->label.content, "");
 
 }
 
@@ -909,7 +909,7 @@ static void subheader_destroy(struct widget *widget)
 
     struct payload_subheader *payload = &widget->payload.subheader;
 
-    payload->label.content = pool_string_destroy(payload->label.content);
+    payload->label.content = pool_string_destroy(ALFI_ATTRIBUTE_LABEL, payload->label.content);
 
 }
 
@@ -1032,7 +1032,7 @@ static void text_create(struct widget *widget)
 
     struct payload_text *payload = &widget->payload.text;
 
-    payload->label.content = pool_string_create(payload->label.content, "");
+    payload->label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, payload->label.content, "");
 
 }
 
@@ -1041,7 +1041,7 @@ static void text_destroy(struct widget *widget)
 
     struct payload_text *payload = &widget->payload.text;
 
-    payload->label.content = pool_string_destroy(payload->label.content);
+    payload->label.content = pool_string_destroy(ALFI_ATTRIBUTE_LABEL, payload->label.content);
 
 }
 
@@ -1096,7 +1096,7 @@ static void toggle_create(struct widget *widget)
 
     struct payload_toggle *payload = &widget->payload.toggle;
 
-    payload->label.content = pool_string_create(payload->label.content, "");
+    payload->label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, payload->label.content, "");
 
 }
 
@@ -1105,7 +1105,7 @@ static void toggle_destroy(struct widget *widget)
 
     struct payload_toggle *payload = &widget->payload.toggle;
 
-    payload->label.content = pool_string_destroy(payload->label.content);
+    payload->label.content = pool_string_destroy(ALFI_ATTRIBUTE_LABEL, payload->label.content);
 
 }
 
@@ -1269,7 +1269,7 @@ static void window_create(struct widget *widget)
 
     struct payload_window *payload = &widget->payload.window;
 
-    payload->label.content = pool_string_create(payload->label.content, "undefined");
+    payload->label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, payload->label.content, "undefined");
 
 }
 
@@ -1278,7 +1278,7 @@ static void window_destroy(struct widget *widget)
 
     struct payload_window *payload = &widget->payload.window;
 
-    payload->label.content = pool_string_destroy(payload->label.content);
+    payload->label.content = pool_string_destroy(ALFI_ATTRIBUTE_LABEL, payload->label.content);
 
 }
 
