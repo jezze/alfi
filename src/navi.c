@@ -33,15 +33,13 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 {
 
     struct widget *widget = pool_widget_create();
-    struct frame *frame = &widget->frame;
-
-    memset(&widget->payload, 0, sizeof (union payload));
-    memset(frame, 0, sizeof (struct frame));
 
     widget->header.type = type;
     widget->header.id.name = pool_string_create(ALFI_ATTRIBUTE_ID, widget->header.id.name, id);
     widget->header.in.name = pool_string_create(ALFI_ATTRIBUTE_IN, widget->header.in.name, in);
 
+    memset(&widget->payload, 0, sizeof (union payload));
+    memset(&widget->frame, 0, sizeof (struct frame));
     call_create(widget);
     call_setstate(widget, ALFI_STATE_NORMAL);
 
