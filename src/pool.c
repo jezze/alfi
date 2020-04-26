@@ -116,7 +116,7 @@ static struct resource *nextresource(struct list *list, struct resource *resourc
 
 }
 
-struct resource *pool_resource_find(char *name)
+struct resource *pool_resource_find(char *url)
 {
 
     struct resource *resource = 0;
@@ -127,7 +127,7 @@ struct resource *pool_resource_find(char *name)
         if (!strlen(resource->urlinfo.url))
             continue;
 
-        if (!strcmp(resource->urlinfo.url, name))
+        if (!strcmp(resource->urlinfo.url, url))
             return resource;
 
     }

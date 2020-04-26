@@ -262,12 +262,11 @@ static void sethover(struct widget *widget)
 static void loadresources_image(struct widget *widget)
 {
 
-    struct resource_image *resource = &widget->resource.image;
     struct payload_image *payload = &widget->payload.image;
     struct urlinfo info;
 
     url_merge(&info, history_geturl(0), payload->link.url);
-    render_loadimage(resource, info.url);
+    render_loadimage(info.url);
 
 }
 

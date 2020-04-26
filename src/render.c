@@ -322,6 +322,9 @@ struct resource *render_loadfont(char *url)
     if (!resource)
         return 0;
 
+    if (resource->index)
+        return resource;
+
     resource_iref(resource);
 
     resource->index = fons_addfont(&fsctx, resource->data, resource->count);
@@ -330,20 +333,20 @@ struct resource *render_loadfont(char *url)
 
 }
 
-void render_loadimage(struct resource_image *resource, char *url)
+struct resource *render_loadimage(char *url)
 {
 
-    if (resource->base)
-        return;
+    struct resource *resource = getresource(url);
 
-    resource->base = getresource(url);
+    if (!resource)
+        return 0;
 
-    if (!resource->base)
-        return;
+    if (resource->ref)
+        return resource;
 
-    resource_iref(resource->base);
+    resource_iref(resource);
 
-    resource->img = stbi_load_from_memory(resource->base->data, resource->base->count, &resource->w, &resource->h, &resource->n, 4);
+    resource->img = stbi_load_from_memory(resource->data, resource->count, &resource->w, &resource->h, &resource->n, 4);
 
     if (resource->img)
     {
@@ -354,14 +357,16 @@ void render_loadimage(struct resource_image *resource, char *url)
 
     }
 
+    return resource;
+
 }
 
-void render_unloadimage(struct resource_image *resource)
+void render_unloadimage(struct resource *resource)
 {
 
     nvg_gl_texture_destroy(&glctx, resource->ref);
 
-    resource_dref(resource->base);
+    resource_dref(resource);
 
 }
 

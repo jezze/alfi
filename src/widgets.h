@@ -340,12 +340,6 @@ struct widget
     struct header header;
     union payload payload;
     struct frame frame;
-    union
-    {
-
-        struct resource_image image;
-
-    } resource;
 
 };
 

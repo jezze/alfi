@@ -211,10 +211,6 @@ static void image_create(struct widget *widget)
 static void image_destroy(struct widget *widget)
 {
 
-    struct resource_image *resource = &widget->resource.image;
-
-    render_unloadimage(resource);
-
 }
 
 static unsigned int image_setstate(struct widget *widget, unsigned int state)

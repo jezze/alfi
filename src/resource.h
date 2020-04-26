@@ -11,13 +11,7 @@ struct resource
     unsigned int refcount;
     /* font */
     int index;
-
-};
-
-struct resource_image
-{
-
-    struct resource *base;
+    /* image */
     unsigned char *img;
     int ref;
     int w;
