@@ -39,6 +39,32 @@ struct textrow
 
 };
 
+static unsigned int getchartype(unsigned int codepoint)
+{
+
+    switch (codepoint)
+    {
+
+    case 9:
+    case 11:
+    case 12:
+    case 32:
+    case 0x00a0:
+        return CHARTYPE_SPACE;
+
+    case 10:
+    case 0x0085:
+        return CHARTYPE_NEWLINE;
+
+    default:
+        return CHARTYPE_CHAR;
+
+    }
+
+    return 0;
+
+}
+
 static const char *calcline(struct style_font *font, float width, const char *string, const char *end, struct textrow *row)
 {
 
@@ -50,38 +76,14 @@ static const char *calcline(struct style_font *font, float width, const char *st
     const char *wordStart = 0;
     const char *breakEnd = 0;
     float breakWidth = 0;
-    int type = CHARTYPE_SPACE;
-    int ptype = CHARTYPE_SPACE;
+    unsigned int ptype = CHARTYPE_SPACE;
 
     fons_inititer(&fsctx, &iter, font->face, font->align, font->size, 0, 0, 0, string, end, FONS_GLYPH_BITMAP_OPTIONAL);
 
     while (fons_nextiter(&fsctx, &iter, &q))
     {
 
-        switch (iter.codepoint)
-        {
-
-            case 9:
-            case 11:
-            case 12:
-            case 32:
-            case 0x00a0:
-                type = CHARTYPE_SPACE;
-
-                break;
-
-            case 10:
-            case 0x0085:
-                type = CHARTYPE_NEWLINE;
-
-                break;
-
-            default:
-                type = CHARTYPE_CHAR;
-
-                break;
-
-        }
+        unsigned int type = getchartype(iter.codepoint);
 
         if (type == CHARTYPE_NEWLINE)
         {
