@@ -61,14 +61,6 @@
 #define ALFI_FLAG_FOCUSABLE             1
 #define ALFI_DATASIZE                   128
 
-struct kv_string
-{
-
-    char *key;
-    char *value;
-
-};
-
 struct attribute_data
 {
 
