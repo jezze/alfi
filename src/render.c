@@ -20,19 +20,14 @@
 #include "render.h"
 #include "pool.h"
 
+#define CHARTYPE_NONE                   0
+#define CHARTYPE_SPACE                  1
+#define CHARTYPE_NEWLINE                2
+#define CHARTYPE_CHAR                   3
+
 static struct nvg_context ctx;
 static struct nvg_gl_context glctx;
 static struct fons_context fsctx;
-
-enum chartype
-{
-
-    CHARTYPE_SPACE,
-    CHARTYPE_NEWLINE,
-    CHARTYPE_CHAR,
-    CHARTYPE_CJKCHAR
-
-};
 
 struct textrow
 {
@@ -63,7 +58,6 @@ static const char *calcline(struct style_font *font, float width, const char *st
     float breakMaxX = 0;
     int type = CHARTYPE_SPACE;
     int ptype = CHARTYPE_SPACE;
-    unsigned int pcodepoint = 0;
 
     fons_inititer(&fsctx, &iter, font->face, font->align, font->size, 0, 0, 0, string, end, FONS_GLYPH_BITMAP_OPTIONAL);
 
@@ -83,25 +77,13 @@ static const char *calcline(struct style_font *font, float width, const char *st
                 break;
 
             case 10:
-                type = pcodepoint == 13 ? CHARTYPE_SPACE : CHARTYPE_NEWLINE;
-
-                break;
-
-            case 13:
-                type = pcodepoint == 10 ? CHARTYPE_SPACE : CHARTYPE_NEWLINE;
-
-                break;
-
             case 0x0085:
                 type = CHARTYPE_NEWLINE;
 
                 break;
 
             default:
-                if ((iter.codepoint >= 0x4E00 && iter.codepoint <= 0x9FFF) || (iter.codepoint >= 0x3000 && iter.codepoint <= 0x30FF) || (iter.codepoint >= 0xFF00 && iter.codepoint <= 0xFFEF) || (iter.codepoint >= 0x1100 && iter.codepoint <= 0x11FF) || (iter.codepoint >= 0x3130 && iter.codepoint <= 0x318F) || (iter.codepoint >= 0xAC00 && iter.codepoint <= 0xD7AF))
-                    type = CHARTYPE_CJKCHAR;
-                else
-                    type = CHARTYPE_CHAR;
+                type = CHARTYPE_CHAR;
 
                 break;
 
@@ -127,7 +109,7 @@ static const char *calcline(struct style_font *font, float width, const char *st
             if (rowStart == 0)
             {
 
-                if (type == CHARTYPE_CHAR || type == CHARTYPE_CJKCHAR)
+                if (type == CHARTYPE_CHAR)
                 {
 
                     rowStartX = iter.x;
@@ -150,7 +132,7 @@ static const char *calcline(struct style_font *font, float width, const char *st
 
                 float nextWidth = iter.nextx - rowStartX;
 
-                if (type == CHARTYPE_CHAR || type == CHARTYPE_CJKCHAR)
+                if (type == CHARTYPE_CHAR)
                 {
 
                     rowEnd = iter.next;
@@ -159,7 +141,7 @@ static const char *calcline(struct style_font *font, float width, const char *st
 
                 }
 
-                if (((ptype == CHARTYPE_CHAR || ptype == CHARTYPE_CJKCHAR) && type == CHARTYPE_SPACE) || type == CHARTYPE_CJKCHAR)
+                if (type == CHARTYPE_SPACE && ptype == CHARTYPE_CHAR)
                 {
 
                     breakEnd = iter.str;
@@ -168,14 +150,14 @@ static const char *calcline(struct style_font *font, float width, const char *st
 
                 }
 
-                if ((ptype == CHARTYPE_SPACE && (type == CHARTYPE_CHAR || type == CHARTYPE_CJKCHAR)) || type == CHARTYPE_CJKCHAR)
+                if (type == CHARTYPE_CHAR && ptype == CHARTYPE_SPACE)
                 {
 
                     wordStart = iter.str;
 
                 }
 
-                if ((type == CHARTYPE_CHAR || type == CHARTYPE_CJKCHAR) && nextWidth > width)
+                if (type == CHARTYPE_CHAR && nextWidth > width)
                 {
 
                     if (breakEnd == rowStart)
@@ -212,7 +194,6 @@ static const char *calcline(struct style_font *font, float width, const char *st
 
         }
 
-        pcodepoint = iter.codepoint;
         ptype = type;
 
     }
