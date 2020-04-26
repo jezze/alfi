@@ -20,7 +20,6 @@ struct resource
 
 };
 
-void resource_save(struct resource *resource, unsigned int count, void *data);
 unsigned int resource_load(struct resource *resource, unsigned int count, void *data);
 unsigned int resource_iref(struct resource *resource);
 unsigned int resource_dref(struct resource *resource);

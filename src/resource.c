@@ -6,7 +6,7 @@
 #include "url.h"
 #include "resource.h"
 
-void resource_save(struct resource *resource, unsigned int count, void *data)
+static void save(struct resource *resource, unsigned int count, void *data)
 {
 
     unsigned int free = resource->size - resource->count;
@@ -48,7 +48,7 @@ static unsigned int resolve(struct resource *resource, const char *name, char * 
         close(fd[1]);
 
         while ((bcount = read(fd[0], bdata, RESOURCE_PAGESIZE)))
-            resource_save(resource, bcount, bdata);
+            save(resource, bcount, bdata);
 
         close(fd[0]);
 
