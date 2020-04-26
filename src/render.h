@@ -1,6 +1,5 @@
-void render_loadfont(struct resource_font *resource, char *url);
+struct resource *render_loadfont(char *url);
 void render_loadimage(struct resource_image *resource, char *url);
-void render_unloadfont(struct resource_font *resource);
 void render_unloadimage(struct resource_image *resource);
 void render_reset(float w, float h);
 void render_flush(void);

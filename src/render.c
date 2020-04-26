@@ -314,20 +314,19 @@ static struct resource *getresource(char *url)
 
 }
 
-void render_loadfont(struct resource_font *resource, char *url)
+struct resource *render_loadfont(char *url)
 {
 
-    if (resource->base)
-        return;
+    struct resource *resource = getresource(url);
 
-    resource->base = getresource(url);
+    if (!resource)
+        return 0;
 
-    if (!resource->base)
-        return;
+    resource_iref(resource);
 
-    resource_iref(resource->base);
+    resource->index = fons_addfont(&fsctx, resource->data, resource->count);
 
-    resource->index = fons_addfont(&fsctx, resource->base->data, resource->base->count);
+    return resource;
 
 }
 
@@ -354,13 +353,6 @@ void render_loadimage(struct resource_image *resource, char *url)
         stbi_image_free(resource->img);
 
     }
-
-}
-
-void render_unloadfont(struct resource_font *resource)
-{
-
-    resource_dref(resource->base);
 
 }
 

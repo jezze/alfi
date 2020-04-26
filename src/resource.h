@@ -9,13 +9,7 @@ struct resource
     unsigned int size;
     unsigned int count;
     unsigned int refcount;
-
-};
-
-struct resource_font
-{
-
-    struct resource *base;
+    /* font */
     int index;
 
 };

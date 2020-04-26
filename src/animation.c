@@ -20,10 +20,10 @@ struct call
 };
 
 static struct call calls[64];
-static struct resource_font res_font_regular;
-static struct resource_font res_font_bold;
-static struct resource_font res_font_mono;
-static struct resource_font res_font_icon;
+static struct resource *res_font_regular;
+static struct resource *res_font_bold;
+static struct resource *res_font_mono;
+static struct resource *res_font_icon;
 static struct style_color color_background;
 static struct style_color color_text;
 static struct style_color color_header;
@@ -37,7 +37,7 @@ static int anchor_step(struct widget *widget, struct frame *frame, int x, int y,
     struct payload_anchor *payload = &widget->payload.anchor;
     struct style *text = &frame->styles[0];
 
-    style_font_init(&text->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&text->font, res_font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_focus);
     style_box_init(&text->box, x, y, w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
@@ -76,7 +76,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
     struct style *surface = &frame->styles[0];
     struct style *text = &frame->styles[1];
 
-    style_font_init(&text->font, res_font_bold.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&text->font, res_font_bold->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
 
     if (payload->mode.mode == ALFI_MODE_ON)
         style_color_clone(&text->color, &color_focustext);
@@ -133,7 +133,7 @@ static int choice_step(struct widget *widget, struct frame *frame, int x, int y,
     struct style *background = &frame->styles[0];
     struct style *text = &frame->styles[1];
 
-    style_font_init(&text->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&text->font, res_font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_text);
     style_box_init(&text->box, x, y, w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
@@ -178,7 +178,7 @@ static int divider_step(struct widget *widget, struct frame *frame, int x, int y
     struct style *line = &frame->styles[0];
     struct style *text = &frame->styles[1];
 
-    style_font_init(&text->font, res_font_regular.index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&text->font, res_font_regular->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_text);
     style_box_init(&text->box, x, y, w, 0, 0);
 
@@ -241,7 +241,7 @@ static int field_step(struct widget *widget, struct frame *frame, int x, int y, 
     struct style *label = &frame->styles[1];
     struct style *data = &frame->styles[2];
 
-    style_font_init(&data->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&data->font, res_font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&data->color, &color_text);
     style_box_init(&data->box, x, y, w, 0, 0);
 
@@ -254,9 +254,9 @@ static int field_step(struct widget *widget, struct frame *frame, int x, int y, 
     style_box_init(&label->box, x, y, w, 0, 0);
 
     if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
-        style_font_init(&label->font, res_font_regular.index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+        style_font_init(&label->font, res_font_regular->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     else
-        style_font_init(&label->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+        style_font_init(&label->font, res_font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
 
     if (widget->header.state == ALFI_STATE_FOCUS)
         style_color_clone(&label->color, &color_focus);
@@ -364,7 +364,7 @@ static int header_step(struct widget *widget, struct frame *frame, int x, int y,
     struct payload_header *payload = &widget->payload.header;
     struct style *text = &frame->styles[0];
 
-    style_font_init(&text->font, res_font_bold.index, view->fontsizexlarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&text->font, res_font_bold->index, view->fontsizexlarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_header);
     style_box_init(&text->box, x, y, w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
@@ -522,7 +522,7 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
 
     }
 
-    style_font_init(&data->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&data->font, res_font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&data->color, &color_text);
     style_box_init(&data->box, x, y, w, h, 0);
 
@@ -543,9 +543,9 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
     }
 
     if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
-        style_font_init(&label->font, res_font_regular.index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+        style_font_init(&label->font, res_font_regular->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     else
-        style_font_init(&label->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+        style_font_init(&label->font, res_font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
 
     if (widget->header.state == ALFI_STATE_FOCUS)
         style_color_clone(&label->color, &color_focus);
@@ -652,7 +652,7 @@ static int subheader_step(struct widget *widget, struct frame *frame, int x, int
     struct payload_subheader *payload = &widget->payload.subheader;
     struct style *text = &frame->styles[0];
 
-    style_font_init(&text->font, res_font_bold.index, view->fontsizelarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&text->font, res_font_bold->index, view->fontsizelarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_header);
     style_box_init(&text->box, x, y, w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
@@ -742,7 +742,7 @@ static int text_step(struct widget *widget, struct frame *frame, int x, int y, i
     struct payload_text *payload = &widget->payload.text;
     struct style *text = &frame->styles[0];
 
-    style_font_init(&text->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&text->font, res_font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_text);
     style_box_init(&text->box, x, y, w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
@@ -802,7 +802,7 @@ static int toggle_step(struct widget *widget, struct frame *frame, int x, int y,
     if (payload->mode.mode == ALFI_MODE_ON)
         style_box_translate(&ohandle->box, 2 * view->unitw - 2 * view->marginw, 0);
 
-    style_font_init(&text->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&text->font, res_font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_text);
     style_box_init(&text->box, x, y, w, 0, 0);
     style_box_shrink(&text->box, 3 * view->unitw + view->marginw, view->marginh);
@@ -1026,10 +1026,10 @@ unsigned int animation_getcursor(struct widget *widget, int x, int y)
 void animation_setupfonts(void)
 {
 
-    render_loadfont(&res_font_regular, "file:///usr/share/navi/roboto-regular.ttf");
-    render_loadfont(&res_font_bold, "file:///usr/share/navi/roboto-bold.ttf");
-    render_loadfont(&res_font_mono, "file:///usr/share/navi/robotomono-regular.ttf");
-    render_loadfont(&res_font_icon, "file:///usr/share/navi/icofont.ttf");
+    res_font_regular = render_loadfont("file:///usr/share/navi/roboto-regular.ttf");
+    res_font_bold = render_loadfont("file:///usr/share/navi/roboto-bold.ttf");
+    res_font_mono = render_loadfont("file:///usr/share/navi/robotomono-regular.ttf");
+    res_font_icon = render_loadfont("file:///usr/share/navi/icofont.ttf");
 
 }
 
