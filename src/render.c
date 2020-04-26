@@ -84,91 +84,76 @@ static const char *calcline(struct style_font *font, float width, const char *st
 
         unsigned int type = getchartype(iter.codepoint);
 
-        if (type == CHARTYPE_NEWLINE)
+        switch (type)
         {
 
+        case CHARTYPE_NEWLINE:
             row->start = rowStart != 0 ? rowStart : iter.str;
             row->end = rowEnd != 0 ? rowEnd : iter.str;
             row->width = rowWidth;
 
             return iter.next;
 
-        }
-
-        else
-        {
-
-            if (rowStart == 0)
+        case CHARTYPE_SPACE:
+            if (ptype == CHARTYPE_CHAR)
             {
 
-                if (type == CHARTYPE_CHAR)
+                breakEnd = iter.str;
+                breakWidth = rowWidth;
+
+            }
+
+            break;
+
+        case CHARTYPE_CHAR:
+            if (!rowStart)
+            {
+
+                rowStart = iter.str;
+                wordStart = iter.str;
+                breakEnd = rowStart;
+                breakWidth = 0.0;
+
+            }
+
+            rowEnd = iter.next;
+            rowWidth = iter.nextx;
+
+            if (ptype == CHARTYPE_SPACE)
+            {
+
+                wordStart = iter.str;
+
+            }
+
+            if (iter.nextx > width)
+            {
+
+                if (breakEnd == rowStart)
                 {
 
-                    rowStart = iter.str;
-                    rowEnd = iter.next;
-                    rowWidth = iter.nextx;
-                    wordStart = iter.str;
-                    breakEnd = rowStart;
-                    breakWidth = 0.0;
+                    row->start = rowStart;
+                    row->end = iter.str;
+                    row->width = rowWidth;
+
+                    return iter.str;
+
+                }
+
+                else
+                {
+
+                    row->start = rowStart;
+                    row->end = breakEnd;
+                    row->width = breakWidth;
+
+                    return wordStart;
 
                 }
 
             }
 
-            else
-            {
-
-                if (type == CHARTYPE_CHAR)
-                {
-
-                    rowEnd = iter.next;
-                    rowWidth = iter.nextx;
-
-                }
-
-                if (type == CHARTYPE_SPACE && ptype == CHARTYPE_CHAR)
-                {
-
-                    breakEnd = iter.str;
-                    breakWidth = rowWidth;
-
-                }
-
-                if (type == CHARTYPE_CHAR && ptype == CHARTYPE_SPACE)
-                {
-
-                    wordStart = iter.str;
-
-                }
-
-                if (type == CHARTYPE_CHAR && iter.nextx > width)
-                {
-
-                    if (breakEnd == rowStart)
-                    {
-
-                        row->start = rowStart;
-                        row->end = iter.str;
-                        row->width = rowWidth;
-
-                        return iter.str;
-
-                    }
-
-                    else
-                    {
-
-                        row->start = rowStart;
-                        row->end = breakEnd;
-                        row->width = breakWidth;
-
-                        return wordStart;
-
-                    }
-
-                }
-
-            }
+            break;
 
         }
 
