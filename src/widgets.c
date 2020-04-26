@@ -1353,14 +1353,35 @@ unsigned int widgets_checkflag(struct widget *widget, unsigned int flag)
 
 }
 
-void widgets_create(struct widget *widget)
+void widgets_createheader(struct widget *widget, unsigned int type, char *id, char *in)
 {
+
+    memset(&widget->header, 0, sizeof (struct header));
+
+    widget->header.type = type;
+    widget->header.id.name = pool_string_create(ALFI_ATTRIBUTE_ID, widget->header.id.name, id);
+    widget->header.in.name = pool_string_create(ALFI_ATTRIBUTE_IN, widget->header.in.name, in);
+
+}
+
+void widgets_destroyheader(struct widget *widget)
+{
+
+    widget->header.id.name = pool_string_destroy(ALFI_ATTRIBUTE_ID, widget->header.id.name);
+    widget->header.in.name = pool_string_destroy(ALFI_ATTRIBUTE_IN, widget->header.in.name);
+
+}
+
+void widgets_createpayload(struct widget *widget)
+{
+
+    memset(&widget->payload, 0, sizeof (union payload));
 
     calls[widget->header.type].create(widget);
 
 }
 
-void widgets_destroy(struct widget *widget)
+void widgets_destroypayload(struct widget *widget)
 {
 
     calls[widget->header.type].destroy(widget);

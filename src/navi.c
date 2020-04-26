@@ -33,14 +33,11 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 
     struct widget *widget = pool_widget_create();
 
-    widget->header.type = type;
-    widget->header.id.name = pool_string_create(ALFI_ATTRIBUTE_ID, widget->header.id.name, id);
-    widget->header.in.name = pool_string_create(ALFI_ATTRIBUTE_IN, widget->header.in.name, in);
-
-    memset(&widget->payload, 0, sizeof (union payload));
-    memset(&widget->frame, 0, sizeof (struct frame));
-    widgets_create(widget);
+    widgets_createheader(widget, type, id, in);
+    widgets_createpayload(widget);
     widgets_setstate(widget, ALFI_STATE_NORMAL);
+
+    memset(&widget->frame, 0, sizeof (struct frame));
 
     return widget;
 
@@ -49,10 +46,8 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 static struct widget *parser_destroy(struct widget *widget)
 {
 
-    widget->header.id.name = pool_string_destroy(ALFI_ATTRIBUTE_ID, widget->header.id.name);
-    widget->header.in.name = pool_string_destroy(ALFI_ATTRIBUTE_IN, widget->header.in.name);
-
-    widgets_destroy(widget);
+    widgets_destroyheader(widget);
+    widgets_destroypayload(widget);
 
     return pool_widget_destroy(widget);
 
