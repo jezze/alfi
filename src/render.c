@@ -34,7 +34,6 @@ struct textrow
 
     const char *start;
     const char *end;
-    const char *next;
     float width;
 
 };
@@ -91,9 +90,8 @@ static const char *calcline(struct style_font *font, float width, const char *st
             row->start = rowStart != 0 ? rowStart : iter.str;
             row->end = rowEnd != 0 ? rowEnd : iter.str;
             row->width = rowWidth;
-            row->next = iter.next;
 
-            return row->next;
+            return iter.next;
 
         }
 
@@ -120,8 +118,6 @@ static const char *calcline(struct style_font *font, float width, const char *st
             else
             {
 
-                float nextWidth = iter.nextx;
-
                 if (type == CHARTYPE_CHAR)
                 {
 
@@ -145,7 +141,7 @@ static const char *calcline(struct style_font *font, float width, const char *st
 
                 }
 
-                if (type == CHARTYPE_CHAR && nextWidth > width)
+                if (type == CHARTYPE_CHAR && iter.nextx > width)
                 {
 
                     if (breakEnd == rowStart)
@@ -154,9 +150,8 @@ static const char *calcline(struct style_font *font, float width, const char *st
                         row->start = rowStart;
                         row->end = iter.str;
                         row->width = rowWidth;
-                        row->next = iter.str;
 
-                        return row->next;
+                        return iter.str;
 
                     }
 
@@ -166,9 +161,8 @@ static const char *calcline(struct style_font *font, float width, const char *st
                         row->start = rowStart;
                         row->end = breakEnd;
                         row->width = breakWidth;
-                        row->next = wordStart;
 
-                        return row->next;
+                        return wordStart;
 
                     }
 
@@ -182,15 +176,14 @@ static const char *calcline(struct style_font *font, float width, const char *st
 
     }
 
-    if (rowStart != 0)
+    if (rowStart)
     {
 
         row->start = rowStart;
         row->end = rowEnd;
         row->width = rowWidth;
-        row->next = end;
 
-        return row->next;
+        return end;
 
     }
 
