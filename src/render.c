@@ -36,8 +36,6 @@ struct textrow
     const char *end;
     const char *next;
     float width;
-    float minx;
-    float maxx;
 
 };
 
@@ -46,16 +44,12 @@ static const char *calcline(struct style_font *font, float width, const char *st
 
     struct fons_textiter iter;
     struct fons_quad q;
-    float rowStartX = 0;
     float rowWidth = 0;
-    float rowMinX = 0;
-    float rowMaxX = 0;
     const char *rowStart = 0;
     const char *rowEnd = 0;
     const char *wordStart = 0;
     const char *breakEnd = 0;
     float breakWidth = 0;
-    float breakMaxX = 0;
     int type = CHARTYPE_SPACE;
     int ptype = CHARTYPE_SPACE;
 
@@ -95,8 +89,6 @@ static const char *calcline(struct style_font *font, float width, const char *st
             row->start = rowStart != 0 ? rowStart : iter.str;
             row->end = rowEnd != 0 ? rowEnd : iter.str;
             row->width = rowWidth;
-            row->minx = rowMinX;
-            row->maxx = rowMaxX;
             row->next = iter.next;
 
             return row->next;
@@ -112,16 +104,12 @@ static const char *calcline(struct style_font *font, float width, const char *st
                 if (type == CHARTYPE_CHAR)
                 {
 
-                    rowStartX = iter.x;
                     rowStart = iter.str;
                     rowEnd = iter.next;
-                    rowWidth = iter.nextx - rowStartX;
-                    rowMinX = q.x0 - rowStartX;
-                    rowMaxX = q.x1 - rowStartX;
+                    rowWidth = iter.nextx;
                     wordStart = iter.str;
                     breakEnd = rowStart;
                     breakWidth = 0.0;
-                    breakMaxX = 0.0;
 
                 }
 
@@ -130,14 +118,13 @@ static const char *calcline(struct style_font *font, float width, const char *st
             else
             {
 
-                float nextWidth = iter.nextx - rowStartX;
+                float nextWidth = iter.nextx;
 
                 if (type == CHARTYPE_CHAR)
                 {
 
                     rowEnd = iter.next;
-                    rowWidth = iter.nextx - rowStartX;
-                    rowMaxX = q.x1 - rowStartX;
+                    rowWidth = iter.nextx;
 
                 }
 
@@ -146,7 +133,6 @@ static const char *calcline(struct style_font *font, float width, const char *st
 
                     breakEnd = iter.str;
                     breakWidth = rowWidth;
-                    breakMaxX = rowMaxX;
 
                 }
 
@@ -166,8 +152,6 @@ static const char *calcline(struct style_font *font, float width, const char *st
                         row->start = rowStart;
                         row->end = iter.str;
                         row->width = rowWidth;
-                        row->minx = rowMinX;
-                        row->maxx = rowMaxX;
                         row->next = iter.str;
 
                         return row->next;
@@ -180,8 +164,6 @@ static const char *calcline(struct style_font *font, float width, const char *st
                         row->start = rowStart;
                         row->end = breakEnd;
                         row->width = breakWidth;
-                        row->minx = rowMinX;
-                        row->maxx = breakMaxX;
                         row->next = wordStart;
 
                         return row->next;
@@ -204,8 +186,6 @@ static const char *calcline(struct style_font *font, float width, const char *st
         row->start = rowStart;
         row->end = rowEnd;
         row->width = rowWidth;
-        row->minx = rowMinX;
-        row->maxx = rowMaxX;
         row->next = end;
 
         return row->next;
