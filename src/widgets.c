@@ -163,7 +163,7 @@ static unsigned int button_setstate(struct widget *widget, unsigned int state)
 
     case ALFI_STATE_HOVER:
     case ALFI_STATE_UNHOVER:
-        if (widget->state == ALFI_STATE_FOCUS)
+        if (widget->header.state == ALFI_STATE_FOCUS)
             return ALFI_STATE_FOCUS;
 
     }
@@ -215,7 +215,7 @@ static int choice_animate(struct widget *widget, struct frame *frame, int x, int
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    if (widget->state == ALFI_STATE_HOVER)
+    if (widget->header.state == ALFI_STATE_HOVER)
         style_color_clone(&background->color, &color_line);
 
     style_box_init(&background->box, x, y, w, 0, 4);
@@ -232,7 +232,7 @@ static void choice_render(struct widget *widget, struct frame *frame, struct vie
     struct style *background = &frame->styles[0];
     struct style *text = &frame->styles[1];
 
-    if (widget->state == ALFI_STATE_HOVER)
+    if (widget->header.state == ALFI_STATE_HOVER)
         render_fillrect(background);
 
     if (strlen(payload->label.content))
@@ -375,7 +375,7 @@ static int field_animate(struct widget *widget, struct frame *frame, int x, int 
     style_color_clone(&data->color, &color_text);
     style_box_init(&data->box, x, y, w, 0, 0);
 
-    if (widget->state == ALFI_STATE_FOCUS)
+    if (widget->header.state == ALFI_STATE_FOCUS)
         style_box_shrink(&data->box, view->unitw + view->marginw, view->unith + view->marginh);
     else
         style_box_shrink(&data->box, view->unitw, view->unith);
@@ -383,17 +383,17 @@ static int field_animate(struct widget *widget, struct frame *frame, int x, int 
     style_box_scale(&data->box, data->box.w, render_textheight(data, payload->data.content));
     style_box_init(&label->box, x, y, w, 0, 0);
 
-    if (widget->state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
         style_font_init(&label->font, res_font_regular.index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     else
         style_font_init(&label->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
 
-    if (widget->state == ALFI_STATE_FOCUS)
+    if (widget->header.state == ALFI_STATE_FOCUS)
         style_color_clone(&label->color, &color_focus);
     else
         style_color_clone(&label->color, &color_line);
 
-    if (widget->state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
     {
 
         style_box_shrink(&label->box, view->unitw, view->marginh - label->font.size / 2);
@@ -412,12 +412,12 @@ static int field_animate(struct widget *widget, struct frame *frame, int x, int 
     style_box_init(&border->box, x, y, w, 0, 4);
     style_box_shrink(&border->box, view->marginw, view->marginh);
 
-    if (widget->state == ALFI_STATE_FOCUS)
+    if (widget->header.state == ALFI_STATE_FOCUS)
         style_color_clone(&border->color, &color_focus);
     else
         style_color_clone(&border->color, &color_line);
 
-    if (widget->state == ALFI_STATE_FOCUS)
+    if (widget->header.state == ALFI_STATE_FOCUS)
         style_box_expand(&border->box, &data->box, view->unitw, view->unith);
     else
         style_box_expand(&border->box, &data->box, view->unitw - view->marginw, view->unith - view->marginh);
@@ -434,7 +434,7 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
     struct style *label = &frame->styles[1];
     struct style *data = &frame->styles[2];
 
-    if (widget->state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
     {
 
         if (strlen(payload->label.content))
@@ -467,7 +467,7 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
     if (strlen(payload->data.content))
     {
 
-        if (widget->state == ALFI_STATE_FOCUS)
+        if (widget->header.state == ALFI_STATE_FOCUS)
             render_filltextinput(data, payload->data.content, payload->data.offset, &border->color);
         else
             render_filltext(data, payload->data.content);
@@ -484,7 +484,7 @@ static unsigned int field_setstate(struct widget *widget, unsigned int state)
 
     case ALFI_STATE_HOVER:
     case ALFI_STATE_UNHOVER:
-        if (widget->state == ALFI_STATE_FOCUS)
+        if (widget->header.state == ALFI_STATE_FOCUS)
             return ALFI_STATE_FOCUS;
 
     }
@@ -744,7 +744,7 @@ static int select_animate(struct widget *widget, struct frame *frame, int x, int
 
         cy += ch;
 
-        if (widget->state == ALFI_STATE_FOCUS)
+        if (widget->header.state == ALFI_STATE_FOCUS)
         {
 
             if (h < cy + view->unith)
@@ -758,7 +758,7 @@ static int select_animate(struct widget *widget, struct frame *frame, int x, int
     style_color_clone(&data->color, &color_text);
     style_box_init(&data->box, x, y, w, h, 0);
 
-    if (widget->state == ALFI_STATE_FOCUS)
+    if (widget->header.state == ALFI_STATE_FOCUS)
     {
 
         style_box_shrink(&data->box, view->unitw + view->marginw, view->unith + view->marginh);
@@ -774,19 +774,19 @@ static int select_animate(struct widget *widget, struct frame *frame, int x, int
 
     }
 
-    if (widget->state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
         style_font_init(&label->font, res_font_regular.index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     else
         style_font_init(&label->font, res_font_regular.index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
 
-    if (widget->state == ALFI_STATE_FOCUS)
+    if (widget->header.state == ALFI_STATE_FOCUS)
         style_color_clone(&label->color, &color_focus);
     else
         style_color_clone(&label->color, &color_line);
 
     style_box_init(&label->box, x, y, w, h, 0);
 
-    if (widget->state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
     {
 
         style_box_translate(&label->box, view->unitw, 0);
@@ -802,7 +802,7 @@ static int select_animate(struct widget *widget, struct frame *frame, int x, int
 
     }
 
-    if (widget->state == ALFI_STATE_FOCUS)
+    if (widget->header.state == ALFI_STATE_FOCUS)
         style_color_clone(&border->color, &color_focus);
     else
         style_color_clone(&border->color, &color_line);
@@ -823,7 +823,7 @@ static void select_render(struct widget *widget, struct frame *frame, struct vie
     struct style *data = &frame->styles[2];
     struct widget *child = 0;
 
-    if (widget->state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
     {
 
         if (strlen(payload->label.content))
@@ -856,7 +856,7 @@ static void select_render(struct widget *widget, struct frame *frame, struct vie
     if (strlen(payload->data.content))
         render_filltext(data, payload->data.content);
 
-    if (widget->state == ALFI_STATE_FOCUS)
+    if (widget->header.state == ALFI_STATE_FOCUS)
     {
 
         while ((child = pool_widget_nextchild(child, widget)))
@@ -874,7 +874,7 @@ static unsigned int select_setstate(struct widget *widget, unsigned int state)
 
     case ALFI_STATE_HOVER:
     case ALFI_STATE_UNHOVER:
-        if (widget->state == ALFI_STATE_FOCUS)
+        if (widget->header.state == ALFI_STATE_FOCUS)
             return ALFI_STATE_FOCUS;
 
     }
@@ -1125,7 +1125,7 @@ static int toggle_animate(struct widget *widget, struct frame *frame, int x, int
     if (payload->mode.mode == ALFI_MODE_ON)
         style_box_translate(&ihandle->box, 2 * view->unitw - 2 * view->marginw, 0);
 
-    if (widget->state == ALFI_STATE_FOCUS)
+    if (widget->header.state == ALFI_STATE_FOCUS)
         style_color_clone(&ohandle->color, &color_focus);
     else
         style_color_clone(&ohandle->color, &color_text);
@@ -1181,7 +1181,7 @@ static unsigned int toggle_setstate(struct widget *widget, unsigned int state)
 
     case ALFI_STATE_HOVER:
     case ALFI_STATE_UNHOVER:
-        if (widget->state == ALFI_STATE_FOCUS)
+        if (widget->header.state == ALFI_STATE_FOCUS)
             return ALFI_STATE_FOCUS;
 
     }

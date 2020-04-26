@@ -120,7 +120,7 @@ void call_render(struct widget *widget, struct view *view)
 void call_setstate(struct widget *widget, unsigned int state)
 {
 
-    widget->state = calls[widget->header.type].setstate(widget, state);
+    widget->header.state = calls[widget->header.type].setstate(widget, state);
 
 }
 

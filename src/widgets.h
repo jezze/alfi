@@ -66,6 +66,14 @@
 #define ALFI_FLAG_FOCUSABLE             1
 #define ALFI_DATASIZE                   128
 
+struct kv_string
+{
+
+    char *key;
+    char *value;
+
+};
+
 struct attribute_data
 {
 
@@ -165,6 +173,7 @@ struct header
 {
 
     unsigned int type;
+    unsigned int state;
     struct attribute_id id;
     struct attribute_in in;
 
@@ -340,7 +349,6 @@ struct frame
 struct widget
 {
 
-    unsigned int state;
     struct list_item item;
     struct header header;
     union payload payload;
