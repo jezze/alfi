@@ -341,7 +341,7 @@ struct resource *render_loadimage(char *url)
     if (!resource)
         return 0;
 
-    if (resource->ref)
+    if (resource->index)
         return resource;
 
     resource_iref(resource);
@@ -351,7 +351,7 @@ struct resource *render_loadimage(char *url)
     if (resource->img)
     {
 
-        resource->ref = nvg_gl_texture_create(&glctx, NVG_TEXTURE_RGBA, resource->w, resource->h, 0, resource->img);
+        resource->index = nvg_gl_texture_create(&glctx, NVG_TEXTURE_RGBA, resource->w, resource->h, 0, resource->img);
 
         stbi_image_free(resource->img);
 
@@ -364,7 +364,7 @@ struct resource *render_loadimage(char *url)
 void render_unloadimage(struct resource *resource)
 {
 
-    nvg_gl_texture_destroy(&glctx, resource->ref);
+    nvg_gl_texture_destroy(&glctx, resource->index);
 
     resource_dref(resource);
 

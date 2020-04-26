@@ -9,11 +9,8 @@ struct resource
     unsigned int size;
     unsigned int count;
     unsigned int refcount;
-    /* font */
     int index;
-    /* image */
     unsigned char *img;
-    int ref;
     int w;
     int h;
     int n;

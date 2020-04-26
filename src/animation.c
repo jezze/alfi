@@ -430,7 +430,7 @@ static void image_render(struct widget *widget, struct frame *frame, struct view
     if (!resource)
         return;
 
-    render_fillimage(surface, resource->ref);
+    render_fillimage(surface, resource->index);
 
 }
 
