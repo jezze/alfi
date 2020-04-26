@@ -367,10 +367,5 @@ void widgets_createheader(struct widget *widget, unsigned int type, char *id, ch
 void widgets_destroyheader(struct widget *widget);
 void widgets_createpayload(struct widget *widget);
 void widgets_destroypayload(struct widget *widget);
-int widgets_animate(struct widget *widget, int x, int y, int w, struct view *view, float u);
-void widgets_render(struct widget *widget, struct view *view);
 void widgets_setstate(struct widget *widget, unsigned int state);
-unsigned int widgets_getcursor(struct widget *widget, int x, int y);
-void widgets_setupfonts(void);
-void widgets_settheme(unsigned int type);
 void widgets_setup(void);

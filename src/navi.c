@@ -10,6 +10,7 @@
 #include "resource.h"
 #include "view.h"
 #include "widgets.h"
+#include "animation.h"
 #include "parser.h"
 #include "pool.h"
 #include "render.h"
@@ -304,7 +305,7 @@ static void urlself(char *url, unsigned int count, void *data)
 
         parser_parse(&parser, "main", temp.count, temp.data);
         loadresources();
-        widgets_animate(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, 1.0);
+        animation_step(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, 1.0);
 
         updatetitle = 1;
 
@@ -508,13 +509,13 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
 
         case GLFW_KEY_M:
             if (mods & GLFW_MOD_CONTROL)
-                widgets_settheme(ALFI_THEME_DARK);
+                animation_settheme(ALFI_THEME_DARK);
 
             break;
 
         case GLFW_KEY_N:
             if (mods & GLFW_MOD_CONTROL)
-                widgets_settheme(ALFI_THEME_LIGHT);
+                animation_settheme(ALFI_THEME_LIGHT);
 
             break;
 
@@ -949,8 +950,8 @@ static void render(GLFWwindow *window)
     {
 
         view_adjust(&view, widget_root->frame.bounds.w, widget_root->frame.bounds.h);
-        widgets_animate(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, 0.5);
-        widgets_render(widget_root, &view);
+        animation_step(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, 0.5);
+        animation_render(widget_root, &view);
 
     }
 
@@ -967,7 +968,7 @@ static void precheck(GLFWwindow *window)
     sethover(touch);
 
     if (touch)
-        setcursor(window, widgets_getcursor(touch, mouse_x, mouse_y));
+        setcursor(window, animation_getcursor(touch, mouse_x, mouse_y));
 
     if (updatetitle)
     {
@@ -1049,8 +1050,9 @@ int main(int argc, char **argv)
     parser_init(&parser, parser_fail, pool_widget_find, parser_create, parser_destroy, parser_clear, pool_allocate);
     pool_setup();
     widgets_setup();
-    widgets_setupfonts();
-    widgets_settheme(ALFI_THEME_LIGHT);
+    animation_setup();
+    animation_setupfonts();
+    animation_settheme(ALFI_THEME_LIGHT);
     create("Navi 0.1");
     render(window);
     loadblank("navi://blank", 0, 0);
