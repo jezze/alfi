@@ -55,11 +55,6 @@
 #define ALFI_STATE_UNHOVER              2
 #define ALFI_STATE_FOCUS                3
 #define ALFI_STATE_UNFOCUS              4
-#define ALFI_CURSOR_ARROW               0
-#define ALFI_CURSOR_IBEAM               1
-#define ALFI_CURSOR_HAND                2
-#define ALFI_THEME_LIGHT                0
-#define ALFI_THEME_DARK                 1
 #define ALFI_ICON_BURGER                1
 #define ALFI_ICON_SEARCH                2
 #define ALFI_FLAG_NONE                  0

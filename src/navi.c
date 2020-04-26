@@ -199,17 +199,17 @@ static void setcursor(struct GLFWwindow *window, unsigned int type)
     switch (type)
     {
 
-    case ALFI_CURSOR_HAND:
+    case ANIMATION_CURSOR_HAND:
         glfwSetCursor(window, cursor_hand);
 
         break;
 
-    case ALFI_CURSOR_IBEAM:
+    case ANIMATION_CURSOR_IBEAM:
         glfwSetCursor(window, cursor_ibeam);
 
         break;
 
-    case ALFI_CURSOR_ARROW:
+    case ANIMATION_CURSOR_ARROW:
         glfwSetCursor(window, cursor_arrow);
 
         break;
@@ -509,13 +509,13 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
 
         case GLFW_KEY_M:
             if (mods & GLFW_MOD_CONTROL)
-                animation_settheme(ALFI_THEME_DARK);
+                animation_settheme(ANIMATION_THEME_DARK);
 
             break;
 
         case GLFW_KEY_N:
             if (mods & GLFW_MOD_CONTROL)
-                animation_settheme(ALFI_THEME_LIGHT);
+                animation_settheme(ANIMATION_THEME_LIGHT);
 
             break;
 
@@ -1052,7 +1052,7 @@ int main(int argc, char **argv)
     widgets_setup();
     animation_setup();
     animation_setupfonts();
-    animation_settheme(ALFI_THEME_LIGHT);
+    animation_settheme(ANIMATION_THEME_LIGHT);
     create("Navi 0.1");
     render(window);
     loadblank("navi://blank", 0, 0);

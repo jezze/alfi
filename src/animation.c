@@ -63,9 +63,9 @@ static unsigned int anchor_getcursor(struct widget *widget, struct frame *frame,
     struct style *text = &frame->styles[0];
 
     if (style_box_istouching(&text->box, x, y))
-        return ALFI_CURSOR_HAND;
+        return ANIMATION_CURSOR_HAND;
     else
-        return ALFI_CURSOR_ARROW;
+        return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -120,9 +120,9 @@ static unsigned int button_getcursor(struct widget *widget, struct frame *frame,
     struct style *surface = &frame->styles[0];
 
     if (style_box_istouching(&surface->box, x, y))
-        return ALFI_CURSOR_HAND;
+        return ANIMATION_CURSOR_HAND;
     else
-        return ALFI_CURSOR_ARROW;
+        return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -167,7 +167,7 @@ static void choice_render(struct widget *widget, struct frame *frame, struct vie
 static unsigned int choice_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    return ALFI_CURSOR_HAND;
+    return ANIMATION_CURSOR_HAND;
 
 }
 
@@ -227,9 +227,9 @@ static unsigned int divider_getcursor(struct widget *widget, struct frame *frame
     struct style *text = &frame->styles[1];
 
     if (style_box_istouching(&text->box, x, y))
-        return ALFI_CURSOR_IBEAM;
+        return ANIMATION_CURSOR_IBEAM;
     else
-        return ALFI_CURSOR_ARROW;
+        return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -352,9 +352,9 @@ static unsigned int field_getcursor(struct widget *widget, struct frame *frame, 
     struct style *data = &frame->styles[2];
 
     if (style_box_istouching(&data->box, x, y))
-        return ALFI_CURSOR_IBEAM;
+        return ANIMATION_CURSOR_IBEAM;
     else
-        return ALFI_CURSOR_ARROW;
+        return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -391,9 +391,9 @@ static unsigned int header_getcursor(struct widget *widget, struct frame *frame,
     struct style *text = &frame->styles[0];
 
     if (style_box_istouching(&text->box, x, y))
-        return ALFI_CURSOR_IBEAM;
+        return ANIMATION_CURSOR_IBEAM;
     else
-        return ALFI_CURSOR_ARROW;
+        return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -429,7 +429,7 @@ static void image_render(struct widget *widget, struct frame *frame, struct view
 static unsigned int image_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    return ALFI_CURSOR_ARROW;
+    return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -488,7 +488,7 @@ static void list_render(struct widget *widget, struct frame *frame, struct view 
 static unsigned int list_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    return ALFI_CURSOR_ARROW;
+    return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -640,9 +640,9 @@ static unsigned int select_getcursor(struct widget *widget, struct frame *frame,
     struct style *border = &frame->styles[0];
 
     if (style_box_istouching(&border->box, x, y))
-        return ALFI_CURSOR_HAND;
+        return ANIMATION_CURSOR_HAND;
     else
-        return ALFI_CURSOR_ARROW;
+        return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -679,9 +679,9 @@ static unsigned int subheader_getcursor(struct widget *widget, struct frame *fra
     struct style *text = &frame->styles[0];
 
     if (style_box_istouching(&text->box, x, y))
-        return ALFI_CURSOR_IBEAM;
+        return ANIMATION_CURSOR_IBEAM;
     else
-        return ALFI_CURSOR_ARROW;
+        return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -732,7 +732,7 @@ static void table_render(struct widget *widget, struct frame *frame, struct view
 static unsigned int table_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    return ALFI_CURSOR_ARROW;
+    return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -769,9 +769,9 @@ static unsigned int text_getcursor(struct widget *widget, struct frame *frame, i
     struct style *text = &frame->styles[0];
 
     if (style_box_istouching(&text->box, x, y))
-        return ALFI_CURSOR_IBEAM;
+        return ANIMATION_CURSOR_IBEAM;
     else
-        return ALFI_CURSOR_ARROW;
+        return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -846,11 +846,11 @@ static unsigned int toggle_getcursor(struct widget *widget, struct frame *frame,
     struct style *text = &frame->styles[1];
 
     if (style_box_istouching(&groove->box, x, y))
-        return ALFI_CURSOR_HAND;
+        return ANIMATION_CURSOR_HAND;
     else if (style_box_istouching(&text->box, x, y))
-        return ALFI_CURSOR_IBEAM;
+        return ANIMATION_CURSOR_IBEAM;
     else
-        return ALFI_CURSOR_ARROW;
+        return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -892,7 +892,7 @@ static void stack_render(struct widget *widget, struct frame *frame, struct view
 static unsigned int stack_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    return ALFI_CURSOR_ARROW;
+    return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -936,7 +936,7 @@ static void window_render(struct widget *widget, struct frame *frame, struct vie
 static unsigned int window_getcursor(struct widget *widget, struct frame *frame, int x, int y)
 {
 
-    return ALFI_CURSOR_ARROW;
+    return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -1039,7 +1039,7 @@ void animation_settheme(unsigned int type)
     switch (type)
     {
 
-    case ALFI_THEME_LIGHT:
+    case ANIMATION_THEME_LIGHT:
         style_color_init(&color_background, 255, 255, 255, 255);
         style_color_init(&color_text, 96, 96, 96, 255);
         style_color_init(&color_header, 64, 64, 64, 255);
@@ -1049,7 +1049,7 @@ void animation_settheme(unsigned int type)
 
         break;
 
-    case ALFI_THEME_DARK:
+    case ANIMATION_THEME_DARK:
         style_color_init(&color_background, 24, 24, 24, 255);
         style_color_init(&color_text, 192, 192, 192, 255);
         style_color_init(&color_header, 224, 224, 224, 255);
