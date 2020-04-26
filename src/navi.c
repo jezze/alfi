@@ -8,10 +8,9 @@
 #include "style.h"
 #include "url.h"
 #include "resource.h"
+#include "view.h"
 #include "widgets.h"
 #include "parser.h"
-#include "view.h"
-#include "call.h"
 #include "pool.h"
 #include "render.h"
 #include "history.h"
@@ -40,8 +39,8 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 
     memset(&widget->payload, 0, sizeof (union payload));
     memset(&widget->frame, 0, sizeof (struct frame));
-    call_create(widget);
-    call_setstate(widget, ALFI_STATE_NORMAL);
+    widgets_create(widget);
+    widgets_setstate(widget, ALFI_STATE_NORMAL);
 
     return widget;
 
@@ -53,7 +52,7 @@ static struct widget *parser_destroy(struct widget *widget)
     widget->header.id.name = pool_string_destroy(ALFI_ATTRIBUTE_ID, widget->header.id.name);
     widget->header.in.name = pool_string_destroy(ALFI_ATTRIBUTE_IN, widget->header.in.name);
 
-    call_destroy(widget);
+    widgets_destroy(widget);
 
     return pool_widget_destroy(widget);
 
@@ -174,7 +173,7 @@ static struct widget *prevflag(struct widget *widget, unsigned int flag)
     while ((widget = pool_widget_prev(widget)))
     {
 
-        if (call_checkflag(widget, flag))
+        if (widgets_checkflag(widget, flag))
             return widget;
 
     }
@@ -189,7 +188,7 @@ static struct widget *nextflag(struct widget *widget, unsigned int flag)
     while ((widget = pool_widget_next(widget)))
     {
 
-        if (call_checkflag(widget, flag))
+        if (widgets_checkflag(widget, flag))
             return widget;
 
     }
@@ -235,12 +234,12 @@ static void setfocus(struct widget *widget)
     {
 
         if (widget_focus)
-            call_setstate(widget_focus, ALFI_STATE_UNFOCUS);
+            widgets_setstate(widget_focus, ALFI_STATE_UNFOCUS);
 
         widget_focus = widget;
 
         if (widget_focus)
-            call_setstate(widget_focus, ALFI_STATE_FOCUS);
+            widgets_setstate(widget_focus, ALFI_STATE_FOCUS);
 
     }
 
@@ -253,12 +252,12 @@ static void sethover(struct widget *widget)
     {
 
         if (widget_hover)
-            call_setstate(widget_hover, ALFI_STATE_UNHOVER);
+            widgets_setstate(widget_hover, ALFI_STATE_UNHOVER);
 
         widget_hover = widget;
 
         if (widget_hover)
-            call_setstate(widget_hover, ALFI_STATE_HOVER);
+            widgets_setstate(widget_hover, ALFI_STATE_HOVER);
 
     }
 
@@ -310,7 +309,7 @@ static void urlself(char *url, unsigned int count, void *data)
 
         parser_parse(&parser, "main", temp.count, temp.data);
         loadresources();
-        call_animate(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, 1.0);
+        widgets_animate(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, 1.0);
 
         updatetitle = 1;
 
@@ -577,7 +576,7 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
 
     }
 
-    if (widget_focus && call_checkflag(widget_focus, ALFI_FLAG_FOCUSABLE))
+    if (widget_focus && widgets_checkflag(widget_focus, ALFI_FLAG_FOCUSABLE))
     {
 
         switch (widget_focus->header.type)
@@ -916,7 +915,7 @@ static void onchar_field(struct payload_field *payload, unsigned int codepoint)
 static void onchar(GLFWwindow *window, unsigned int codepoint)
 {
 
-    if (widget_focus && call_checkflag(widget_focus, ALFI_FLAG_FOCUSABLE))
+    if (widget_focus && widgets_checkflag(widget_focus, ALFI_FLAG_FOCUSABLE))
     {
 
         switch (widget_focus->header.type)
@@ -955,8 +954,8 @@ static void render(GLFWwindow *window)
     {
 
         view_adjust(&view, widget_root->frame.bounds.w, widget_root->frame.bounds.h);
-        call_animate(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, 0.5);
-        call_render(widget_root, &view);
+        widgets_animate(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, 0.5);
+        widgets_render(widget_root, &view);
 
     }
 
@@ -973,7 +972,7 @@ static void precheck(GLFWwindow *window)
     sethover(touch);
 
     if (touch)
-        setcursor(window, call_getcursor(touch, mouse_x, mouse_y));
+        setcursor(window, widgets_getcursor(touch, mouse_x, mouse_y));
 
     if (updatetitle)
     {

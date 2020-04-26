@@ -4,6 +4,7 @@
 #include "style.h"
 #include "url.h"
 #include "resource.h"
+#include "view.h"
 #include "widgets.h"
 #include "parser.h"
 

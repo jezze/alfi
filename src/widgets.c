@@ -4,12 +4,25 @@
 #include "style.h"
 #include "url.h"
 #include "resource.h"
-#include "widgets.h"
 #include "view.h"
-#include "call.h"
+#include "widgets.h"
 #include "pool.h"
 #include "render.h"
 
+struct call
+{
+
+    unsigned int flags;
+    void (*create)(struct widget *widget);
+    void (*destroy)(struct widget *widget);
+    int (*animate)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u);
+    void (*render)(struct widget *widget, struct frame *frame, struct view *view);
+    unsigned int (*setstate)(struct widget *widget, unsigned int state);
+    unsigned int (*getcursor)(struct widget *widget, struct frame *frame, int x, int y);
+
+};
+
+static struct call calls[64];
 static struct resource_font res_font_regular;
 static struct resource_font res_font_bold;
 static struct resource_font res_font_mono;
@@ -649,7 +662,7 @@ static int list_animate(struct widget *widget, struct frame *frame, int x, int y
     while ((child = pool_widget_nextchild(child, widget)))
     {
 
-        int ch = call_animate(child, cx, cy, cw, view, u);
+        int ch = widgets_animate(child, cx, cy, cw, view, u);
 
         if (h < cy + ch - y)
             h = cy + ch - y;
@@ -670,7 +683,7 @@ static void list_render(struct widget *widget, struct frame *frame, struct view 
     while ((child = pool_widget_nextchild(child, widget)))
     {
 
-        call_render(child, view);
+        widgets_render(child, view);
 
         if (child->header.type != ALFI_WIDGET_LIST)
         {
@@ -740,7 +753,7 @@ static int select_animate(struct widget *widget, struct frame *frame, int x, int
     while ((child = pool_widget_nextchild(child, widget)))
     {
 
-        int ch = call_animate(child, x + cx, y + cy, cw, view, u);
+        int ch = widgets_animate(child, x + cx, y + cy, cw, view, u);
 
         cy += ch;
 
@@ -860,7 +873,7 @@ static void select_render(struct widget *widget, struct frame *frame, struct vie
     {
 
         while ((child = pool_widget_nextchild(child, widget)))
-            call_render(child, view);
+            widgets_render(child, view);
 
     }
 
@@ -982,7 +995,7 @@ static int table_animate(struct widget *widget, struct frame *frame, int x, int 
     while ((child = pool_widget_nextchild(child, widget)))
     {
 
-        int ch = call_animate(child, cx, cy, cw, view, u);
+        int ch = widgets_animate(child, cx, cy, cw, view, u);
 
         if (h < cy + ch - y)
             h = cy + ch - y;
@@ -1009,7 +1022,7 @@ static void table_render(struct widget *widget, struct frame *frame, struct view
     struct widget *child = 0;
 
     while ((child = pool_widget_nextchild(child, widget)))
-        call_render(child, view);
+        widgets_render(child, view);
 
 }
 
@@ -1227,7 +1240,7 @@ static int stack_animate(struct widget *widget, struct frame *frame, int x, int 
     while ((child = pool_widget_nextchild(child, widget)))
     {
 
-        int ch = call_animate(child, cx, cy, cw, view, u);
+        int ch = widgets_animate(child, cx, cy, cw, view, u);
 
         if (h < cy + ch - y)
             h = cy + ch - y;
@@ -1246,7 +1259,7 @@ static void stack_render(struct widget *widget, struct frame *frame, struct view
     struct widget *child = 0;
 
     while ((child = pool_widget_nextchild(child, widget)))
-        call_render(child, view);
+        widgets_render(child, view);
 
 }
 
@@ -1296,7 +1309,7 @@ static int window_animate(struct widget *widget, struct frame *frame, int x, int
     while ((child = pool_widget_nextchild(child, widget)))
     {
 
-        int ch = call_animate(child, cx, cy, cw, view, u);
+        int ch = widgets_animate(child, cx, cy, cw, view, u);
 
         if (h < cy + ch + ph - y)
             h = cy + ch + ph - y;
@@ -1315,7 +1328,7 @@ static void window_render(struct widget *widget, struct frame *frame, struct vie
     struct widget *child = 0;
 
     while ((child = pool_widget_nextchild(child, widget)))
-        call_render(child, view);
+        widgets_render(child, view);
 
 }
 
@@ -1330,6 +1343,117 @@ static unsigned int window_getcursor(struct widget *widget, struct frame *frame,
 {
 
     return ALFI_CURSOR_ARROW;
+
+}
+
+unsigned int widgets_checkflag(struct widget *widget, unsigned int flag)
+{
+
+    return calls[widget->header.type].flags & flag;
+
+}
+
+void widgets_create(struct widget *widget)
+{
+
+    calls[widget->header.type].create(widget);
+
+}
+
+void widgets_destroy(struct widget *widget)
+{
+
+    calls[widget->header.type].destroy(widget);
+
+}
+
+static void initframe(struct frame *frame, int x, int y, int w)
+{
+
+    unsigned int i;
+
+    style_box_init(&frame->bounds, x, y, w, 0, 0);
+
+    for (i = 0; i < 8; i++)
+        style_init(&frame->styles[i]);
+
+}
+
+static void tweenframe(struct frame *frame, struct frame *keyframe, float u)
+{
+
+    unsigned int i;
+
+    style_box_tween(&frame->bounds, &keyframe->bounds, u);
+
+    for (i = 0; i < 8; i++)
+        style_tween(&frame->styles[i], &keyframe->styles[i], u);
+
+}
+
+static unsigned int compareframe(struct frame *frame, struct frame *keyframe)
+{
+
+    unsigned int i;
+
+    if (style_box_compare(&frame->bounds, &keyframe->bounds));
+        return 1;
+
+    for (i = 0; i < 8; i++)
+    {
+
+        if (style_compare(&frame->styles[i], &keyframe->styles[i]))
+            return 1;
+
+    }
+
+    return 0;
+
+}
+
+int widgets_animate(struct widget *widget, int x, int y, int w, struct view *view, float u)
+{
+
+    struct frame *frame = &widget->frame;
+    struct frame keyframe;
+
+    initframe(&keyframe, x, y, w);
+
+    keyframe.bounds.h = calls[widget->header.type].animate(widget, &keyframe, x, y, w, view, u);
+
+    if (widget->header.type == ALFI_WIDGET_WINDOW)
+        tweenframe(frame, &keyframe, 1.0);
+    else
+        tweenframe(frame, &keyframe, u);
+
+    frame->animating = compareframe(frame, &keyframe);
+
+    return frame->bounds.h;
+
+}
+
+void widgets_render(struct widget *widget, struct view *view)
+{
+
+    struct frame *frame = &widget->frame;
+
+    calls[widget->header.type].render(widget, frame, view);
+
+}
+
+void widgets_setstate(struct widget *widget, unsigned int state)
+{
+
+    widget->header.state = calls[widget->header.type].setstate(widget, state);
+
+}
+
+unsigned int widgets_getcursor(struct widget *widget, int x, int y)
+{
+
+    struct frame *frame = &widget->frame;
+
+    return calls[widget->header.type].getcursor(widget, frame, x, y);
 
 }
 
@@ -1373,24 +1497,37 @@ void widgets_settheme(unsigned int type)
 
 }
 
+static void setcallback(unsigned int type, unsigned int flags, void (*create)(struct widget *widget), void (*destroy)(struct widget *widget), int (*animate)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u), void (*render)(struct widget *widget, struct frame *frame, struct view *view), unsigned int (*setstate)(struct widget *widget, unsigned int state), unsigned int (*getcursor)(struct widget *widget, struct frame *frame, int x, int y))
+{
+
+    calls[type].flags = flags;
+    calls[type].create = create;
+    calls[type].destroy = destroy;
+    calls[type].animate = animate;
+    calls[type].render = render;
+    calls[type].setstate = setstate;
+    calls[type].getcursor = getcursor;
+
+}
+
 void widgets_setup(void)
 {
 
-    call_register(ALFI_WIDGET_ANCHOR, ALFI_FLAG_NONE, anchor_create, anchor_destroy, anchor_animate, anchor_render, anchor_setstate, anchor_getcursor);
-    call_register(ALFI_WIDGET_BUTTON, ALFI_FLAG_FOCUSABLE, button_create, button_destroy, button_animate, button_render, button_setstate, button_getcursor);
-    call_register(ALFI_WIDGET_CHOICE, ALFI_FLAG_NONE, choice_create, choice_destroy, choice_animate, choice_render, choice_setstate, choice_getcursor);
-    call_register(ALFI_WIDGET_DIVIDER, ALFI_FLAG_NONE, divider_create, divider_destroy, divider_animate, divider_render, divider_setstate, divider_getcursor);
-    call_register(ALFI_WIDGET_FIELD, ALFI_FLAG_FOCUSABLE, field_create, field_destroy, field_animate, field_render, field_setstate, field_getcursor);
-    call_register(ALFI_WIDGET_HEADER, ALFI_FLAG_NONE, header_create, header_destroy, header_animate, header_render, header_setstate, header_getcursor);
-    call_register(ALFI_WIDGET_IMAGE, ALFI_FLAG_NONE, image_create, image_destroy, image_animate, image_render, image_setstate, image_getcursor);
-    call_register(ALFI_WIDGET_LIST, ALFI_FLAG_NONE, list_create, list_destroy, list_animate, list_render, list_setstate, list_getcursor);
-    call_register(ALFI_WIDGET_SELECT, ALFI_FLAG_FOCUSABLE, select_create, select_destroy, select_animate, select_render, select_setstate, select_getcursor);
-    call_register(ALFI_WIDGET_STACK, ALFI_FLAG_NONE, stack_create, stack_destroy, stack_animate, stack_render, stack_setstate, stack_getcursor);
-    call_register(ALFI_WIDGET_SUBHEADER, ALFI_FLAG_NONE, subheader_create, subheader_destroy, subheader_animate, subheader_render, subheader_setstate, subheader_getcursor);
-    call_register(ALFI_WIDGET_TABLE, ALFI_FLAG_NONE, table_create, table_destroy, table_animate, table_render, table_setstate, table_getcursor);
-    call_register(ALFI_WIDGET_TEXT, ALFI_FLAG_NONE, text_create, text_destroy, text_animate, text_render, text_setstate, text_getcursor);
-    call_register(ALFI_WIDGET_TOGGLE, ALFI_FLAG_FOCUSABLE, toggle_create, toggle_destroy, toggle_animate, toggle_render, toggle_setstate, toggle_getcursor);
-    call_register(ALFI_WIDGET_WINDOW, ALFI_FLAG_NONE, window_create, window_destroy, window_animate, window_render, window_setstate, window_getcursor);
+    setcallback(ALFI_WIDGET_ANCHOR, ALFI_FLAG_NONE, anchor_create, anchor_destroy, anchor_animate, anchor_render, anchor_setstate, anchor_getcursor);
+    setcallback(ALFI_WIDGET_BUTTON, ALFI_FLAG_FOCUSABLE, button_create, button_destroy, button_animate, button_render, button_setstate, button_getcursor);
+    setcallback(ALFI_WIDGET_CHOICE, ALFI_FLAG_NONE, choice_create, choice_destroy, choice_animate, choice_render, choice_setstate, choice_getcursor);
+    setcallback(ALFI_WIDGET_DIVIDER, ALFI_FLAG_NONE, divider_create, divider_destroy, divider_animate, divider_render, divider_setstate, divider_getcursor);
+    setcallback(ALFI_WIDGET_FIELD, ALFI_FLAG_FOCUSABLE, field_create, field_destroy, field_animate, field_render, field_setstate, field_getcursor);
+    setcallback(ALFI_WIDGET_HEADER, ALFI_FLAG_NONE, header_create, header_destroy, header_animate, header_render, header_setstate, header_getcursor);
+    setcallback(ALFI_WIDGET_IMAGE, ALFI_FLAG_NONE, image_create, image_destroy, image_animate, image_render, image_setstate, image_getcursor);
+    setcallback(ALFI_WIDGET_LIST, ALFI_FLAG_NONE, list_create, list_destroy, list_animate, list_render, list_setstate, list_getcursor);
+    setcallback(ALFI_WIDGET_SELECT, ALFI_FLAG_FOCUSABLE, select_create, select_destroy, select_animate, select_render, select_setstate, select_getcursor);
+    setcallback(ALFI_WIDGET_STACK, ALFI_FLAG_NONE, stack_create, stack_destroy, stack_animate, stack_render, stack_setstate, stack_getcursor);
+    setcallback(ALFI_WIDGET_SUBHEADER, ALFI_FLAG_NONE, subheader_create, subheader_destroy, subheader_animate, subheader_render, subheader_setstate, subheader_getcursor);
+    setcallback(ALFI_WIDGET_TABLE, ALFI_FLAG_NONE, table_create, table_destroy, table_animate, table_render, table_setstate, table_getcursor);
+    setcallback(ALFI_WIDGET_TEXT, ALFI_FLAG_NONE, text_create, text_destroy, text_animate, text_render, text_setstate, text_getcursor);
+    setcallback(ALFI_WIDGET_TOGGLE, ALFI_FLAG_FOCUSABLE, toggle_create, toggle_destroy, toggle_animate, toggle_render, toggle_setstate, toggle_getcursor);
+    setcallback(ALFI_WIDGET_WINDOW, ALFI_FLAG_NONE, window_create, window_destroy, window_animate, window_render, window_setstate, window_getcursor);
 
 }
 
