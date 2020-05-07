@@ -951,7 +951,7 @@ static void onchar(GLFWwindow *window, unsigned int codepoint)
 
 }
 
-static void render(GLFWwindow *window)
+static void render(void)
 {
 
     render_reset(view.pagew, view.pageh);
@@ -967,7 +967,6 @@ static void render(GLFWwindow *window)
     }
 
     render_flush();
-    glfwSwapBuffers(window);
 
 }
 
@@ -1017,7 +1016,8 @@ static void run(GLFWwindow *window)
 
             glfwPollEvents();
             precheck(window);
-            render(window);
+            render();
+            glfwSwapBuffers(window);
 
             if (!checkanimating())
                 glfwWaitEvents();
@@ -1069,7 +1069,7 @@ int main(int argc, char **argv)
     animation_setupfonts();
     animation_settheme(ANIMATION_THEME_LIGHT);
     create("Navi 0.1");
-    render(window);
+    render();
     loadblank("navi://blank", 0, 0);
     run(window);
     render_destroy();
