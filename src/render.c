@@ -3,7 +3,19 @@
 #include <string.h>
 #include <unistd.h>
 #include <math.h>
+
+#if defined NVG_GL_GLEW
 #include <GL/glew.h>
+#endif
+
+#if defined NVG_GL_VERSION_GLES2
+#include <GLES2/gl2.h>
+#endif
+
+#if defined NVG_GL_VERSION_GLES3
+#include <GLES3/gl3.h>
+#endif
+
 #include "stb_truetype.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
