@@ -977,7 +977,7 @@ static unsigned int compareframe(struct frame *frame, struct frame *keyframe)
 
     unsigned int i;
 
-    if (style_box_compare(&frame->bounds, &keyframe->bounds));
+    if (style_box_compare(&frame->bounds, &keyframe->bounds))
         return 1;
 
     for (i = 0; i < 8; i++)

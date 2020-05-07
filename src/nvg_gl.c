@@ -2,15 +2,22 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+
+#if defined NVG_GL_GLEW
 #include <GL/glew.h>
-#include <GLFW/glfw3.h>
+#endif
+
+#if defined NVG_GL_VERSION_GLES2
+#include <GLES2/gl2.h>
+#endif
+
+#if defined NVG_GL_VERSION_GLES3
+#include <GLES3/gl3.h>
+#endif
+
 #include "nvg.h"
 #include "nvg_gl.h"
 
-#define NVG_GL_VERSION_GL2 1
-#define NVG_GL_VERSION_GL3 0
-#define NVG_GL_VERSION_GLES2 0
-#define NVG_GL_VERSION_GLES3 0
 #define NVG_GL_UNIFORMARRAYSIZE 11
 
 enum nvg_gl_uniformloc

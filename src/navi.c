@@ -2,7 +2,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+
+#if defined NVG_GL_GLEW
 #include <GL/glew.h>
+#endif
+
+#if defined NVG_GL_VERSION_GLES2
+#include <GLES2/gl2.h>
+#endif
+
+#if defined NVG_GL_VERSION_GLES3
+#include <GLES3/gl3.h>
+#endif
+
 #include <GLFW/glfw3.h>
 #include "list.h"
 #include "style.h"
@@ -341,6 +353,18 @@ static void loadblank(char *url, unsigned int count, void *data)
 
     url_merge(info, history_geturl(1), url);
     urlblank(info->url, count, data);
+
+}
+
+static void create(char *title)
+{
+
+    widget_root = parser_create(ALFI_WIDGET_WINDOW, "window", "");
+    widget_main = parser_create(ALFI_WIDGET_STACK, "main", "window");
+
+    widget_root->payload.window.label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, widget_root->payload.window.label.content, title);
+    widget_main->payload.stack.halign.direction = ALFI_HALIGN_LEFT;
+    widget_main->payload.stack.valign.direction = ALFI_VALIGN_TOP;
 
 }
 
@@ -927,18 +951,6 @@ static void onchar(GLFWwindow *window, unsigned int codepoint)
 
 }
 
-static void create(char *title)
-{
-
-    widget_root = parser_create(ALFI_WIDGET_WINDOW, "window", "");
-    widget_main = parser_create(ALFI_WIDGET_STACK, "main", "window");
-
-    widget_root->payload.window.label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, widget_root->payload.window.label.content, title);
-    widget_main->payload.stack.halign.direction = ALFI_HALIGN_LEFT;
-    widget_main->payload.stack.valign.direction = ALFI_VALIGN_TOP;
-
-}
-
 static void render(GLFWwindow *window)
 {
 
@@ -1033,7 +1045,6 @@ int main(int argc, char **argv)
     cursor_ibeam = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
     cursor_hand = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
 
-    view_init(&view, mode->width, mode->height);
     glfwSetWindowSizeCallback(window, onwindowsize);
     glfwSetFramebufferSizeCallback(window, onframebuffersize);
     glfwSetKeyCallback(window, onkey);
@@ -1044,7 +1055,12 @@ int main(int argc, char **argv)
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1);
     glfwSetTime(0);
+
+#ifdef NVG_GL_GLEW
     glewInit();
+#endif
+
+    view_init(&view, mode->width, mode->height);
     render_create();
     parser_init(&parser, parser_fail, pool_widget_find, parser_create, parser_destroy, parser_clear, pool_allocate);
     pool_setup();
