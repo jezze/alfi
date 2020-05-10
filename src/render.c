@@ -259,7 +259,6 @@ static struct resource *getresource(char *url)
             return 0;
 
         resource_init(resource, url);
-        resource_load(resource, 0, 0);
 
     }
 
@@ -275,10 +274,12 @@ struct resource *render_loadfont(char *url)
     if (!resource)
         return 0;
 
+    resource_iref(resource);
+
     if (resource->index)
         return resource;
 
-    resource_iref(resource);
+    resource_load(resource, 0, 0);
 
     resource->index = fons_addfont(&fsctx, resource->data, resource->count);
 
@@ -290,23 +291,26 @@ struct resource *render_loadimage(char *url)
 {
 
     struct resource *resource = getresource(url);
+    unsigned char *data;
 
     if (!resource)
         return 0;
 
+    resource_iref(resource);
+
     if (resource->index)
         return resource;
 
-    resource_iref(resource);
+    resource_load(resource, 0, 0);
 
-    resource->img = stbi_load_from_memory(resource->data, resource->count, &resource->w, &resource->h, &resource->n, 4);
+    data = stbi_load_from_memory(resource->data, resource->count, &resource->w, &resource->h, &resource->n, 4);
 
-    if (resource->img)
+    if (data)
     {
 
-        resource->index = nvg_gl_texture_create(&glctx, NVG_TEXTURE_RGBA, resource->w, resource->h, 0, resource->img);
+        resource->index = nvg_gl_texture_create(&glctx, NVG_TEXTURE_RGBA, resource->w, resource->h, 0, data);
 
-        stbi_image_free(resource->img);
+        stbi_image_free(data);
 
     }
 

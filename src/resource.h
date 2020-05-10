@@ -10,7 +10,6 @@ struct resource
     unsigned int count;
     unsigned int refcount;
     int index;
-    unsigned char *img;
     int w;
     int h;
     int n;
