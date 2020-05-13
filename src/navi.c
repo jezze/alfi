@@ -139,25 +139,6 @@ static unsigned int builddata(char *buffer, unsigned int count)
 
 }
 
-static unsigned int checkanimating(void)
-{
-
-    struct widget *widget = 0;
-
-    while ((widget = pool_widget_next(widget)))
-    {
-
-        struct frame *frame = &widget->frame;
-
-        if (frame->animating)
-            return 1;
-
-    }
-
-    return 0;
-
-}
-
 static struct widget *findtouchingwidget(struct widget *widget, float x, float y)
 {
 
@@ -951,25 +932,6 @@ static void onchar(GLFWwindow *window, unsigned int codepoint)
 
 }
 
-static void render(float u)
-{
-
-    render_reset(view.pagew, view.pageh);
-    render_background(view.pagew, view.pageh, &widget_root->frame.styles[0].color);
-
-    if (widget_root)
-    {
-
-        view_adjust(&view, widget_root->frame.bounds.w, widget_root->frame.bounds.h);
-        animation_step(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, u);
-        animation_render(widget_root, &view);
-
-    }
-
-    render_flush();
-
-}
-
 static void checkhover(GLFWwindow *window)
 {
 
@@ -993,6 +955,44 @@ static void checktitle(GLFWwindow *window)
         updatetitle = 0;
 
     }
+
+}
+
+static unsigned int checkanimating(void)
+{
+
+    struct widget *widget = 0;
+
+    while ((widget = pool_widget_next(widget)))
+    {
+
+        struct frame *frame = &widget->frame;
+
+        if (frame->animating)
+            return 1;
+
+    }
+
+    return 0;
+
+}
+
+static void render(float u)
+{
+
+    render_reset(view.pagew, view.pageh);
+    render_background(view.pagew, view.pageh, &widget_root->frame.styles[0].color);
+
+    if (widget_root)
+    {
+
+        view_adjust(&view, widget_root->frame.bounds.w, widget_root->frame.bounds.h);
+        animation_step(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, u);
+        animation_render(widget_root, &view);
+
+    }
+
+    render_flush();
 
 }
 
