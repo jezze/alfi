@@ -23,7 +23,7 @@
 + toggle id toggle1 label "Toggle 1"
 + toggle id toggle2 label "Toggle 2" mode "on"
 + toggle id toggle3 label "Toggle 3"
-+ table id buttonrow grid "02:02"
++ table id buttonrow grid "04"
 + button id submit in buttonrow label "SEND" mode "on"
 + button id cancel in buttonrow label "CANCEL"
 
