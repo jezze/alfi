@@ -970,7 +970,7 @@ static void render(float u)
 
 }
 
-static void precheck(GLFWwindow *window)
+static void checkhover(GLFWwindow *window)
 {
 
     struct widget *touch = findtouchingwidget(widget_root, mouse_x, mouse_y);
@@ -979,6 +979,11 @@ static void precheck(GLFWwindow *window)
 
     if (touch)
         setcursor(window, animation_getcursor(touch, mouse_x, mouse_y));
+
+}
+
+static void checktitle(GLFWwindow *window)
+{
 
     if (updatetitle)
     {
@@ -1015,7 +1020,8 @@ static void run(GLFWwindow *window)
         {
 
             glfwPollEvents();
-            precheck(window);
+            checkhover(window);
+            checktitle(window);
             render(0.5);
             glfwSwapBuffers(window);
 
