@@ -139,9 +139,10 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
         char buffer[4096];
         static char *fmt =
             "= window label \"Lookup address\"\n"
-            "+ header label \"Lookup address\"\n"
-            "+ field id \"url\" label \"URL\" data \"%s\"\n"
-            "+ button label \"Lookup\" link \"navi://lookup\" \"text/alfi\" mode \"on\"\n"
+            "+ subheader label \"Lookup address\"\n"
+            "+ table id bar grid \"10:02\"\n"
+            "+ field id \"url\" in bar label \"URL\" data \"%s\"\n"
+            "+ button in bar label \"Lookup\" link \"navi://lookup\" \"text/alfi\" mode \"on\"\n"
             "+ subheader label \"Quick links\"\n"
             "+ anchor label \"blunder.se\" link \"http://www.blunder.se/\" \"text/alfi\"\n"
             "+ anchor label \"example\" link \"file:///usr/share/navi/example.alfi\" \"text/alfi\"\n";
@@ -161,7 +162,7 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
         char buffer[4096];
         static char *fmt =
             "= window label \"Internal error\"\n"
-            "+ header label \"Internal error\"\n"
+            "+ subheader label \"Internal error\"\n"
             "+ text label \"An internal error occured.\"\n";
 
         resource->count = sprintf(buffer, fmt);

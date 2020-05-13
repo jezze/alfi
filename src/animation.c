@@ -31,6 +31,150 @@ static struct style_color color_focus;
 static struct style_color color_focustext;
 static struct style_color color_line;
 
+static unsigned int gridfmt_size(char *format)
+{
+
+    unsigned int length = strlen(format);
+    unsigned int size = 0;
+    unsigned int i;
+
+    for (i = 0; i < length; i++)
+    {
+
+        if (format[i] == ':')
+            size++;
+
+    }
+
+    return size + 1;
+
+}
+
+static unsigned int gridfmt_colcopy(char *coldata, char *format)
+{
+
+    unsigned int length = strlen(format);
+    unsigned int i;
+
+    for (i = 0; i < length; i++)
+    {
+
+        if (format[i] == ':')
+            break;
+
+        coldata[i] = format[i];
+
+    }
+
+    coldata[i] = '\0';
+
+    return i;
+
+}
+
+static unsigned int gridfmt_coldata(char *coldata, unsigned int colindex, char *format)
+{
+
+    unsigned int length = strlen(format);
+    unsigned int i;
+
+    if (!colindex)
+        return gridfmt_colcopy(coldata, format);
+
+    for (i = 0; i < length; i++)
+    {
+
+        if (format[i] == ':')
+        {
+
+            if (!--colindex)
+                return gridfmt_colcopy(coldata, format + i + 1);
+
+        }
+
+    }
+
+    return 0;
+
+}
+
+static int gridfmt_colsize(char *format, unsigned int colindex)
+{
+
+    char coldata[8];
+    unsigned int count = gridfmt_coldata(coldata, colindex, format);
+    unsigned int csize = 12;
+
+    if (count >= 2)
+        csize = 10 * (coldata[0] - '0') + (coldata[1] - '0');
+
+    if (csize > 12)
+        csize = 12;
+
+    return csize;
+
+}
+
+/*
+static int gridfmt_colhalign(char *format, unsigned int colindex)
+{
+
+    char *coldata[8];
+    unsigned int count = gridfmt_gridcolstring(coldata, colindex, format);
+
+    if (count >= 3)
+    {
+
+        switch (coldata[2])
+        {
+
+        case 'L':
+            return ALFI_HALIGN_LEFT;
+
+        case 'R':
+            return ALFI_HALIGN_RIGHT;
+
+        case 'C':
+            return ALFI_HALIGN_CENTER;
+
+        }
+
+    }
+
+    return ALFI_HALIGN_LEFT;
+
+}
+
+static int gridfmt_colvalign(char *format, unsigned int colindex)
+{
+
+    char *coldata[8];
+    unsigned int count = gridfmt_gridcolstring(coldata, colindex, format);
+
+    if (count >= 4)
+    {
+
+        switch (coldata[3])
+        {
+
+        case 'T':
+            return ALFI_VALIGN_TOP;
+
+        case 'B':
+            return ALFI_VALIGN_BOTTOM;
+
+        case 'M':
+            return ALFI_VALIGN_MIDDLE;
+
+        }
+
+    }
+
+    return ALFI_VALIGN_TOP;
+
+}
+*/
+
 static int anchor_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
@@ -697,15 +841,18 @@ static int table_step(struct widget *widget, struct frame *frame, int x, int y, 
 {
 
     struct payload_table *payload = &widget->payload.table;
+    int gsize = gridfmt_size(payload->grid.format);
     struct widget *child = 0;
+    unsigned int i;
     int cx = x;
     int cy = y;
-    int cw = view->unitw * payload->grid.csize * 2;
     int h = 0;
 
-    while ((child = pool_widget_nextchild(child, widget)))
+    for (i = 0; (child = pool_widget_nextchild(child, widget)); i++)
     {
 
+        int csize = gridfmt_colsize(payload->grid.format, i % gsize);
+        int cw = csize * view->unitw * 2;
         int ch = animation_step(child, cx, cy, cw, view, u);
 
         if (h < cy + ch - y)

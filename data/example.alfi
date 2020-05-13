@@ -23,8 +23,9 @@
 + toggle id toggle1 label "Toggle 1"
 + toggle id toggle2 label "Toggle 2" mode "on"
 + toggle id toggle3 label "Toggle 3"
-+ button id submit label "SEND" mode "on"
-+ button id cancel label "CANCEL"
++ table id buttonrow grid "02:02"
++ button id submit in buttonrow label "SEND" mode "on"
++ button id cancel in buttonrow label "CANCEL"
 
 # Two nested lists
 + list id list1
@@ -38,7 +39,7 @@
 + anchor label "This is a link" link "http://www.blunder.se/" "text/alfi"
 
 # A row of images
-+ table id gallery grid 2
++ table id gallery grid "02:04"
 + image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
 + image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
 + image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
@@ -52,7 +53,7 @@
 + divider label "There is a table below"
 
 # A table
-+ table id table1 grid 3
++ table id table1 grid "03"
 + text in table1 label "Cell 0-0"
 + text in table1 label "Cell 0-1"
 + text in table1 label "Cell 0-2 containing a lot of extra text"

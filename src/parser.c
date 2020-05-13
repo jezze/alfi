@@ -387,7 +387,7 @@ static void parse_attribute_data(struct parser *parser, struct attribute_data *a
 static void parse_attribute_grid(struct parser *parser, struct attribute_grid *attribute)
 {
 
-    attribute->csize = parseuint(parser, 10);
+    attribute->format = parsestring(parser, ALFI_ATTRIBUTE_GRID, attribute->format);
 
 }
 

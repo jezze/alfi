@@ -73,7 +73,7 @@ struct attribute_data
 struct attribute_grid
 {
 
-    unsigned int csize;
+    char *format;
 
 };
 

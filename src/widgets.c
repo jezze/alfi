@@ -304,10 +304,18 @@ static unsigned int subheader_setstate(struct widget *widget, unsigned int state
 static void table_create(struct widget *widget)
 {
 
+    struct payload_table *payload = &widget->payload.table;
+
+    payload->grid.format = pool_string_create(ALFI_ATTRIBUTE_GRID, payload->grid.format, "12LT");
+
 }
 
 static void table_destroy(struct widget *widget)
 {
+
+    struct payload_table *payload = &widget->payload.table;
+
+    payload->grid.format = pool_string_destroy(ALFI_ATTRIBUTE_GRID, payload->grid.format);
 
 }
 
