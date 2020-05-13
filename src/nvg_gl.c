@@ -159,7 +159,6 @@ static void xformtomat3x4(float *m3, float *t)
 static int convertpaint(struct nvg_gl_context *glctx, struct nvg_gl_fraguniforms *frag, struct nvg_paint *paint, struct nvg_scissor *scissor)
 {
 
-    struct nvg_gl_texture *tex = 0;
     float invxform[6];
 
     memset(frag, 0, sizeof (struct nvg_gl_fraguniforms));
@@ -197,7 +196,7 @@ static int convertpaint(struct nvg_gl_context *glctx, struct nvg_gl_fraguniforms
     if (paint->image != 0)
     {
 
-        tex = nvg_gl_findtexture(glctx, paint->image);
+        struct nvg_gl_texture *tex = nvg_gl_findtexture(glctx, paint->image);
 
         if (!tex)
             return 0;
@@ -326,7 +325,7 @@ void nvg_gl_flush(struct nvg_gl_context *glctx)
         {
 
             struct nvg_gl_path *paths = &glctx->paths[call->pathoffset];
-            int j;
+            unsigned int j;
 
             glEnable(GL_STENCIL_TEST);
             glStencilMask(0xff);
@@ -354,7 +353,7 @@ void nvg_gl_flush(struct nvg_gl_context *glctx)
         {
 
             struct nvg_gl_path *paths = &glctx->paths[call->pathoffset];
-            int j;
+            unsigned int j;
 
             setuniforms(glctx, call->uniformoffset, call->image);
 
@@ -389,7 +388,7 @@ static int maxvertcount(const struct nvg_path *paths, int npaths)
 {
 
     int count = 0;
-    int i;
+    unsigned int i;
 
     for (i = 0; i < npaths; i++)
         count += paths[i].nfill;
@@ -507,9 +506,8 @@ void nvg_gl_render_paths(struct nvg_gl_context *glctx, struct nvg_paint *paint, 
 {
 
     struct nvg_gl_call *call = alloccall(glctx);
-    struct nvg_vertex *quad;
-    struct nvg_gl_fraguniforms *frag;
-    int i, maxverts, offset;
+    int maxverts, offset;
+    unsigned int i;
 
     if (!call)
         return;
@@ -563,6 +561,9 @@ void nvg_gl_render_paths(struct nvg_gl_context *glctx, struct nvg_paint *paint, 
 
     if (call->type == NVG_GL_FILL)
     {
+
+        struct nvg_vertex *quad;
+        struct nvg_gl_fraguniforms *frag;
 
         call->triangleoffset = offset;
         quad = &glctx->verts[call->triangleoffset];
@@ -981,7 +982,7 @@ void nvg_gl_create(struct nvg_gl_context *glctx, int w, int h)
 void nvg_gl_destroy(struct nvg_gl_context *glctx)
 {
 
-    int i;
+    unsigned int i;
 
     nvg_gl_texture_destroy(glctx, glctx->fontimage);
 

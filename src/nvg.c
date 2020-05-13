@@ -164,16 +164,15 @@ void nvg_paint_boxgradient(struct nvg_paint *paint, float x, float y, float w, f
 void nvg_paint_lineargradient(struct nvg_paint *paint, float sx, float sy, float ex, float ey, struct nvg_color icol, struct nvg_color ocol)
 {
 
-    float dx, dy, d;
+    float dx = ex - sx;
+    float dy = ey - sy;
+    float d = sqrtf(dx * dx + dy * dy);
     const float large = 1e5;
 
-    memset(paint, 0, sizeof (struct nvg_paint));
-
-    dx = ex - sx;
-    dy = ey - sy;
-    d = sqrtf(dx * dx + dy * dy);
     dx /= d;
     dy /= d;
+
+    memset(paint, 0, sizeof (struct nvg_paint));
 
     paint->xform[0] = dy;
     paint->xform[1] = -dx;
@@ -326,7 +325,7 @@ void nvg_xform_inverse(float *t, const float *s)
 {
 
     double det = (double)s[0] * s[3] - (double)s[2] * s[1];
-    double invdet;
+    double invdet = 1.0 / det;
 
     if (det > -1e-6 && det < 1e-6)
     {
@@ -337,7 +336,6 @@ void nvg_xform_inverse(float *t, const float *s)
 
     }
 
-    invdet = 1.0 / det;
     t[0] = (float)(s[3] * invdet);
     t[2] = (float)(-s[2] * invdet);
     t[4] = (float)(((double)s[2] * s[5] - (double)s[3] * s[4]) * invdet);
@@ -455,9 +453,9 @@ static int pointequals(float x1, float y1, float x2, float y2, float tol)
 static void appendcommand(struct nvg_context *ctx, float *vals, int nvals)
 {
 
-    int i = 0;
+    unsigned int i;
 
-    while (i < nvals)
+    for (i = 0; i < nvals;)
     {
 
         int cmd = (int)vals[i];
@@ -614,7 +612,7 @@ static float polyarea(struct nvg_point *pts, int npts)
 {
 
     float area = 0;
-    int i;
+    unsigned int i;
 
     for (i = 2; i < npts; i++)
     {
@@ -635,15 +633,15 @@ static void polyreverse(struct nvg_point *pts, int npts)
 {
 
     struct nvg_point tmp;
-    int i = 0, j = npts - 1;
+    unsigned int j = npts - 1;
+    unsigned int i;
 
-    while (i < j)
+    for (i = 0; i < j; i++)
     {
 
         tmp = pts[i];
         pts[i] = pts[j];
         pts[j] = tmp;
-        i++;
         j--;
 
     }
@@ -694,26 +692,17 @@ static void tesselatebezier(struct nvg_context *ctx, float x1, float y1, float x
 void nvg_flatten(struct nvg_context *ctx)
 {
 
-    struct nvg_point *last;
-    struct nvg_point *p0;
-    struct nvg_point *p1;
-    struct nvg_point *pts;
-    struct nvg_path *path;
-    float *cp1;
-    float *cp2;
-    float *p;
-    float area;
-    int i, j;
+    unsigned int i;
 
     if (ctx->npaths > 0)
         return;
 
-    i = 0;
-
-    while (i < ctx->ncommands)
+    for (i = 0; i < ctx->ncommands;)
     {
 
         int cmd = (int)ctx->commands[i];
+        struct nvg_point *last;
+        float *p;
 
         switch (cmd)
         {
@@ -744,8 +733,9 @@ void nvg_flatten(struct nvg_context *ctx)
             if (last)
             {
 
-                cp1 = &ctx->commands[i + 1];
-                cp2 = &ctx->commands[i + 3];
+                float *cp1 = &ctx->commands[i + 1];
+                float *cp2 = &ctx->commands[i + 3];
+
                 p = &ctx->commands[i + 5];
 
                 tesselatebezier(ctx, last->x, last->y, cp1[0], cp1[1], cp2[0], cp2[1], p[0], p[1], 0);
@@ -780,13 +770,14 @@ void nvg_flatten(struct nvg_context *ctx)
     ctx->bounds[0] = ctx->bounds[1] = 1e6f;
     ctx->bounds[2] = ctx->bounds[3] = -1e6f;
 
-    for (j = 0; j < ctx->npaths; j++)
+    for (i = 0; i < ctx->npaths; i++)
     {
 
-        path = &ctx->paths[j];
-        pts = &ctx->points[path->first];
-        p0 = &pts[path->count - 1];
-        p1 = &pts[0];
+        struct nvg_path *path = &ctx->paths[i];
+        struct nvg_point *pts = &ctx->points[path->first];
+        struct nvg_point *p0 = &pts[path->count - 1];
+        struct nvg_point *p1 = &pts[0];
+        unsigned int j;
 
         if (pointequals(p0->x, p0->y, p1->x, p1->y, NVG_DISTTOL))
         {
@@ -800,7 +791,7 @@ void nvg_flatten(struct nvg_context *ctx)
         if (path->count > 2)
         {
 
-            area = polyarea(pts, path->count);
+            float area = polyarea(pts, path->count);
 
             if (path->winding == NVG_CCW && area < 0.0f)
                 polyreverse(pts, path->count);
@@ -810,7 +801,7 @@ void nvg_flatten(struct nvg_context *ctx)
 
         }
 
-        for (i = 0; i < path->count; i++)
+        for (j = 0; j < path->count; j++)
         {
 
             p0->dx = p1->x - p0->x;
@@ -832,19 +823,19 @@ void nvg_expand(struct nvg_context *ctx)
 {
 
     struct nvg_vertex *verts = ctx->verts;
-    struct nvg_vertex *dst;
-    int i, j;
+    unsigned int i;
 
     for (i = 0; i < ctx->npaths; i++)
     {
 
         struct nvg_path *path = &ctx->paths[i];
         struct nvg_point *pts = &ctx->points[path->first];
+        struct nvg_vertex *dst = verts;
+        unsigned int j;
 
-        dst = verts;
         path->fill = dst;
 
-        for (j = 0; j < path->count; ++j)
+        for (j = 0; j < path->count; j++)
             nvg_setvertex(dst++, pts[j].x, pts[j].y, 0.5f, 1);
 
         path->nfill = (int)(dst - verts);
