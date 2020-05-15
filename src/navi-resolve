@@ -66,7 +66,7 @@ resolve_file() {
         echo "= window label \"Index of $path\""
         echo "+ header label \"Index of $path\""
         echo "+ divider"
-        echo "+ table id table1 grid 4 0"
+        echo "+ table id table1 grid \"06:02:04\""
         echo "+ subheader in table1 label \"Name\""
         echo "+ subheader in table1 label \"Size\""
         echo "+ subheader in table1 label \"Modified\""
@@ -94,7 +94,15 @@ resolve_file() {
             modified=$(stat --printf="%Y" "$entry")
             modified=$(date -d @$modified)
 
-            echo "+ text in table1 label \"$name\""
+            case "$name" in
+            *.alfi)
+                echo "+ anchor in table1 label \"$name\" link \"file://$entry\" \"text/alfi\""
+                ;;
+            *)
+                echo "+ text in table1 label \"$name\""
+                ;;
+            esac
+
             echo "+ text in table1 label \"$size\""
             echo "+ text in table1 label \"$modified\""
         done
