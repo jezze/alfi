@@ -172,6 +172,45 @@ static unsigned int choice_getcursor(struct widget *widget, struct frame *frame,
 
 }
 
+static int code_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+{
+
+    struct payload_code *payload = &widget->payload.code;
+    struct style *text = &frame->styles[0];
+
+    style_font_init(&text->font, font_mono->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&text->color, &color_text);
+    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_shrink(&text->box, view->marginw, view->marginh);
+    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+
+    return text->box.h + view->marginh * 2;
+
+}
+
+static void code_render(struct widget *widget, struct frame *frame, struct view *view)
+{
+
+    struct payload_code *payload = &widget->payload.code;
+    struct style *text = &frame->styles[0];
+
+    if (strlen(payload->label.content))
+        render_filltext(text, payload->label.content);
+
+}
+
+static unsigned int code_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+{
+
+    struct style *text = &frame->styles[0];
+
+    if (style_box_istouching(&text->box, x, y))
+        return ANIMATION_CURSOR_IBEAM;
+    else
+        return ANIMATION_CURSOR_ARROW;
+
+}
+
 static int divider_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
@@ -1093,6 +1132,7 @@ void animation_setup(void)
     setcallback(ALFI_WIDGET_ANCHOR, anchor_step, anchor_render, anchor_getcursor);
     setcallback(ALFI_WIDGET_BUTTON, button_step, button_render, button_getcursor);
     setcallback(ALFI_WIDGET_CHOICE, choice_step, choice_render, choice_getcursor);
+    setcallback(ALFI_WIDGET_CODE, code_step, code_render, code_getcursor);
     setcallback(ALFI_WIDGET_DIVIDER, divider_step, divider_render, divider_getcursor);
     setcallback(ALFI_WIDGET_FIELD, field_step, field_render, field_getcursor);
     setcallback(ALFI_WIDGET_HEADER, header_step, header_render, header_getcursor);

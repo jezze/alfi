@@ -8,21 +8,22 @@
 #define ALFI_WIDGET_AUDIO               2
 #define ALFI_WIDGET_BUTTON              3
 #define ALFI_WIDGET_CHOICE              4
-#define ALFI_WIDGET_DATETIME            5
-#define ALFI_WIDGET_DIVIDER             6
-#define ALFI_WIDGET_FIELD               7
-#define ALFI_WIDGET_HEADER              8
-#define ALFI_WIDGET_IMAGE               9
-#define ALFI_WIDGET_LIST                10
-#define ALFI_WIDGET_MAP                 11
-#define ALFI_WIDGET_SELECT              12
-#define ALFI_WIDGET_STACK               13
-#define ALFI_WIDGET_SUBHEADER           14
-#define ALFI_WIDGET_TABLE               15
-#define ALFI_WIDGET_TEXT                16
-#define ALFI_WIDGET_TOGGLE              17
-#define ALFI_WIDGET_VIDEO               18
-#define ALFI_WIDGET_WINDOW              19
+#define ALFI_WIDGET_CODE                5
+#define ALFI_WIDGET_DATETIME            6
+#define ALFI_WIDGET_DIVIDER             7
+#define ALFI_WIDGET_FIELD               8
+#define ALFI_WIDGET_HEADER              9
+#define ALFI_WIDGET_IMAGE               10
+#define ALFI_WIDGET_LIST                11
+#define ALFI_WIDGET_MAP                 12
+#define ALFI_WIDGET_SELECT              13
+#define ALFI_WIDGET_STACK               14
+#define ALFI_WIDGET_SUBHEADER           15
+#define ALFI_WIDGET_TABLE               16
+#define ALFI_WIDGET_TEXT                17
+#define ALFI_WIDGET_TOGGLE              18
+#define ALFI_WIDGET_VIDEO               19
+#define ALFI_WIDGET_WINDOW              20
 #define ALFI_ATTRIBUTE_NONE             0
 #define ALFI_ATTRIBUTE_DATA             1
 #define ALFI_ATTRIBUTE_GRID             2
@@ -201,6 +202,13 @@ struct payload_choice
 
 };
 
+struct payload_code
+{
+
+    struct attribute_label label;
+
+};
+
 struct payload_divider
 {
 
@@ -307,6 +315,7 @@ union payload
     struct payload_audio audio;
     struct payload_button button;
     struct payload_choice choice;
+    struct payload_code code;
     struct payload_divider divider;
     struct payload_field field;
     struct payload_header header;

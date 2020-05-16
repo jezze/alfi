@@ -114,6 +114,31 @@ static unsigned int choice_setstate(struct widget *widget, unsigned int state)
 
 }
 
+static void code_create(struct widget *widget)
+{
+
+    struct payload_code *payload = &widget->payload.code;
+
+    payload->label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, payload->label.content, "");
+
+}
+
+static void code_destroy(struct widget *widget)
+{
+
+    struct payload_code *payload = &widget->payload.code;
+
+    payload->label.content = pool_string_destroy(ALFI_ATTRIBUTE_LABEL, payload->label.content);
+
+}
+
+static unsigned int code_setstate(struct widget *widget, unsigned int state)
+{
+
+    return state;
+
+}
+
 static void divider_create(struct widget *widget)
 {
 
@@ -493,6 +518,7 @@ void widgets_setup(void)
     setcallback(ALFI_WIDGET_ANCHOR, ALFI_FLAG_NONE, anchor_create, anchor_destroy, anchor_setstate);
     setcallback(ALFI_WIDGET_BUTTON, ALFI_FLAG_FOCUSABLE, button_create, button_destroy, button_setstate);
     setcallback(ALFI_WIDGET_CHOICE, ALFI_FLAG_NONE, choice_create, choice_destroy, choice_setstate);
+    setcallback(ALFI_WIDGET_CODE, ALFI_FLAG_NONE, code_create, code_destroy, code_setstate);
     setcallback(ALFI_WIDGET_DIVIDER, ALFI_FLAG_NONE, divider_create, divider_destroy, divider_setstate);
     setcallback(ALFI_WIDGET_FIELD, ALFI_FLAG_FOCUSABLE, field_create, field_destroy, field_setstate);
     setcallback(ALFI_WIDGET_HEADER, ALFI_FLAG_NONE, header_create, header_destroy, header_setstate);

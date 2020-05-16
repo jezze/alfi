@@ -357,6 +357,7 @@ static unsigned int getwidget(struct parser *parser)
         {ALFI_WIDGET_ANCHOR, "anchor"},
         {ALFI_WIDGET_BUTTON, "button"},
         {ALFI_WIDGET_CHOICE, "choice"},
+        {ALFI_WIDGET_CODE, "code"},
         {ALFI_WIDGET_DIVIDER, "divider"},
         {ALFI_WIDGET_FIELD, "field"},
         {ALFI_WIDGET_HEADER, "header"},
@@ -371,7 +372,7 @@ static unsigned int getwidget(struct parser *parser)
         {ALFI_WIDGET_WINDOW, "window"}
     };
 
-    return parsetoken(parser, items, 15);
+    return parsetoken(parser, items, 16);
 
 }
 
@@ -596,6 +597,41 @@ static void parse_payload_choice(struct parser *parser, struct header *header, s
 
         case ALFI_ATTRIBUTE_MODE:
             parse_attribute_mode(parser, &payload->mode);
+
+            break;
+
+        default:
+            parser->fail();
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_payload_code(struct parser *parser, struct header *header, struct payload_code *payload)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ALFI_ATTRIBUTE_ID:
+            parse_attribute_id(parser, &header->id);
+
+            break;
+
+        case ALFI_ATTRIBUTE_IN:
+            parse_attribute_in(parser, &header->in);
+
+            break;
+
+        case ALFI_ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &payload->label);
 
             break;
 
@@ -1073,6 +1109,11 @@ static void parse_payload(struct parser *parser, struct header *header, union pa
 
     case ALFI_WIDGET_CHOICE:
         parse_payload_choice(parser, header, &payload->choice);
+
+        break;
+
+    case ALFI_WIDGET_CODE:
+        parse_payload_code(parser, header, &payload->code);
 
         break;
 
