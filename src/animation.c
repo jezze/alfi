@@ -404,18 +404,21 @@ static int image_step(struct widget *widget, struct frame *frame, int x, int y, 
     struct payload_image *payload = &widget->payload.image;
     struct resource *resource = pool_resource_find(payload->link.url);
     struct style *surface = &frame->styles[0];
+    float ratio;
 
     if (!resource)
         return 0;
 
-    /* This is if you want to scale with an aspect ration
-    float ratio = (float)w / (float)resource->w;
+    ratio = (float)w / (float)resource->w;
+
     style_box_init(&surface->box, x, y, resource->w * ratio, resource->h * ratio, 0);
     style_box_shrink(&surface->box, view->marginw, view->marginh);
-    */
 
+    /* Fixed size */
+    /*
     style_box_init(&surface->box, x, y, resource->w, resource->h, 0);
     style_box_translate(&surface->box, view->marginw, view->marginh);
+    */
 
     return surface->box.h + view->marginh * 2;
 
