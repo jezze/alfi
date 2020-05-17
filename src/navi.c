@@ -341,11 +341,9 @@ static void create(char *title)
 {
 
     widget_root = parser_create(ALFI_WIDGET_WINDOW, "window", "");
-    widget_main = parser_create(ALFI_WIDGET_STACK, "main", "window");
+    widget_main = parser_create(ALFI_WIDGET_TABLE, "main", "window");
 
     widget_root->payload.window.label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, widget_root->payload.window.label.content, title);
-    widget_main->payload.stack.halign.direction = ALFI_HALIGN_LEFT;
-    widget_main->payload.stack.valign.direction = ALFI_VALIGN_TOP;
 
 }
 

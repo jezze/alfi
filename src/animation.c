@@ -908,48 +908,6 @@ static unsigned int toggle_getcursor(struct widget *widget, struct frame *frame,
 
 }
 
-static int stack_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
-{
-
-    struct widget *child = 0;
-    int cx = x;
-    int cy = y;
-    int cw = w;
-    int h = 0;
-
-    while ((child = pool_widget_nextchild(child, widget)))
-    {
-
-        int ch = animation_step(child, cx, cy, cw, view, u);
-
-        if (h < cy + ch - y)
-            h = cy + ch - y;
-
-        cy += ch;
-
-    }
-
-    return h;
-
-}
-
-static void stack_render(struct widget *widget, struct frame *frame, struct view *view)
-{
-
-    struct widget *child = 0;
-
-    while ((child = pool_widget_nextchild(child, widget)))
-        animation_render(child, view);
-
-}
-
-static unsigned int stack_getcursor(struct widget *widget, struct frame *frame, int x, int y)
-{
-
-    return ANIMATION_CURSOR_ARROW;
-
-}
-
 static int window_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
@@ -1139,7 +1097,6 @@ void animation_setup(void)
     setcallback(ALFI_WIDGET_IMAGE, image_step, image_render, image_getcursor);
     setcallback(ALFI_WIDGET_LIST, list_step, list_render, list_getcursor);
     setcallback(ALFI_WIDGET_SELECT, select_step, select_render, select_getcursor);
-    setcallback(ALFI_WIDGET_STACK, stack_step, stack_render, stack_getcursor);
     setcallback(ALFI_WIDGET_SUBHEADER, subheader_step, subheader_render, subheader_getcursor);
     setcallback(ALFI_WIDGET_TABLE, table_step, table_render, table_getcursor);
     setcallback(ALFI_WIDGET_TEXT, text_step, text_render, text_getcursor);

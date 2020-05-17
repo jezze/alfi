@@ -16,8 +16,8 @@
 #define ALFI_WIDGET_IMAGE               10
 #define ALFI_WIDGET_LIST                11
 #define ALFI_WIDGET_MAP                 12
-#define ALFI_WIDGET_SELECT              13
-#define ALFI_WIDGET_STACK               14
+#define ALFI_WIDGET_RICHTEXT            13
+#define ALFI_WIDGET_SELECT              14
 #define ALFI_WIDGET_SUBHEADER           15
 #define ALFI_WIDGET_TABLE               16
 #define ALFI_WIDGET_TEXT                17
@@ -300,14 +300,6 @@ struct payload_video
 
 };
 
-struct payload_stack
-{
-
-    struct attribute_halign halign;
-    struct attribute_valign valign;
-
-};
-
 union payload
 {
 
@@ -327,7 +319,6 @@ union payload
     struct payload_text text;
     struct payload_toggle toggle;
     struct payload_video video;
-    struct payload_stack stack;
     struct payload_window window;
 
 };

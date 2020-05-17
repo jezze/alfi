@@ -411,23 +411,6 @@ static unsigned int toggle_setstate(struct widget *widget, unsigned int state)
 
 }
 
-static void stack_create(struct widget *widget)
-{
-
-}
-
-static void stack_destroy(struct widget *widget)
-{
-
-}
-
-static unsigned int stack_setstate(struct widget *widget, unsigned int state)
-{
-
-    return state;
-
-}
-
 static void window_create(struct widget *widget)
 {
 
@@ -525,7 +508,6 @@ void widgets_setup(void)
     setcallback(ALFI_WIDGET_IMAGE, ALFI_FLAG_NONE, image_create, image_destroy, image_setstate);
     setcallback(ALFI_WIDGET_LIST, ALFI_FLAG_NONE, list_create, list_destroy, list_setstate);
     setcallback(ALFI_WIDGET_SELECT, ALFI_FLAG_FOCUSABLE, select_create, select_destroy, select_setstate);
-    setcallback(ALFI_WIDGET_STACK, ALFI_FLAG_NONE, stack_create, stack_destroy, stack_setstate);
     setcallback(ALFI_WIDGET_SUBHEADER, ALFI_FLAG_NONE, subheader_create, subheader_destroy, subheader_setstate);
     setcallback(ALFI_WIDGET_TABLE, ALFI_FLAG_NONE, table_create, table_destroy, table_setstate);
     setcallback(ALFI_WIDGET_TEXT, ALFI_FLAG_NONE, text_create, text_destroy, text_setstate);

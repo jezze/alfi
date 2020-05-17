@@ -243,7 +243,6 @@ static unsigned int getattribute(struct parser *parser)
         {ALFI_ATTRIBUTE_NONE, ""},
         {ALFI_ATTRIBUTE_DATA, "data"},
         {ALFI_ATTRIBUTE_GRID, "grid"},
-        {ALFI_ATTRIBUTE_HALIGN, "halign"},
         {ALFI_ATTRIBUTE_ICON, "icon"},
         {ALFI_ATTRIBUTE_ID, "id"},
         {ALFI_ATTRIBUTE_IN, "in"},
@@ -252,11 +251,10 @@ static unsigned int getattribute(struct parser *parser)
         {ALFI_ATTRIBUTE_MODE, "mode"},
         {ALFI_ATTRIBUTE_RANGE, "range"},
         {ALFI_ATTRIBUTE_TARGET, "target"},
-        {ALFI_ATTRIBUTE_TYPE, "type"},
-        {ALFI_ATTRIBUTE_VALIGN, "valign"}
+        {ALFI_ATTRIBUTE_TYPE, "type"}
     };
 
-    return parsetoken(parser, items, 14);
+    return parsetoken(parser, items, 12);
 
 }
 
@@ -272,19 +270,6 @@ static unsigned int getcommand(struct parser *parser)
     };
 
     return parsetoken(parser, items, 5);
-
-}
-
-static unsigned int gethalign(struct parser *parser)
-{
-
-    static const struct tokword items[] = {
-        {ALFI_HALIGN_LEFT, "left"},
-        {ALFI_HALIGN_CENTER, "center"},
-        {ALFI_HALIGN_RIGHT, "right"}
-    };
-
-    return parsetoken(parser, items, 3);
 
 }
 
@@ -337,19 +322,6 @@ static unsigned int gettype(struct parser *parser)
 
 }
 
-static unsigned int getvalign(struct parser *parser)
-{
-
-    static const struct tokword items[] = {
-        {ALFI_VALIGN_TOP, "top"},
-        {ALFI_VALIGN_MIDDLE, "middle"},
-        {ALFI_VALIGN_BOTTOM, "bottom"}
-    };
-
-    return parsetoken(parser, items, 3);
-
-}
-
 static unsigned int getwidget(struct parser *parser)
 {
 
@@ -364,7 +336,6 @@ static unsigned int getwidget(struct parser *parser)
         {ALFI_WIDGET_IMAGE, "image"},
         {ALFI_WIDGET_LIST, "list"},
         {ALFI_WIDGET_SELECT, "select"},
-        {ALFI_WIDGET_STACK, "stack"},
         {ALFI_WIDGET_SUBHEADER, "subheader"},
         {ALFI_WIDGET_TABLE, "table"},
         {ALFI_WIDGET_TEXT, "text"},
@@ -372,7 +343,7 @@ static unsigned int getwidget(struct parser *parser)
         {ALFI_WIDGET_WINDOW, "window"}
     };
 
-    return parsetoken(parser, items, 16);
+    return parsetoken(parser, items, 15);
 
 }
 
@@ -389,13 +360,6 @@ static void parse_attribute_grid(struct parser *parser, struct attribute_grid *a
 {
 
     attribute->format = parsestring(parser, ALFI_ATTRIBUTE_GRID, attribute->format);
-
-}
-
-static void parse_attribute_halign(struct parser *parser, struct attribute_halign *attribute)
-{
-
-    attribute->direction = gethalign(parser);
 
 }
 
@@ -461,13 +425,6 @@ static void parse_attribute_type(struct parser *parser, struct attribute_type *a
 {
 
     attribute->type = gettype(parser);
-
-}
-
-static void parse_attribute_valign(struct parser *parser, struct attribute_valign *attribute)
-{
-
-    attribute->direction = getvalign(parser);
 
 }
 
@@ -876,46 +833,6 @@ static void parse_payload_select(struct parser *parser, struct header *header, s
 
 }
 
-static void parse_payload_stack(struct parser *parser, struct header *header, struct payload_stack *payload)
-{
-
-    while (!parser->expr.linebreak)
-    {
-
-        switch (getattribute(parser))
-        {
-
-        case ALFI_ATTRIBUTE_HALIGN:
-            parse_attribute_halign(parser, &payload->halign);
-
-            break;
-
-        case ALFI_ATTRIBUTE_ID:
-            parse_attribute_id(parser, &header->id);
-
-            break;
-
-        case ALFI_ATTRIBUTE_IN:
-            parse_attribute_in(parser, &header->in);
-
-            break;
-
-        case ALFI_ATTRIBUTE_VALIGN:
-            parse_attribute_valign(parser, &payload->valign);
-
-            break;
-
-        default:
-            parser->fail();
-
-            break;
-
-        }
-
-    }
-
-}
-
 static void parse_payload_subheader(struct parser *parser, struct header *header, struct payload_subheader *payload)
 {
 
@@ -1144,11 +1061,6 @@ static void parse_payload(struct parser *parser, struct header *header, union pa
 
     case ALFI_WIDGET_SELECT:
         parse_payload_select(parser, header, &payload->select);
-
-        break;
-
-    case ALFI_WIDGET_STACK:
-        parse_payload_stack(parser, header, &payload->stack);
 
         break;
 

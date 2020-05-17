@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     pool_setup();
     parser_init(&parser, parser_fail, pool_widget_find, parser_create, parser_destroy, parser_clear, pool_allocate);
     parser_create(ALFI_WIDGET_WINDOW, "window", "");
-    parser_create(ALFI_WIDGET_STACK, "main", "window");
+    parser_create(ALFI_WIDGET_TABLE, "main", "window");
 
     while ((count = read(0, data, RESOURCE_PAGESIZE)))
         parser_parse(&parser, "main", count, data);
