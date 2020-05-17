@@ -138,14 +138,39 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
 
         char buffer[4096];
         static char *fmt =
-            "= window label \"Lookup address\"\n"
+            "= window label \"Navi 1.0\"\n"
             "+ subheader label \"Lookup address\"\n"
             "+ table id bar grid \"10:02\"\n"
             "+ field id \"url\" in bar label \"URL\" data \"%s\"\n"
             "+ button in bar label \"Lookup\" link \"navi://lookup\" \"text/alfi\" mode \"on\"\n"
             "+ subheader label \"Quick links\"\n"
             "+ anchor label \"blunder.se\" link \"http://www.blunder.se/\" \"text/alfi\"\n"
-            "+ anchor label \"example\" link \"file:///usr/share/navi/example.alfi\" \"text/alfi\"\n";
+            "+ anchor label \"example\" link \"file:///usr/share/navi/example.alfi\" \"text/alfi\"\n"
+            "+ subheader label \"Instructions\"\n"
+            "+ table id instrtbl grid \"04:08\"\n"
+            "+ text in instrtbl label \"Left mouse button\"\n"
+            "+ text in instrtbl label \"Interact\"\n"
+            "+ text in instrtbl label \"Right mouse button\"\n"
+            "+ text in instrtbl label \"Go back\"\n"
+            "+ text in instrtbl label \"Middle mouse button\"\n"
+            "+ text in instrtbl label \"Go home\"\n"
+            "+ text in instrtbl label \"Ctrl+B *\"\n"
+            "+ text in instrtbl label \"Bookmarks view\"\n"
+            "+ text in instrtbl label \"Ctrl+D\"\n"
+            "+ text in instrtbl label \"File view\"\n"
+            "+ text in instrtbl label \"Ctrl+H *\"\n"
+            "+ text in instrtbl label \"History view\"\n"
+            "+ text in instrtbl label \"Ctrl+L\"\n"
+            "+ text in instrtbl label \"Home\"\n"
+            "+ text in instrtbl label \"Ctrl+M\"\n"
+            "+ text in instrtbl label \"Night mode\"\n"
+            "+ text in instrtbl label \"Ctrl+N\"\n"
+            "+ text in instrtbl label \"Light mode\"\n"
+            "+ text in instrtbl label \"Ctrl+Q\"\n"
+            "+ text in instrtbl label \"Quit\"\n"
+            "+ text in instrtbl label \"Ctrl+R\"\n"
+            "+ text in instrtbl label \"Refresh\"\n"
+            "+ text label \"* = Needs certain setup to work.\"\n";
 
         resource->count = sprintf(buffer, fmt, "http://");
         resource->data = malloc(resource->count);
