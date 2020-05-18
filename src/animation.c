@@ -37,7 +37,7 @@ static struct style_color color_line;
 static int anchor_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_anchor *payload = &widget->payload.anchor;
+    struct widget_payload_anchor *payload = &widget->payload.anchor;
     struct style *text = &frame->styles[0];
 
     style_font_init(&text->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
@@ -53,7 +53,7 @@ static int anchor_step(struct widget *widget, struct frame *frame, int x, int y,
 static void anchor_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
-    struct payload_anchor *payload = &widget->payload.anchor;
+    struct widget_payload_anchor *payload = &widget->payload.anchor;
     struct style *text = &frame->styles[0];
 
     render_filltext(text, payload->label.content);
@@ -75,7 +75,7 @@ static unsigned int anchor_getcursor(struct widget *widget, struct frame *frame,
 static int button_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_button *payload = &widget->payload.button;
+    struct widget_payload_button *payload = &widget->payload.button;
     struct style *surface = &frame->styles[0];
     struct style *text = &frame->styles[1];
 
@@ -106,7 +106,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
 static void button_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
-    struct payload_button *payload = &widget->payload.button;
+    struct widget_payload_button *payload = &widget->payload.button;
     struct style *surface = &frame->styles[0];
     struct style *text = &frame->styles[1];
 
@@ -132,7 +132,7 @@ static unsigned int button_getcursor(struct widget *widget, struct frame *frame,
 static int choice_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_choice *payload = &widget->payload.choice;
+    struct widget_payload_choice *payload = &widget->payload.choice;
     struct style *background = &frame->styles[0];
     struct style *text = &frame->styles[1];
 
@@ -155,7 +155,7 @@ static int choice_step(struct widget *widget, struct frame *frame, int x, int y,
 static void choice_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
-    struct payload_choice *payload = &widget->payload.choice;
+    struct widget_payload_choice *payload = &widget->payload.choice;
     struct style *background = &frame->styles[0];
     struct style *text = &frame->styles[1];
 
@@ -177,7 +177,7 @@ static unsigned int choice_getcursor(struct widget *widget, struct frame *frame,
 static int code_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_code *payload = &widget->payload.code;
+    struct widget_payload_code *payload = &widget->payload.code;
     struct style *text = &frame->styles[0];
 
     style_font_init(&text->font, font_mono->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
@@ -193,7 +193,7 @@ static int code_step(struct widget *widget, struct frame *frame, int x, int y, i
 static void code_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
-    struct payload_code *payload = &widget->payload.code;
+    struct widget_payload_code *payload = &widget->payload.code;
     struct style *text = &frame->styles[0];
 
     if (strlen(payload->label.content))
@@ -216,7 +216,7 @@ static unsigned int code_getcursor(struct widget *widget, struct frame *frame, i
 static int divider_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_divider *payload = &widget->payload.divider;
+    struct widget_payload_divider *payload = &widget->payload.divider;
     struct style *line = &frame->styles[0];
     struct style *text = &frame->styles[1];
 
@@ -242,7 +242,7 @@ static int divider_step(struct widget *widget, struct frame *frame, int x, int y
 static void divider_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
-    struct payload_divider *payload = &widget->payload.divider;
+    struct widget_payload_divider *payload = &widget->payload.divider;
     struct style *line = &frame->styles[0];
     struct style *text = &frame->styles[1];
 
@@ -278,7 +278,7 @@ static unsigned int divider_getcursor(struct widget *widget, struct frame *frame
 static int field_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_field *payload = &widget->payload.field;
+    struct widget_payload_field *payload = &widget->payload.field;
     struct style *border = &frame->styles[0];
     struct style *label = &frame->styles[1];
     struct style *data = &frame->styles[2];
@@ -341,7 +341,7 @@ static int field_step(struct widget *widget, struct frame *frame, int x, int y, 
 static void field_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
-    struct payload_field *payload = &widget->payload.field;
+    struct widget_payload_field *payload = &widget->payload.field;
     struct style *border = &frame->styles[0];
     struct style *label = &frame->styles[1];
     struct style *data = &frame->styles[2];
@@ -403,7 +403,7 @@ static unsigned int field_getcursor(struct widget *widget, struct frame *frame, 
 static int header_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_header *payload = &widget->payload.header;
+    struct widget_payload_header *payload = &widget->payload.header;
     struct style *text = &frame->styles[0];
 
     style_font_init(&text->font, font_bold->index, view->fontsizexlarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
@@ -419,7 +419,7 @@ static int header_step(struct widget *widget, struct frame *frame, int x, int y,
 static void header_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
-    struct payload_header *payload = &widget->payload.header;
+    struct widget_payload_header *payload = &widget->payload.header;
     struct style *text = &frame->styles[0];
 
     if (strlen(payload->label.content))
@@ -442,7 +442,7 @@ static unsigned int header_getcursor(struct widget *widget, struct frame *frame,
 static int image_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_image *payload = &widget->payload.image;
+    struct widget_payload_image *payload = &widget->payload.image;
     struct resource *resource = pool_resource_find(payload->link.url);
     struct style *surface = &frame->styles[0];
     float ratio;
@@ -468,7 +468,7 @@ static int image_step(struct widget *widget, struct frame *frame, int x, int y, 
 static void image_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
-    struct payload_image *payload = &widget->payload.image;
+    struct widget_payload_image *payload = &widget->payload.image;
     struct resource *resource = pool_resource_find(payload->link.url);
     struct style *surface = &frame->styles[0];
 
@@ -548,7 +548,7 @@ static unsigned int list_getcursor(struct widget *widget, struct frame *frame, i
 static int select_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_select *payload = &widget->payload.select;
+    struct widget_payload_select *payload = &widget->payload.select;
     struct style *border = &frame->styles[0];
     struct style *label = &frame->styles[1];
     struct style *data = &frame->styles[2];
@@ -638,7 +638,7 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
 static void select_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
-    struct payload_select *payload = &widget->payload.select;
+    struct widget_payload_select *payload = &widget->payload.select;
     struct style *border = &frame->styles[0];
     struct style *label = &frame->styles[1];
     struct style *data = &frame->styles[2];
@@ -702,7 +702,7 @@ static unsigned int select_getcursor(struct widget *widget, struct frame *frame,
 static int subheader_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_subheader *payload = &widget->payload.subheader;
+    struct widget_payload_subheader *payload = &widget->payload.subheader;
     struct style *text = &frame->styles[0];
 
     style_font_init(&text->font, font_bold->index, view->fontsizelarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
@@ -718,7 +718,7 @@ static int subheader_step(struct widget *widget, struct frame *frame, int x, int
 static void subheader_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
-    struct payload_subheader *payload = &widget->payload.subheader;
+    struct widget_payload_subheader *payload = &widget->payload.subheader;
     struct style *text = &frame->styles[0];
 
     if (strlen(payload->label.content))
@@ -741,7 +741,7 @@ static unsigned int subheader_getcursor(struct widget *widget, struct frame *fra
 static int table_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_table *payload = &widget->payload.table;
+    struct widget_payload_table *payload = &widget->payload.table;
     unsigned int gsize = gridfmt_size(payload->grid.format);
     struct widget *child = 0;
     unsigned int i;
@@ -795,7 +795,7 @@ static unsigned int table_getcursor(struct widget *widget, struct frame *frame, 
 static int text_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_text *payload = &widget->payload.text;
+    struct widget_payload_text *payload = &widget->payload.text;
     struct style *text = &frame->styles[0];
 
     style_font_init(&text->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
@@ -811,7 +811,7 @@ static int text_step(struct widget *widget, struct frame *frame, int x, int y, i
 static void text_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
-    struct payload_text *payload = &widget->payload.text;
+    struct widget_payload_text *payload = &widget->payload.text;
     struct style *text = &frame->styles[0];
 
     if (strlen(payload->label.content))
@@ -834,7 +834,7 @@ static unsigned int text_getcursor(struct widget *widget, struct frame *frame, i
 static int toggle_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
-    struct payload_toggle *payload = &widget->payload.toggle;
+    struct widget_payload_toggle *payload = &widget->payload.toggle;
     struct style *groove = &frame->styles[0];
     struct style *text = &frame->styles[1];
     struct style *ohandle = &frame->styles[2];
@@ -880,7 +880,7 @@ static int toggle_step(struct widget *widget, struct frame *frame, int x, int y,
 static void toggle_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
-    struct payload_toggle *payload = &widget->payload.toggle;
+    struct widget_payload_toggle *payload = &widget->payload.toggle;
     struct style *groove = &frame->styles[0];
     struct style *text = &frame->styles[1];
     struct style *ohandle = &frame->styles[2];

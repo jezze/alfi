@@ -48,7 +48,7 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 
     struct widget *widget = pool_widget_create();
 
-    entity_createheader(widget, type, id, in);
+    widget_header_create(&widget->header, type, id, in);
     entity_createpayload(widget);
     entity_setstate(widget, ALFI_STATE_NORMAL);
 
@@ -61,7 +61,7 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 static struct widget *parser_destroy(struct widget *widget)
 {
 
-    entity_destroyheader(widget);
+    widget_header_destroy(&widget->header);
     entity_destroypayload(widget);
 
     return pool_widget_destroy(widget);
@@ -257,7 +257,7 @@ static void sethover(struct widget *widget)
 static void loadresources_image(struct widget *widget)
 {
 
-    struct payload_image *payload = &widget->payload.image;
+    struct widget_payload_image *payload = &widget->payload.image;
     struct urlinfo info;
 
     url_merge(&info, history_geturl(0), payload->link.url);
@@ -370,7 +370,7 @@ static void onframebuffersize(GLFWwindow *window, int width, int height)
 
 }
 
-static void oninput_field(struct payload_field *payload, int key, int scancode, int action, int mods)
+static void oninput_field(struct widget_payload_field *payload, int key, int scancode, int action, int mods)
 {
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT)
@@ -421,7 +421,7 @@ static void oninput_field(struct payload_field *payload, int key, int scancode, 
 
 }
 
-static void oninput_select(struct payload_select *payload, int key, int scancode, int action, int mods)
+static void oninput_select(struct widget_payload_select *payload, int key, int scancode, int action, int mods)
 {
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT)
@@ -445,7 +445,7 @@ static void oninput_select(struct payload_select *payload, int key, int scancode
 
 }
 
-static void oninput_toggle(struct payload_toggle *payload, int key, int scancode, int action, int mods)
+static void oninput_toggle(struct widget_payload_toggle *payload, int key, int scancode, int action, int mods)
 {
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT)
@@ -661,7 +661,7 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
 static void onclick_anchor(struct widget *widget, float x, float y)
 {
 
-    struct payload_anchor *payload = &widget->payload.anchor;
+    struct widget_payload_anchor *payload = &widget->payload.anchor;
     struct frame *frame = &widget->frame;
 
     if (!style_box_istouching(&frame->styles[0].box, x, y))
@@ -690,7 +690,7 @@ static void onclick_anchor(struct widget *widget, float x, float y)
 static void onclick_button(struct widget *widget, float x, float y)
 {
 
-    struct payload_button *payload = &widget->payload.button;
+    struct widget_payload_button *payload = &widget->payload.button;
     struct frame *frame = &widget->frame;
     char data[RESOURCE_PAGESIZE];
 
@@ -723,7 +723,7 @@ static void onclick_choice(struct widget *widget, float x, float y)
 {
 
     struct widget *parent = pool_widget_find(widget->header.in.name);
-    struct payload_choice *payload = &widget->payload.choice;
+    struct widget_payload_choice *payload = &widget->payload.choice;
 
     switch (parent->header.type)
     {
@@ -764,7 +764,7 @@ static void onclick_select(struct widget *widget, float x, float y)
 static void onclick_toggle(struct widget *widget, float x, float y)
 {
 
-    struct payload_toggle *payload = &widget->payload.toggle;
+    struct widget_payload_toggle *payload = &widget->payload.toggle;
     struct frame *frame = &widget->frame;
 
     if (!style_box_istouching(&frame->styles[0].box, x, y))
@@ -898,7 +898,7 @@ static void onscroll(GLFWwindow *window, double x, double y)
 
 }
 
-static void onchar_field(struct payload_field *payload, unsigned int codepoint)
+static void onchar_field(struct widget_payload_field *payload, unsigned int codepoint)
 {
 
     if (payload->data.offset < payload->data.total - 1)

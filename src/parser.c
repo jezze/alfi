@@ -436,7 +436,7 @@ static void parse_attribute_type(struct parser *parser, struct attribute_type *a
 
 }
 
-static void parse_payload_anchor(struct parser *parser, struct header *header, struct payload_anchor *payload)
+static void parse_payload_anchor(struct parser *parser, struct widget_header *header, struct widget_payload_anchor *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -481,7 +481,7 @@ static void parse_payload_anchor(struct parser *parser, struct header *header, s
 
 }
 
-static void parse_payload_button(struct parser *parser, struct header *header, struct payload_button *payload)
+static void parse_payload_button(struct parser *parser, struct widget_header *header, struct widget_payload_button *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -536,7 +536,7 @@ static void parse_payload_button(struct parser *parser, struct header *header, s
 
 }
 
-static void parse_payload_choice(struct parser *parser, struct header *header, struct payload_choice *payload)
+static void parse_payload_choice(struct parser *parser, struct widget_header *header, struct widget_payload_choice *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -576,7 +576,7 @@ static void parse_payload_choice(struct parser *parser, struct header *header, s
 
 }
 
-static void parse_payload_code(struct parser *parser, struct header *header, struct payload_code *payload)
+static void parse_payload_code(struct parser *parser, struct widget_header *header, struct widget_payload_code *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -611,7 +611,7 @@ static void parse_payload_code(struct parser *parser, struct header *header, str
 
 }
 
-static void parse_payload_divider(struct parser *parser, struct header *header, struct payload_divider *payload)
+static void parse_payload_divider(struct parser *parser, struct widget_header *header, struct widget_payload_divider *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -646,7 +646,7 @@ static void parse_payload_divider(struct parser *parser, struct header *header, 
 
 }
 
-static void parse_payload_field(struct parser *parser, struct header *header, struct payload_field *payload)
+static void parse_payload_field(struct parser *parser, struct widget_header *header, struct widget_payload_field *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -696,7 +696,7 @@ static void parse_payload_field(struct parser *parser, struct header *header, st
 
 }
 
-static void parse_payload_header(struct parser *parser, struct header *header, struct payload_header *payload)
+static void parse_payload_header(struct parser *parser, struct widget_header *header, struct widget_payload_header *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -731,7 +731,7 @@ static void parse_payload_header(struct parser *parser, struct header *header, s
 
 }
 
-static void parse_payload_image(struct parser *parser, struct header *header, struct payload_image *payload)
+static void parse_payload_image(struct parser *parser, struct widget_header *header, struct widget_payload_image *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -766,7 +766,7 @@ static void parse_payload_image(struct parser *parser, struct header *header, st
 
 }
 
-static void parse_payload_list(struct parser *parser, struct header *header, struct payload_list *payload)
+static void parse_payload_list(struct parser *parser, struct widget_header *header, struct widget_payload_list *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -796,7 +796,7 @@ static void parse_payload_list(struct parser *parser, struct header *header, str
 
 }
 
-static void parse_payload_select(struct parser *parser, struct header *header, struct payload_select *payload)
+static void parse_payload_select(struct parser *parser, struct widget_header *header, struct widget_payload_select *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -841,7 +841,7 @@ static void parse_payload_select(struct parser *parser, struct header *header, s
 
 }
 
-static void parse_payload_subheader(struct parser *parser, struct header *header, struct payload_subheader *payload)
+static void parse_payload_subheader(struct parser *parser, struct widget_header *header, struct widget_payload_subheader *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -876,7 +876,7 @@ static void parse_payload_subheader(struct parser *parser, struct header *header
 
 }
 
-static void parse_payload_table(struct parser *parser, struct header *header, struct payload_table *payload)
+static void parse_payload_table(struct parser *parser, struct widget_header *header, struct widget_payload_table *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -911,7 +911,7 @@ static void parse_payload_table(struct parser *parser, struct header *header, st
 
 }
 
-static void parse_payload_text(struct parser *parser, struct header *header, struct payload_text *payload)
+static void parse_payload_text(struct parser *parser, struct widget_header *header, struct widget_payload_text *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -946,7 +946,7 @@ static void parse_payload_text(struct parser *parser, struct header *header, str
 
 }
 
-static void parse_payload_toggle(struct parser *parser, struct header *header, struct payload_toggle *payload)
+static void parse_payload_toggle(struct parser *parser, struct widget_header *header, struct widget_payload_toggle *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -986,7 +986,7 @@ static void parse_payload_toggle(struct parser *parser, struct header *header, s
 
 }
 
-static void parse_payload_window(struct parser *parser, struct header *header, struct payload_window *payload)
+static void parse_payload_window(struct parser *parser, struct widget_header *header, struct widget_payload_window *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -1016,7 +1016,7 @@ static void parse_payload_window(struct parser *parser, struct header *header, s
 
 }
 
-static void parse_payload(struct parser *parser, struct header *header, union payload *payload)
+static void parse_payload(struct parser *parser, struct widget_header *header, union payload *payload)
 {
 
     switch (header->type)
