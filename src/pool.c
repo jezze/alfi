@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "attributes.h"
 #include "widgets.h"
+#include "entity.h"
 
 #define NWIDGETS                        512
 #define NRESOURCES                      128

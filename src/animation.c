@@ -8,6 +8,7 @@
 #include "gridfmt.h"
 #include "attributes.h"
 #include "widgets.h"
+#include "entity.h"
 #include "animation.h"
 #include "pool.h"
 #include "render.h"

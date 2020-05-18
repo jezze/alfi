@@ -23,6 +23,7 @@
 #include "view.h"
 #include "attributes.h"
 #include "widgets.h"
+#include "entity.h"
 #include "animation.h"
 #include "parser.h"
 #include "pool.h"
@@ -47,9 +48,9 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 
     struct widget *widget = pool_widget_create();
 
-    widgets_createheader(widget, type, id, in);
-    widgets_createpayload(widget);
-    widgets_setstate(widget, ALFI_STATE_NORMAL);
+    entity_createheader(widget, type, id, in);
+    entity_createpayload(widget);
+    entity_setstate(widget, ALFI_STATE_NORMAL);
 
     memset(&widget->frame, 0, sizeof (struct frame));
 
@@ -60,8 +61,8 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 static struct widget *parser_destroy(struct widget *widget)
 {
 
-    widgets_destroyheader(widget);
-    widgets_destroypayload(widget);
+    entity_destroyheader(widget);
+    entity_destroypayload(widget);
 
     return pool_widget_destroy(widget);
 
@@ -163,7 +164,7 @@ static struct widget *prevflag(struct widget *widget, unsigned int flag)
     while ((widget = pool_widget_prev(widget)))
     {
 
-        if (widgets_checkflag(widget, flag))
+        if (entity_checkflag(widget, flag))
             return widget;
 
     }
@@ -178,7 +179,7 @@ static struct widget *nextflag(struct widget *widget, unsigned int flag)
     while ((widget = pool_widget_next(widget)))
     {
 
-        if (widgets_checkflag(widget, flag))
+        if (entity_checkflag(widget, flag))
             return widget;
 
     }
@@ -224,12 +225,12 @@ static void setfocus(struct widget *widget)
     {
 
         if (widget_focus)
-            widgets_setstate(widget_focus, ALFI_STATE_UNFOCUS);
+            entity_setstate(widget_focus, ALFI_STATE_UNFOCUS);
 
         widget_focus = widget;
 
         if (widget_focus)
-            widgets_setstate(widget_focus, ALFI_STATE_FOCUS);
+            entity_setstate(widget_focus, ALFI_STATE_FOCUS);
 
     }
 
@@ -242,12 +243,12 @@ static void sethover(struct widget *widget)
     {
 
         if (widget_hover)
-            widgets_setstate(widget_hover, ALFI_STATE_UNHOVER);
+            entity_setstate(widget_hover, ALFI_STATE_UNHOVER);
 
         widget_hover = widget;
 
         if (widget_hover)
-            widgets_setstate(widget_hover, ALFI_STATE_HOVER);
+            entity_setstate(widget_hover, ALFI_STATE_HOVER);
 
     }
 
@@ -575,7 +576,7 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
 
     }
 
-    if (widget_focus && widgets_checkflag(widget_focus, ALFI_FLAG_FOCUSABLE))
+    if (widget_focus && entity_checkflag(widget_focus, ALFI_FLAG_FOCUSABLE))
     {
 
         switch (widget_focus->header.type)
@@ -914,7 +915,7 @@ static void onchar_field(struct payload_field *payload, unsigned int codepoint)
 static void onchar(GLFWwindow *window, unsigned int codepoint)
 {
 
-    if (widget_focus && widgets_checkflag(widget_focus, ALFI_FLAG_FOCUSABLE))
+    if (widget_focus && entity_checkflag(widget_focus, ALFI_FLAG_FOCUSABLE))
     {
 
         switch (widget_focus->header.type)
@@ -1069,7 +1070,6 @@ int main(int argc, char **argv)
     render_create();
     parser_init(&parser, parser_fail, pool_widget_find, parser_create, parser_destroy, parser_clear, pool_allocate);
     pool_setup();
-    widgets_setup();
     animation_setup();
     animation_setupfonts();
     animation_settheme(ANIMATION_THEME_LIGHT);

@@ -28,6 +28,7 @@
 #include "resource.h"
 #include "attributes.h"
 #include "widgets.h"
+#include "entity.h"
 #include "render.h"
 #include "pool.h"
 

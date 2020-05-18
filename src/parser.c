@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "attributes.h"
 #include "widgets.h"
+#include "entity.h"
 #include "parser.h"
 
 #define COMMAND_NONE                    0
