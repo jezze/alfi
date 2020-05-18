@@ -240,7 +240,7 @@ void entity_setstate(struct widget *widget, unsigned int state)
         break;
 
     default:
-        widget->header.state = WIDGET_STATE_NORMAL;
+        widget->header.state = state;
 
         break;
 
