@@ -11,9 +11,9 @@
 void attribute_data_create(struct attribute_data *attribute, char *content)
 {
 
-    attribute->content = pool_allocate(ATTRIBUTE_TYPE_DATA, attribute->content, ATTRIBUTE_DATASIZE, strlen(content) + 1, content);
     attribute->total = ATTRIBUTE_DATASIZE;
-    attribute->offset = 0;
+    attribute->offset = strlen(content);
+    attribute->content = pool_allocate(ATTRIBUTE_TYPE_DATA, attribute->content, attribute->total, attribute->offset + 1, content);
 
 }
 

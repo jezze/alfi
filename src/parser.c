@@ -234,16 +234,6 @@ static unsigned int parseuint(struct parser *parser, unsigned int base)
 
 }
 
-static char *parsestring(struct parser *parser, unsigned int type, char *string)
-{
-
-    char word[RESOURCE_PAGESIZE];
-    unsigned int count = readword(parser, word, RESOURCE_PAGESIZE);
-
-    return (count) ? parser->allocate(type, string, count + 1, count + 1, word) : 0;
-
-}
-
 static unsigned int getattribute(struct parser *parser)
 {
 
@@ -358,81 +348,108 @@ static unsigned int getwidget(struct parser *parser)
 static void parse_attribute_data(struct parser *parser, struct attribute_data *attribute)
 {
 
-    attribute->total = ATTRIBUTE_DATASIZE;
-    attribute->content = parser->allocate(ATTRIBUTE_TYPE_DATA, attribute->content, attribute->total, 0, 0);
-    attribute->offset = readword(parser, attribute->content, attribute->total);
+    char content[RESOURCE_PAGESIZE];
+
+    readword(parser, content, RESOURCE_PAGESIZE);
+    attribute_data_create(attribute, content);
 
 }
 
 static void parse_attribute_grid(struct parser *parser, struct attribute_grid *attribute)
 {
 
-    attribute->format = parsestring(parser, ATTRIBUTE_TYPE_GRID, attribute->format);
+    char format[RESOURCE_PAGESIZE];
+
+    readword(parser, format, RESOURCE_PAGESIZE);
+    attribute_grid_create(attribute, format);
 
 }
 
 static void parse_attribute_icon(struct parser *parser, struct attribute_icon *attribute)
 {
 
-    attribute->type = geticon(parser);
+    unsigned int type = geticon(parser);
+
+    attribute_icon_create(attribute, type);
 
 }
 
 static void parse_attribute_id(struct parser *parser, struct attribute_id *attribute)
 {
 
-    attribute->name = parsestring(parser, ATTRIBUTE_TYPE_ID, attribute->name);
+    char name[RESOURCE_PAGESIZE];
+
+    readword(parser, name, RESOURCE_PAGESIZE);
+    attribute_id_create(attribute, name);
 
 }
 
 static void parse_attribute_in(struct parser *parser, struct attribute_in *attribute)
 {
 
-    attribute->name = parsestring(parser, ATTRIBUTE_TYPE_IN, attribute->name);
+    char name[RESOURCE_PAGESIZE];
+
+    readword(parser, name, RESOURCE_PAGESIZE);
+    attribute_in_create(attribute, name);
 
 }
 
 static void parse_attribute_label(struct parser *parser, struct attribute_label *attribute)
 {
 
-    attribute->content = parsestring(parser, ATTRIBUTE_TYPE_LABEL, attribute->content);
+    char content[RESOURCE_PAGESIZE];
+
+    readword(parser, content, RESOURCE_PAGESIZE);
+    attribute_label_create(attribute, content);
 
 }
 
 static void parse_attribute_link(struct parser *parser, struct attribute_link *attribute)
 {
 
-    attribute->url = parsestring(parser, ATTRIBUTE_TYPE_LINK, attribute->url);
-    attribute->mime = parsestring(parser, ATTRIBUTE_TYPE_LINK, attribute->mime);
+    char url[1024];
+    char mime[128];
+
+    readword(parser, url, 1024);
+    readword(parser, mime, 128);
+    attribute_link_create(attribute, url, mime);
 
 }
 
 static void parse_attribute_mode(struct parser *parser, struct attribute_mode *attribute)
 {
 
-    attribute->type = getmode(parser);
+    unsigned int type = getmode(parser);
+
+    attribute_mode_create(attribute, type);
 
 }
 
 static void parse_attribute_range(struct parser *parser, struct attribute_range *attribute)
 {
 
-    attribute->min = parseuint(parser, 10);
-    attribute->max = parseuint(parser, 10);
+    unsigned int min = parseuint(parser, 10);
+    unsigned int max = parseuint(parser, 10);
+
+    attribute_range_create(attribute, min, max);
 
 }
 
 static void parse_attribute_target(struct parser *parser, struct attribute_target *attribute)
 {
 
-    attribute->type = gettarget(parser);
+    unsigned int type = gettarget(parser);
+
+    attribute_target_create(attribute, type);
 
 }
 
 static void parse_attribute_type(struct parser *parser, struct attribute_type *attribute)
 {
 
-    attribute->type = gettype(parser);
+    unsigned int type = gettype(parser);
+
+    attribute_type_create(attribute, type);
 
 }
 
