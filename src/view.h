@@ -1,20 +1,20 @@
 struct view
 {
 
-    unsigned int pagew;
-    unsigned int pageh;
-    unsigned int unitw;
-    unsigned int unith;
-    unsigned int marginw;
-    unsigned int marginh;
-    unsigned int scrollw;
-    unsigned int scrollh;
+    int pagew;
+    int pageh;
+    int unitw;
+    int unith;
+    int marginw;
+    int marginh;
+    int scrollw;
+    int scrollh;
     int scrollx;
     int scrolly;
-    unsigned int fontsizesmall;
-    unsigned int fontsizemedium;
-    unsigned int fontsizelarge;
-    unsigned int fontsizexlarge;
+    int fontsizesmall;
+    int fontsizemedium;
+    int fontsizelarge;
+    int fontsizexlarge;
 
 };
 
