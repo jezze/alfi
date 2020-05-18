@@ -39,8 +39,6 @@ unsigned int entity_checkflag(struct widget *widget, unsigned int flag)
 void entity_createpayload(struct widget *widget)
 {
 
-    memset(&widget->payload, 0, sizeof (union payload));
-
     switch (widget->header.type)
     {
 

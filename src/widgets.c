@@ -12,8 +12,6 @@
 void widget_header_create(struct widget_header *header, unsigned int type, char *id, char *in)
 {
 
-    memset(header, 0, sizeof (struct widget_header));
-
     header->type = type;
     header->state = WIDGET_STATE_NORMAL;
     header->id.name = pool_string_create(ATTRIBUTE_TYPE_ID, header->id.name, id);

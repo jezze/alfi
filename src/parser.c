@@ -1016,84 +1016,84 @@ static void parse_payload_window(struct parser *parser, struct widget_header *he
 
 }
 
-static void parse_payload(struct parser *parser, struct widget_header *header, union payload *payload)
+static void parse_payload(struct parser *parser, struct widget *widget)
 {
 
-    switch (header->type)
+    switch (widget->header.type)
     {
 
     case WIDGET_TYPE_ANCHOR:
-        parse_payload_anchor(parser, header, &payload->anchor);
+        parse_payload_anchor(parser, &widget->header, &widget->payload.anchor);
 
         break;
 
     case WIDGET_TYPE_BUTTON:
-        parse_payload_button(parser, header, &payload->button);
+        parse_payload_button(parser, &widget->header, &widget->payload.button);
 
         break;
 
     case WIDGET_TYPE_CHOICE:
-        parse_payload_choice(parser, header, &payload->choice);
+        parse_payload_choice(parser, &widget->header, &widget->payload.choice);
 
         break;
 
     case WIDGET_TYPE_CODE:
-        parse_payload_code(parser, header, &payload->code);
+        parse_payload_code(parser, &widget->header, &widget->payload.code);
 
         break;
 
     case WIDGET_TYPE_DIVIDER:
-        parse_payload_divider(parser, header, &payload->divider);
+        parse_payload_divider(parser, &widget->header, &widget->payload.divider);
 
         break;
 
     case WIDGET_TYPE_FIELD:
-        parse_payload_field(parser, header, &payload->field);
+        parse_payload_field(parser, &widget->header, &widget->payload.field);
 
         break;
 
     case WIDGET_TYPE_HEADER:
-        parse_payload_header(parser, header, &payload->header);
+        parse_payload_header(parser, &widget->header, &widget->payload.header);
 
         break;
 
     case WIDGET_TYPE_IMAGE:
-        parse_payload_image(parser, header, &payload->image);
+        parse_payload_image(parser, &widget->header, &widget->payload.image);
 
         break;
 
     case WIDGET_TYPE_LIST:
-        parse_payload_list(parser, header, &payload->list);
+        parse_payload_list(parser, &widget->header, &widget->payload.list);
 
         break;
 
     case WIDGET_TYPE_SELECT:
-        parse_payload_select(parser, header, &payload->select);
+        parse_payload_select(parser, &widget->header, &widget->payload.select);
 
         break;
 
     case WIDGET_TYPE_SUBHEADER:
-        parse_payload_subheader(parser, header, &payload->subheader);
+        parse_payload_subheader(parser, &widget->header, &widget->payload.subheader);
 
         break;
 
     case WIDGET_TYPE_TABLE:
-        parse_payload_table(parser, header, &payload->table);
+        parse_payload_table(parser, &widget->header, &widget->payload.table);
 
         break;
 
     case WIDGET_TYPE_TEXT:
-        parse_payload_text(parser, header, &payload->text);
+        parse_payload_text(parser, &widget->header, &widget->payload.text);
 
         break;
 
     case WIDGET_TYPE_TOGGLE:
-        parse_payload_toggle(parser, header, &payload->toggle);
+        parse_payload_toggle(parser, &widget->header, &widget->payload.toggle);
 
         break;
 
     case WIDGET_TYPE_WINDOW:
-        parse_payload_window(parser, header, &payload->window);
+        parse_payload_window(parser, &widget->header, &widget->payload.window);
 
         break;
 
@@ -1135,7 +1135,7 @@ static void parse_command_insert(struct parser *parser, char *in)
     if (!widget)
         parser->fail();
 
-    parse_payload(parser, &widget->header, &widget->payload);
+    parse_payload(parser, widget);
 
 }
 
@@ -1147,7 +1147,7 @@ static void parse_command_update(struct parser *parser)
     if (!widget)
         parser->fail();
 
-    parse_payload(parser, &widget->header, &widget->payload);
+    parse_payload(parser, widget);
 
 }
 

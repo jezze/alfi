@@ -19,9 +19,8 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 
     struct widget *widget = pool_widget_create();
 
-    widget->header.type = type;
-    widget->header.id.name = pool_string_create(ATTRIBUTE_TYPE_ID, widget->header.id.name, id);
-    widget->header.in.name = pool_string_create(ATTRIBUTE_TYPE_IN, widget->header.in.name, in);
+    memset(&widget->header, 0, sizeof (struct widget_header));
+    widget_header_create(&widget->header, type, id, in);
 
     return widget;
 
@@ -30,8 +29,7 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 static struct widget *parser_destroy(struct widget *widget)
 {
 
-    widget->header.id.name = pool_string_destroy(ATTRIBUTE_TYPE_ID, widget->header.id.name);
-    widget->header.in.name = pool_string_destroy(ATTRIBUTE_TYPE_IN, widget->header.in.name);
+    widget_header_destroy(&widget->header);
 
     return pool_widget_destroy(widget);
 

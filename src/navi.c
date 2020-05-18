@@ -48,10 +48,11 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 
     struct widget *widget = pool_widget_create();
 
+    memset(&widget->header, 0, sizeof (struct widget_header));
+    memset(&widget->payload, 0, sizeof (union widget_payload));
+    memset(&widget->frame, 0, sizeof (struct frame));
     widget_header_create(&widget->header, type, id, in);
     entity_createpayload(widget);
-
-    memset(&widget->frame, 0, sizeof (struct frame));
 
     return widget;
 
