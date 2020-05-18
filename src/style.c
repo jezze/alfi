@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <math.h>
-#include "list.h"
 #include "style.h"
 
 static float flerp(float t, float c, float u)

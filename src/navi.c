@@ -21,6 +21,7 @@
 #include "url.h"
 #include "resource.h"
 #include "view.h"
+#include "attributes.h"
 #include "widgets.h"
 #include "animation.h"
 #include "parser.h"

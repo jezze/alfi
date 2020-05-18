@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "view.h"
 #include "gridfmt.h"
+#include "attributes.h"
 #include "widgets.h"
 #include "animation.h"
 #include "pool.h"

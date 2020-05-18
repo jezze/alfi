@@ -5,6 +5,7 @@
 #include "url.h"
 #include "resource.h"
 #include "view.h"
+#include "attributes.h"
 #include "widgets.h"
 #include "pool.h"
 #include "render.h"

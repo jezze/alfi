@@ -6,6 +6,7 @@
 #include "style.h"
 #include "url.h"
 #include "resource.h"
+#include "attributes.h"
 #include "widgets.h"
 #include "parser.h"
 #include "pool.h"

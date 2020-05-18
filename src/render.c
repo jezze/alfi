@@ -26,9 +26,8 @@
 #include "style.h"
 #include "url.h"
 #include "resource.h"
-#include "view.h"
+#include "attributes.h"
 #include "widgets.h"
-#include "parser.h"
 #include "render.h"
 #include "pool.h"
 

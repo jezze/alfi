@@ -1,8 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "list.h"
-#include "style.h"
-#include "widgets.h"
+#include "attributes.h"
 
 static unsigned int copycolumn(char *coldata, char *format)
 {

@@ -4,8 +4,15 @@
 #include "style.h"
 #include "url.h"
 #include "resource.h"
+#include "attributes.h"
 #include "widgets.h"
 #include "parser.h"
+
+#define COMMAND_NONE                    0
+#define COMMAND_COMMENT                 1
+#define COMMAND_DELETE                  2
+#define COMMAND_INSERT                  3
+#define COMMAND_UPDATE                  4
 
 struct tokword
 {
@@ -262,11 +269,11 @@ static unsigned int getcommand(struct parser *parser)
 {
 
     static const struct tokword items[] = {
-        {ALFI_COMMAND_NONE, ""},
-        {ALFI_COMMAND_COMMENT, "#"},
-        {ALFI_COMMAND_DELETE, "-"},
-        {ALFI_COMMAND_INSERT, "+"},
-        {ALFI_COMMAND_UPDATE, "="}
+        {COMMAND_NONE, ""},
+        {COMMAND_COMMENT, "#"},
+        {COMMAND_DELETE, "-"},
+        {COMMAND_INSERT, "+"},
+        {COMMAND_UPDATE, "="}
     };
 
     return parsetoken(parser, items, 5);
@@ -1154,25 +1161,25 @@ static void parse(struct parser *parser, char *in)
         switch (getcommand(parser))
         {
 
-        case ALFI_COMMAND_NONE:
+        case COMMAND_NONE:
             break;
 
-        case ALFI_COMMAND_COMMENT:
+        case COMMAND_COMMENT:
             parse_command_comment(parser);
 
             break;
 
-        case ALFI_COMMAND_DELETE:
+        case COMMAND_DELETE:
             parse_command_delete(parser);
 
             break;
 
-        case ALFI_COMMAND_INSERT:
+        case COMMAND_INSERT:
             parse_command_insert(parser, in);
 
             break;
 
-        case ALFI_COMMAND_UPDATE:
+        case COMMAND_UPDATE:
             parse_command_update(parser);
 
             break;
