@@ -23,8 +23,10 @@
 #define ATTRIBUTE_MODE_DISABLED         2
 #define ATTRIBUTE_TYPE_REGULAR          0
 #define ATTRIBUTE_TYPE_PASSWORD         1
+#define ATTRIBUTE_ICON_NONE             0
 #define ATTRIBUTE_ICON_BURGER           1
 #define ATTRIBUTE_ICON_SEARCH           2
+#define ATTRIBUTE_DATASIZE              128
 
 struct attribute_data
 {
@@ -107,3 +109,25 @@ struct attribute_type
 
 };
 
+void attribute_data_create(struct attribute_data *attribute, char *content);
+void attribute_data_destroy(struct attribute_data *attribute);
+void attribute_grid_create(struct attribute_grid *attribute, char *format);
+void attribute_grid_destroy(struct attribute_grid *attribute);
+void attribute_icon_create(struct attribute_icon *attribute, unsigned int type);
+void attribute_icon_destroy(struct attribute_icon *attribute);
+void attribute_id_create(struct attribute_id *attribute, char *name);
+void attribute_id_destroy(struct attribute_id *attribute);
+void attribute_in_create(struct attribute_in *attribute, char *name);
+void attribute_in_destroy(struct attribute_in *attribute);
+void attribute_label_create(struct attribute_label *attribute, char *content);
+void attribute_label_destroy(struct attribute_label *attribute);
+void attribute_link_create(struct attribute_link *attribute, char *url, char *mime);
+void attribute_link_destroy(struct attribute_link *attribute);
+void attribute_mode_create(struct attribute_mode *attribute, unsigned int type);
+void attribute_mode_destroy(struct attribute_mode *attribute);
+void attribute_range_create(struct attribute_range *attribute, unsigned int min, unsigned int max);
+void attribute_range_destroy(struct attribute_range *attribute);
+void attribute_target_create(struct attribute_target *attribute, unsigned int type);
+void attribute_target_destroy(struct attribute_target *attribute);
+void attribute_type_create(struct attribute_type *attribute, unsigned int type);
+void attribute_type_destroy(struct attribute_type *attribute);

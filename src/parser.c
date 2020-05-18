@@ -358,7 +358,7 @@ static unsigned int getwidget(struct parser *parser)
 static void parse_attribute_data(struct parser *parser, struct attribute_data *attribute)
 {
 
-    attribute->total = WIDGET_DATASIZE;
+    attribute->total = ATTRIBUTE_DATASIZE;
     attribute->content = parser->allocate(ATTRIBUTE_TYPE_DATA, attribute->content, attribute->total, 0, 0);
     attribute->offset = readword(parser, attribute->content, attribute->total);
 

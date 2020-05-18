@@ -26,7 +26,6 @@
 #define WIDGET_STATE_UNFOCUS            4
 #define WIDGET_FLAG_NONE                0
 #define WIDGET_FLAG_FOCUSABLE           1
-#define WIDGET_DATASIZE                 128
 
 struct widget_header
 {

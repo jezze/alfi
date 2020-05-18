@@ -14,52 +14,57 @@ void widget_header_create(struct widget_header *header, unsigned int type, char 
 
     header->type = type;
     header->state = WIDGET_STATE_NORMAL;
-    header->id.name = pool_string_create(ATTRIBUTE_TYPE_ID, header->id.name, id);
-    header->in.name = pool_string_create(ATTRIBUTE_TYPE_IN, header->in.name, in);
+
+    attribute_id_create(&header->id, id);
+    attribute_in_create(&header->in, in);
 
 }
 
 void widget_header_destroy(struct widget_header *header)
 {
 
-    header->id.name = pool_string_destroy(ATTRIBUTE_TYPE_ID, header->id.name);
-    header->in.name = pool_string_destroy(ATTRIBUTE_TYPE_IN, header->in.name);
+    attribute_id_destroy(&header->id);
+    attribute_in_destroy(&header->in);
 
 }
 
 void widget_payload_anchor_create(struct widget_payload_anchor *payload)
 {
 
-    payload->label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, payload->label.content, "");
-    payload->link.url = pool_string_create(ATTRIBUTE_TYPE_LINK, payload->link.url, "");
-    payload->link.mime = pool_string_create(ATTRIBUTE_TYPE_LINK, payload->link.mime, "");
+    attribute_label_create(&payload->label, "");
+    attribute_link_create(&payload->link, "", "");
+    attribute_target_create(&payload->target, ATTRIBUTE_TARGET_BLANK);
 
 }
 
 void widget_payload_anchor_destroy(struct widget_payload_anchor *payload)
 {
 
-    payload->label.content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, payload->label.content);
-    payload->link.url = pool_string_destroy(ATTRIBUTE_TYPE_LINK, payload->link.url);
-    payload->link.mime = pool_string_destroy(ATTRIBUTE_TYPE_LINK, payload->link.mime);
+    attribute_label_destroy(&payload->label);
+    attribute_link_destroy(&payload->link);
+    attribute_target_destroy(&payload->target);
 
 }
 
 void widget_payload_button_create(struct widget_payload_button *payload)
 {
 
-    payload->label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, payload->label.content, "undefined");
-    payload->link.url = pool_string_create(ATTRIBUTE_TYPE_LINK, payload->link.url, "");
-    payload->link.mime = pool_string_create(ATTRIBUTE_TYPE_LINK, payload->link.mime, "");
+    attribute_icon_create(&payload->icon, ATTRIBUTE_ICON_NONE);
+    attribute_label_create(&payload->label, "undefined");
+    attribute_link_create(&payload->link, "", "");
+    attribute_target_create(&payload->target, ATTRIBUTE_TARGET_BLANK);
+    attribute_mode_create(&payload->mode, ATTRIBUTE_MODE_OFF);
 
 }
 
 void widget_payload_button_destroy(struct widget_payload_button *payload)
 {
 
-    payload->label.content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, payload->label.content);
-    payload->link.url = pool_string_destroy(ATTRIBUTE_TYPE_LINK, payload->link.url);
-    payload->link.mime = pool_string_destroy(ATTRIBUTE_TYPE_LINK, payload->link.mime);
+    attribute_icon_destroy(&payload->icon);
+    attribute_label_destroy(&payload->label);
+    attribute_link_destroy(&payload->link);
+    attribute_target_destroy(&payload->target);
+    attribute_mode_destroy(&payload->mode);
 
 }
 
@@ -83,60 +88,66 @@ unsigned int widget_payload_button_setstate(struct widget_header *header, unsign
 void widget_payload_choice_create(struct widget_payload_choice *payload)
 {
 
-    payload->label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, payload->label.content, "");
+    attribute_label_create(&payload->label, "");
+    attribute_mode_create(&payload->mode, ATTRIBUTE_MODE_OFF);
 
 }
 
 void widget_payload_choice_destroy(struct widget_payload_choice *payload)
 {
 
-    payload->label.content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, payload->label.content);
+    attribute_label_destroy(&payload->label);
+    attribute_mode_destroy(&payload->mode);
 
 }
 
 void widget_payload_code_create(struct widget_payload_code *payload)
 {
 
-    payload->label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, payload->label.content, "");
+    attribute_label_create(&payload->label, "");
 
 }
 
 void widget_payload_code_destroy(struct widget_payload_code *payload)
 {
 
-    payload->label.content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, payload->label.content);
+    attribute_label_destroy(&payload->label);
 
 }
 
 void widget_payload_divider_create(struct widget_payload_divider *payload)
 {
 
-    payload->label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, payload->label.content, "");
+    attribute_label_create(&payload->label, "");
 
 }
 
 void widget_payload_divider_destroy(struct widget_payload_divider *payload)
 {
 
-    payload->label.content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, payload->label.content);
+    attribute_label_destroy(&payload->label);
 
 }
 
 void widget_payload_field_create(struct widget_payload_field *payload)
 {
 
-    payload->label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, payload->label.content, "");
-    payload->data.content = pool_allocate(ATTRIBUTE_TYPE_DATA, payload->data.content, WIDGET_DATASIZE, 1, "");
-    payload->data.total = WIDGET_DATASIZE;
-    payload->data.offset = 0;
+    attribute_data_create(&payload->data, "");
+    attribute_icon_create(&payload->icon, ATTRIBUTE_ICON_NONE);
+    attribute_label_create(&payload->label, "");
+    attribute_range_create(&payload->range, 1, 1);
+    attribute_type_create(&payload->type, ATTRIBUTE_TYPE_REGULAR);
 
 }
 
 void widget_payload_field_destroy(struct widget_payload_field *payload)
 {
 
-    payload->label.content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, payload->label.content);
-    payload->data.content = pool_string_destroy(ATTRIBUTE_TYPE_DATA, payload->data.content);
+    attribute_data_destroy(&payload->data);
+    attribute_icon_destroy(&payload->icon);
+    attribute_label_destroy(&payload->label);
+    attribute_range_destroy(&payload->range);
+    attribute_type_destroy(&payload->type);
 
 }
 
@@ -160,52 +171,60 @@ unsigned int widget_payload_field_setstate(struct widget_header *header, unsigne
 void widget_payload_header_create(struct widget_payload_header *payload)
 {
 
-    payload->label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, payload->label.content, "");
+    attribute_label_create(&payload->label, "");
 
 }
 
 void widget_payload_header_destroy(struct widget_payload_header *payload)
 {
 
-    payload->label.content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, payload->label.content);
+    attribute_label_destroy(&payload->label);
 
 }
 
 void widget_payload_image_create(struct widget_payload_image *payload)
 {
 
+    attribute_link_create(&payload->link, "", "");
+
 }
 
 void widget_payload_image_destroy(struct widget_payload_image *payload)
 {
+
+    attribute_link_destroy(&payload->link);
 
 }
 
 void widget_payload_list_create(struct widget_payload_list *payload)
 {
 
+    attribute_label_create(&payload->label, "");
+
 }
 
 void widget_payload_list_destroy(struct widget_payload_list *payload)
 {
+
+    attribute_label_destroy(&payload->label);
 
 }
 
 void widget_payload_select_create(struct widget_payload_select *payload)
 {
 
-    payload->label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, payload->label.content, "");
-    payload->data.content = pool_allocate(ATTRIBUTE_TYPE_DATA, payload->data.content, WIDGET_DATASIZE, 1, "");
-    payload->data.total = WIDGET_DATASIZE;
-    payload->data.offset = 0;
+    attribute_data_create(&payload->data, "");
+    attribute_label_create(&payload->label, "");
+    attribute_range_create(&payload->range, 1, 1);
 
 }
 
 void widget_payload_select_destroy(struct widget_payload_select *payload)
 {
 
-    payload->label.content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, payload->label.content);
-    payload->data.content = pool_string_destroy(ATTRIBUTE_TYPE_DATA, payload->data.content);
+    attribute_data_destroy(&payload->data);
+    attribute_label_destroy(&payload->label);
+    attribute_range_destroy(&payload->range);
 
 }
 
@@ -229,56 +248,58 @@ unsigned int widget_payload_select_setstate(struct widget_header *header, unsign
 void widget_payload_subheader_create(struct widget_payload_subheader *payload)
 {
 
-    payload->label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, payload->label.content, "");
+    attribute_label_create(&payload->label, "");
 
 }
 
 void widget_payload_subheader_destroy(struct widget_payload_subheader *payload)
 {
 
-    payload->label.content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, payload->label.content);
+    attribute_label_destroy(&payload->label);
 
 }
 
 void widget_payload_table_create(struct widget_payload_table *payload)
 {
 
-    payload->grid.format = pool_string_create(ATTRIBUTE_TYPE_GRID, payload->grid.format, "12LT");
+    attribute_grid_create(&payload->grid, "12LT");
 
 }
 
 void widget_payload_table_destroy(struct widget_payload_table *payload)
 {
 
-    payload->grid.format = pool_string_destroy(ATTRIBUTE_TYPE_GRID, payload->grid.format);
+    attribute_grid_destroy(&payload->grid);
 
 }
 
 void widget_payload_text_create(struct widget_payload_text *payload)
 {
 
-    payload->label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, payload->label.content, "");
+    attribute_label_create(&payload->label, "");
 
 }
 
 void widget_payload_text_destroy(struct widget_payload_text *payload)
 {
 
-    payload->label.content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, payload->label.content);
+    attribute_label_destroy(&payload->label);
 
 }
 
 void widget_payload_toggle_create(struct widget_payload_toggle *payload)
 {
 
-    payload->label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, payload->label.content, "");
+    attribute_label_create(&payload->label, "");
+    attribute_mode_create(&payload->mode, ATTRIBUTE_MODE_OFF);
 
 }
 
 void widget_payload_toggle_destroy(struct widget_payload_toggle *payload)
 {
 
-    payload->label.content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, payload->label.content);
+    attribute_label_destroy(&payload->label);
+    attribute_mode_destroy(&payload->mode);
 
 }
 
@@ -302,14 +323,14 @@ unsigned int widget_payload_toggle_setstate(struct widget_header *header, unsign
 void widget_payload_window_create(struct widget_payload_window *payload)
 {
 
-    payload->label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, payload->label.content, "undefined");
+    attribute_label_create(&payload->label, "");
 
 }
 
 void widget_payload_window_destroy(struct widget_payload_window *payload)
 {
 
-    payload->label.content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, payload->label.content);
+    attribute_label_destroy(&payload->label);
 
 }
 

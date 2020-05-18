@@ -1,8 +1,8 @@
 GL:=GLES3
 BIN_ALFI:=alfi
-OBJ_ALFI:=src/alfi.o src/list.o src/parser.o src/url.o src/resource.o src/pool.o src/widgets.o
+OBJ_ALFI:=src/alfi.o src/list.o src/parser.o src/url.o src/resource.o src/pool.o src/attributes.o src/widgets.o
 BIN_NAVI:=navi
-OBJ_NAVI:=src/navi.o src/list.o src/parser.o src/url.o src/resource.o src/pool.o src/widgets.o src/view.o src/gridfmt.o src/style.o src/nvg.o src/nvg_gl.o src/fons.o src/render.o src/entity.o src/animation.o src/history.o
+OBJ_NAVI:=src/navi.o src/list.o src/parser.o src/url.o src/resource.o src/pool.o src/attributes.o src/widgets.o src/view.o src/gridfmt.o src/style.o src/nvg.o src/nvg_gl.o src/fons.o src/render.o src/entity.o src/animation.o src/history.o
 BIN_NAVI_RESOLVE:=navi-resolve
 CFLAGS_GL2:=-DNVG_GL_VERSION_GL2 -DNVG_GL_GLEW
 CFLAGS_GL3:=-DNVG_GL_VERSION_GL3 -DNVG_GL_GLEW
