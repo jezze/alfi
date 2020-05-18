@@ -402,7 +402,7 @@ static void parse_attribute_link(struct parser *parser, struct attribute_link *a
 static void parse_attribute_mode(struct parser *parser, struct attribute_mode *attribute)
 {
 
-    attribute->mode = getmode(parser);
+    attribute->type = getmode(parser);
 
 }
 

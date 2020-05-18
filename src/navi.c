@@ -126,7 +126,7 @@ static unsigned int builddata(char *buffer, unsigned int count)
             break;
 
         case ALFI_WIDGET_TOGGLE:
-            if (widget->payload.toggle.mode.mode == ALFI_MODE_ON)
+            if (widget->payload.toggle.mode.type == ALFI_MODE_ON)
                 offset += buildkeyvalue(buffer + offset, count - offset, offset, widget->header.id.name, widget->payload.select.data.content);
 
             break;
@@ -453,16 +453,16 @@ static void oninput_toggle(struct payload_toggle *payload, int key, int scancode
         {
 
         case GLFW_KEY_SPACE:
-            switch (payload->mode.mode)
+            switch (payload->mode.type)
             {
 
             case ALFI_MODE_OFF:
-                payload->mode.mode = ALFI_MODE_ON;
+                payload->mode.type = ALFI_MODE_ON;
 
                 break;
 
             case ALFI_MODE_ON:
-                payload->mode.mode = ALFI_MODE_OFF;
+                payload->mode.type = ALFI_MODE_OFF;
 
                 break;
 
@@ -770,16 +770,16 @@ static void onclick_toggle(struct widget *widget, float x, float y)
 
     setfocus(widget);
 
-    switch (payload->mode.mode)
+    switch (payload->mode.type)
     {
 
     case ALFI_MODE_OFF:
-        payload->mode.mode = ALFI_MODE_ON;
+        payload->mode.type = ALFI_MODE_ON;
 
         break;
 
     case ALFI_MODE_ON:
-        payload->mode.mode = ALFI_MODE_OFF;
+        payload->mode.type = ALFI_MODE_OFF;
 
         break;
 

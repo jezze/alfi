@@ -122,7 +122,7 @@ struct attribute_link
 struct attribute_mode
 {
 
-    int mode;
+    int type;
 
 };
 

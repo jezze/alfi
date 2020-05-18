@@ -79,7 +79,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
 
     style_font_init(&text->font, font_bold->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
 
-    if (payload->mode.mode == ALFI_MODE_ON)
+    if (payload->mode.type == ALFI_MODE_ON)
         style_color_clone(&text->color, &color_focustext);
     else
         style_color_clone(&text->color, &color_text);
@@ -88,7 +88,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
     style_box_shrink(&text->box, 3 * view->marginw, 3 * view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    if (payload->mode.mode == ALFI_MODE_ON)
+    if (payload->mode.type == ALFI_MODE_ON)
         style_color_clone(&surface->color, &color_focus);
     else
         style_color_clone(&surface->color, &color_line);
@@ -842,7 +842,7 @@ static int toggle_step(struct widget *widget, struct frame *frame, int x, int y,
     style_box_init(&ihandle->box, x, y, view->unitw * 2 - view->unitw / 2, view->fontsizemedium, 14);
     style_box_translate(&ihandle->box, view->marginw * 2, view->marginh * 2 + 4);
 
-    if (payload->mode.mode == ALFI_MODE_ON)
+    if (payload->mode.type == ALFI_MODE_ON)
         style_box_translate(&ihandle->box, 2 * view->unitw - 2 * view->marginw, 0);
 
     if (widget->header.state == ALFI_STATE_FOCUS)
@@ -853,7 +853,7 @@ static int toggle_step(struct widget *widget, struct frame *frame, int x, int y,
     style_box_init(&ohandle->box, x, y, view->unitw * 2 - view->unitw / 2, view->fontsizemedium, 16);
     style_box_translate(&ohandle->box, view->marginw * 2, view->marginh * 2 + 4);
 
-    if (payload->mode.mode == ALFI_MODE_ON)
+    if (payload->mode.type == ALFI_MODE_ON)
         style_box_translate(&ohandle->box, 2 * view->unitw - 2 * view->marginw, 0);
 
     style_font_init(&text->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
@@ -862,7 +862,7 @@ static int toggle_step(struct widget *widget, struct frame *frame, int x, int y,
     style_box_shrink(&text->box, 3 * view->unitw + view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    if (payload->mode.mode == ALFI_MODE_ON)
+    if (payload->mode.type == ALFI_MODE_ON)
         style_color_clone(&groove->color, &color_focus);
     else
         style_color_clone(&groove->color, &color_line);
