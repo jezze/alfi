@@ -17,15 +17,15 @@ static unsigned int getflags(struct widget *widget)
     switch (widget->header.type)
     {
 
-    case ALFI_WIDGET_BUTTON:
-    case ALFI_WIDGET_FIELD:
-    case ALFI_WIDGET_SELECT:
-    case ALFI_WIDGET_TOGGLE:
-        return ALFI_FLAG_FOCUSABLE;
+    case WIDGET_TYPE_BUTTON:
+    case WIDGET_TYPE_FIELD:
+    case WIDGET_TYPE_SELECT:
+    case WIDGET_TYPE_TOGGLE:
+        return WIDGET_FLAG_FOCUSABLE;
 
     }
 
-    return ALFI_FLAG_NONE;
+    return WIDGET_FLAG_NONE;
 
 }
 
@@ -44,77 +44,77 @@ void entity_createpayload(struct widget *widget)
     switch (widget->header.type)
     {
 
-    case ALFI_WIDGET_ANCHOR:
+    case WIDGET_TYPE_ANCHOR:
         widget_payload_anchor_create(&widget->payload.anchor);
 
         break;
 
-    case ALFI_WIDGET_BUTTON:
+    case WIDGET_TYPE_BUTTON:
         widget_payload_button_create(&widget->payload.button);
 
         break;
 
-    case ALFI_WIDGET_CHOICE:
+    case WIDGET_TYPE_CHOICE:
         widget_payload_choice_create(&widget->payload.choice);
 
         break;
 
-    case ALFI_WIDGET_CODE:
+    case WIDGET_TYPE_CODE:
         widget_payload_code_create(&widget->payload.code);
 
         break;
 
-    case ALFI_WIDGET_DIVIDER:
+    case WIDGET_TYPE_DIVIDER:
         widget_payload_divider_create(&widget->payload.divider);
 
         break;
 
-    case ALFI_WIDGET_FIELD:
+    case WIDGET_TYPE_FIELD:
         widget_payload_field_create(&widget->payload.field);
 
         break;
 
-    case ALFI_WIDGET_HEADER:
+    case WIDGET_TYPE_HEADER:
         widget_payload_header_create(&widget->payload.header);
 
         break;
 
-    case ALFI_WIDGET_IMAGE:
+    case WIDGET_TYPE_IMAGE:
         widget_payload_image_create(&widget->payload.image);
 
         break;
 
-    case ALFI_WIDGET_LIST:
+    case WIDGET_TYPE_LIST:
         widget_payload_list_create(&widget->payload.list);
 
         break;
 
-    case ALFI_WIDGET_SELECT:
+    case WIDGET_TYPE_SELECT:
         widget_payload_select_create(&widget->payload.select);
 
         break;
 
-    case ALFI_WIDGET_SUBHEADER:
+    case WIDGET_TYPE_SUBHEADER:
         widget_payload_subheader_create(&widget->payload.subheader);
 
         break;
 
-    case ALFI_WIDGET_TABLE:
+    case WIDGET_TYPE_TABLE:
         widget_payload_table_create(&widget->payload.table);
 
         break;
 
-    case ALFI_WIDGET_TEXT:
+    case WIDGET_TYPE_TEXT:
         widget_payload_text_create(&widget->payload.text);
 
         break;
 
-    case ALFI_WIDGET_TOGGLE:
+    case WIDGET_TYPE_TOGGLE:
         widget_payload_toggle_create(&widget->payload.toggle);
 
         break;
 
-    case ALFI_WIDGET_WINDOW:
+    case WIDGET_TYPE_WINDOW:
         widget_payload_window_create(&widget->payload.window);
 
         break;
@@ -129,77 +129,77 @@ void entity_destroypayload(struct widget *widget)
     switch (widget->header.type)
     {
 
-    case ALFI_WIDGET_ANCHOR:
+    case WIDGET_TYPE_ANCHOR:
         widget_payload_anchor_destroy(&widget->payload.anchor);
 
         break;
 
-    case ALFI_WIDGET_BUTTON:
+    case WIDGET_TYPE_BUTTON:
         widget_payload_button_destroy(&widget->payload.button);
 
         break;
 
-    case ALFI_WIDGET_CHOICE:
+    case WIDGET_TYPE_CHOICE:
         widget_payload_choice_destroy(&widget->payload.choice);
 
         break;
 
-    case ALFI_WIDGET_CODE:
+    case WIDGET_TYPE_CODE:
         widget_payload_code_destroy(&widget->payload.code);
 
         break;
 
-    case ALFI_WIDGET_DIVIDER:
+    case WIDGET_TYPE_DIVIDER:
         widget_payload_divider_destroy(&widget->payload.divider);
 
         break;
 
-    case ALFI_WIDGET_FIELD:
+    case WIDGET_TYPE_FIELD:
         widget_payload_field_destroy(&widget->payload.field);
 
         break;
 
-    case ALFI_WIDGET_HEADER:
+    case WIDGET_TYPE_HEADER:
         widget_payload_header_destroy(&widget->payload.header);
 
         break;
 
-    case ALFI_WIDGET_IMAGE:
+    case WIDGET_TYPE_IMAGE:
         widget_payload_image_destroy(&widget->payload.image);
 
         break;
 
-    case ALFI_WIDGET_LIST:
+    case WIDGET_TYPE_LIST:
         widget_payload_list_destroy(&widget->payload.list);
 
         break;
 
-    case ALFI_WIDGET_SELECT:
+    case WIDGET_TYPE_SELECT:
         widget_payload_select_destroy(&widget->payload.select);
 
         break;
 
-    case ALFI_WIDGET_SUBHEADER:
+    case WIDGET_TYPE_SUBHEADER:
         widget_payload_subheader_destroy(&widget->payload.subheader);
 
         break;
 
-    case ALFI_WIDGET_TABLE:
+    case WIDGET_TYPE_TABLE:
         widget_payload_table_destroy(&widget->payload.table);
 
         break;
 
-    case ALFI_WIDGET_TEXT:
+    case WIDGET_TYPE_TEXT:
         widget_payload_text_destroy(&widget->payload.text);
 
         break;
 
-    case ALFI_WIDGET_TOGGLE:
+    case WIDGET_TYPE_TOGGLE:
         widget_payload_toggle_destroy(&widget->payload.toggle);
 
         break;
 
-    case ALFI_WIDGET_WINDOW:
+    case WIDGET_TYPE_WINDOW:
         widget_payload_window_destroy(&widget->payload.window);
 
         break;
@@ -214,28 +214,28 @@ void entity_setstate(struct widget *widget, unsigned int state)
     switch (widget->header.type)
     {
 
-    case ALFI_WIDGET_BUTTON:
+    case WIDGET_TYPE_BUTTON:
         widget->header.state = widget_payload_button_setstate(&widget->header, state);
 
         break;
 
-    case ALFI_WIDGET_FIELD:
+    case WIDGET_TYPE_FIELD:
         widget->header.state = widget_payload_field_setstate(&widget->header, state);
 
         break;
 
-    case ALFI_WIDGET_SELECT:
+    case WIDGET_TYPE_SELECT:
         widget->header.state = widget_payload_select_setstate(&widget->header, state);
 
         break;
 
-    case ALFI_WIDGET_TOGGLE:
+    case WIDGET_TYPE_TOGGLE:
         widget->header.state = widget_payload_toggle_setstate(&widget->header, state);
 
         break;
 
     default:
-        widget->header.state = ALFI_STATE_NORMAL;
+        widget->header.state = WIDGET_STATE_NORMAL;
 
         break;
 

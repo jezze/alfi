@@ -81,7 +81,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
 
     style_font_init(&text->font, font_bold->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
 
-    if (payload->mode.type == ALFI_MODE_ON)
+    if (payload->mode.type == ATTRIBUTE_MODE_ON)
         style_color_clone(&text->color, &color_focustext);
     else
         style_color_clone(&text->color, &color_text);
@@ -90,7 +90,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
     style_box_shrink(&text->box, 3 * view->marginw, 3 * view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    if (payload->mode.type == ALFI_MODE_ON)
+    if (payload->mode.type == ATTRIBUTE_MODE_ON)
         style_color_clone(&surface->color, &color_focus);
     else
         style_color_clone(&surface->color, &color_line);
@@ -142,7 +142,7 @@ static int choice_step(struct widget *widget, struct frame *frame, int x, int y,
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    if (widget->header.state == ALFI_STATE_HOVER)
+    if (widget->header.state == WIDGET_STATE_HOVER)
         style_color_clone(&background->color, &color_line);
 
     style_box_init(&background->box, x, y, w, 0, 4);
@@ -159,7 +159,7 @@ static void choice_render(struct widget *widget, struct frame *frame, struct vie
     struct style *background = &frame->styles[0];
     struct style *text = &frame->styles[1];
 
-    if (widget->header.state == ALFI_STATE_HOVER)
+    if (widget->header.state == WIDGET_STATE_HOVER)
         render_fillrect(background);
 
     if (strlen(payload->label.content))
@@ -287,7 +287,7 @@ static int field_step(struct widget *widget, struct frame *frame, int x, int y, 
     style_color_clone(&data->color, &color_text);
     style_box_init(&data->box, x, y, w, 0, 0);
 
-    if (widget->header.state == ALFI_STATE_FOCUS)
+    if (widget->header.state == WIDGET_STATE_FOCUS)
         style_box_shrink(&data->box, view->unitw + view->marginw, view->unith + view->marginh);
     else
         style_box_shrink(&data->box, view->unitw, view->unith);
@@ -295,17 +295,17 @@ static int field_step(struct widget *widget, struct frame *frame, int x, int y, 
     style_box_scale(&data->box, data->box.w, render_textheight(data, payload->data.content));
     style_box_init(&label->box, x, y, w, 0, 0);
 
-    if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
         style_font_init(&label->font, font_regular->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     else
         style_font_init(&label->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
 
-    if (widget->header.state == ALFI_STATE_FOCUS)
+    if (widget->header.state == WIDGET_STATE_FOCUS)
         style_color_clone(&label->color, &color_focus);
     else
         style_color_clone(&label->color, &color_line);
 
-    if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
     {
 
         style_box_shrink(&label->box, view->unitw, view->marginh - label->font.size / 2);
@@ -324,12 +324,12 @@ static int field_step(struct widget *widget, struct frame *frame, int x, int y, 
     style_box_init(&border->box, x, y, w, 0, 4);
     style_box_shrink(&border->box, view->marginw, view->marginh);
 
-    if (widget->header.state == ALFI_STATE_FOCUS)
+    if (widget->header.state == WIDGET_STATE_FOCUS)
         style_color_clone(&border->color, &color_focus);
     else
         style_color_clone(&border->color, &color_line);
 
-    if (widget->header.state == ALFI_STATE_FOCUS)
+    if (widget->header.state == WIDGET_STATE_FOCUS)
         style_box_expand(&border->box, &data->box, view->unitw, view->unith);
     else
         style_box_expand(&border->box, &data->box, view->unitw - view->marginw, view->unith - view->marginh);
@@ -346,7 +346,7 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
     struct style *label = &frame->styles[1];
     struct style *data = &frame->styles[2];
 
-    if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
     {
 
         if (strlen(payload->label.content))
@@ -379,7 +379,7 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
     if (strlen(payload->data.content))
     {
 
-        if (widget->header.state == ALFI_STATE_FOCUS)
+        if (widget->header.state == WIDGET_STATE_FOCUS)
             render_filltextinput(data, payload->data.content, payload->data.offset, &border->color);
         else
             render_filltext(data, payload->data.content);
@@ -522,7 +522,7 @@ static void list_render(struct widget *widget, struct frame *frame, struct view 
 
         animation_render(child, view);
 
-        if (child->header.type != ALFI_WIDGET_LIST)
+        if (child->header.type != WIDGET_TYPE_LIST)
         {
 
             struct style dot;
@@ -565,7 +565,7 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
 
         cy += ch;
 
-        if (widget->header.state == ALFI_STATE_FOCUS)
+        if (widget->header.state == WIDGET_STATE_FOCUS)
         {
 
             if (h < cy + view->unith)
@@ -579,7 +579,7 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
     style_color_clone(&data->color, &color_text);
     style_box_init(&data->box, x, y, w, h, 0);
 
-    if (widget->header.state == ALFI_STATE_FOCUS)
+    if (widget->header.state == WIDGET_STATE_FOCUS)
     {
 
         style_box_shrink(&data->box, view->unitw + view->marginw, view->unith + view->marginh);
@@ -595,19 +595,19 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
 
     }
 
-    if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
         style_font_init(&label->font, font_regular->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     else
         style_font_init(&label->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
 
-    if (widget->header.state == ALFI_STATE_FOCUS)
+    if (widget->header.state == WIDGET_STATE_FOCUS)
         style_color_clone(&label->color, &color_focus);
     else
         style_color_clone(&label->color, &color_line);
 
     style_box_init(&label->box, x, y, w, h, 0);
 
-    if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
     {
 
         style_box_translate(&label->box, view->unitw, 0);
@@ -623,7 +623,7 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
 
     }
 
-    if (widget->header.state == ALFI_STATE_FOCUS)
+    if (widget->header.state == WIDGET_STATE_FOCUS)
         style_color_clone(&border->color, &color_focus);
     else
         style_color_clone(&border->color, &color_line);
@@ -644,7 +644,7 @@ static void select_render(struct widget *widget, struct frame *frame, struct vie
     struct style *data = &frame->styles[2];
     struct widget *child = 0;
 
-    if (widget->header.state == ALFI_STATE_FOCUS || strlen(payload->data.content))
+    if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
     {
 
         if (strlen(payload->label.content))
@@ -677,7 +677,7 @@ static void select_render(struct widget *widget, struct frame *frame, struct vie
     if (strlen(payload->data.content))
         render_filltext(data, payload->data.content);
 
-    if (widget->header.state == ALFI_STATE_FOCUS)
+    if (widget->header.state == WIDGET_STATE_FOCUS)
     {
 
         while ((child = pool_widget_nextchild(child, widget)))
@@ -844,10 +844,10 @@ static int toggle_step(struct widget *widget, struct frame *frame, int x, int y,
     style_box_init(&ihandle->box, x, y, view->unitw * 2 - view->unitw / 2, view->fontsizemedium, 14);
     style_box_translate(&ihandle->box, view->marginw * 2, view->marginh * 2 + 4);
 
-    if (payload->mode.type == ALFI_MODE_ON)
+    if (payload->mode.type == ATTRIBUTE_MODE_ON)
         style_box_translate(&ihandle->box, 2 * view->unitw - 2 * view->marginw, 0);
 
-    if (widget->header.state == ALFI_STATE_FOCUS)
+    if (widget->header.state == WIDGET_STATE_FOCUS)
         style_color_clone(&ohandle->color, &color_focus);
     else
         style_color_clone(&ohandle->color, &color_text);
@@ -855,7 +855,7 @@ static int toggle_step(struct widget *widget, struct frame *frame, int x, int y,
     style_box_init(&ohandle->box, x, y, view->unitw * 2 - view->unitw / 2, view->fontsizemedium, 16);
     style_box_translate(&ohandle->box, view->marginw * 2, view->marginh * 2 + 4);
 
-    if (payload->mode.type == ALFI_MODE_ON)
+    if (payload->mode.type == ATTRIBUTE_MODE_ON)
         style_box_translate(&ohandle->box, 2 * view->unitw - 2 * view->marginw, 0);
 
     style_font_init(&text->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
@@ -864,7 +864,7 @@ static int toggle_step(struct widget *widget, struct frame *frame, int x, int y,
     style_box_shrink(&text->box, 3 * view->unitw + view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    if (payload->mode.type == ALFI_MODE_ON)
+    if (payload->mode.type == ATTRIBUTE_MODE_ON)
         style_color_clone(&groove->color, &color_focus);
     else
         style_color_clone(&groove->color, &color_line);
@@ -1008,7 +1008,7 @@ int animation_step(struct widget *widget, int x, int y, int w, struct view *view
 
     keyframe.bounds.h = calls[widget->header.type].step(widget, &keyframe, x, y, w, view, u);
 
-    if (widget->header.type == ALFI_WIDGET_WINDOW)
+    if (widget->header.type == WIDGET_TYPE_WINDOW)
         tweenframe(frame, &keyframe, 1.0);
     else
         tweenframe(frame, &keyframe, u);
@@ -1089,21 +1089,21 @@ static void setcallback(unsigned int type, int (*step)(struct widget *widget, st
 void animation_setup(void)
 {
 
-    setcallback(ALFI_WIDGET_ANCHOR, anchor_step, anchor_render, anchor_getcursor);
-    setcallback(ALFI_WIDGET_BUTTON, button_step, button_render, button_getcursor);
-    setcallback(ALFI_WIDGET_CHOICE, choice_step, choice_render, choice_getcursor);
-    setcallback(ALFI_WIDGET_CODE, code_step, code_render, code_getcursor);
-    setcallback(ALFI_WIDGET_DIVIDER, divider_step, divider_render, divider_getcursor);
-    setcallback(ALFI_WIDGET_FIELD, field_step, field_render, field_getcursor);
-    setcallback(ALFI_WIDGET_HEADER, header_step, header_render, header_getcursor);
-    setcallback(ALFI_WIDGET_IMAGE, image_step, image_render, image_getcursor);
-    setcallback(ALFI_WIDGET_LIST, list_step, list_render, list_getcursor);
-    setcallback(ALFI_WIDGET_SELECT, select_step, select_render, select_getcursor);
-    setcallback(ALFI_WIDGET_SUBHEADER, subheader_step, subheader_render, subheader_getcursor);
-    setcallback(ALFI_WIDGET_TABLE, table_step, table_render, table_getcursor);
-    setcallback(ALFI_WIDGET_TEXT, text_step, text_render, text_getcursor);
-    setcallback(ALFI_WIDGET_TOGGLE, toggle_step, toggle_render, toggle_getcursor);
-    setcallback(ALFI_WIDGET_WINDOW, window_step, window_render, window_getcursor);
+    setcallback(WIDGET_TYPE_ANCHOR, anchor_step, anchor_render, anchor_getcursor);
+    setcallback(WIDGET_TYPE_BUTTON, button_step, button_render, button_getcursor);
+    setcallback(WIDGET_TYPE_CHOICE, choice_step, choice_render, choice_getcursor);
+    setcallback(WIDGET_TYPE_CODE, code_step, code_render, code_getcursor);
+    setcallback(WIDGET_TYPE_DIVIDER, divider_step, divider_render, divider_getcursor);
+    setcallback(WIDGET_TYPE_FIELD, field_step, field_render, field_getcursor);
+    setcallback(WIDGET_TYPE_HEADER, header_step, header_render, header_getcursor);
+    setcallback(WIDGET_TYPE_IMAGE, image_step, image_render, image_getcursor);
+    setcallback(WIDGET_TYPE_LIST, list_step, list_render, list_getcursor);
+    setcallback(WIDGET_TYPE_SELECT, select_step, select_render, select_getcursor);
+    setcallback(WIDGET_TYPE_SUBHEADER, subheader_step, subheader_render, subheader_getcursor);
+    setcallback(WIDGET_TYPE_TABLE, table_step, table_render, table_getcursor);
+    setcallback(WIDGET_TYPE_TEXT, text_step, text_render, text_getcursor);
+    setcallback(WIDGET_TYPE_TOGGLE, toggle_step, toggle_render, toggle_getcursor);
+    setcallback(WIDGET_TYPE_WINDOW, window_step, window_render, window_getcursor);
 
 }
 

@@ -99,19 +99,19 @@ unsigned int gridfmt_colhalign(char *format, unsigned int index)
         {
 
         case 'L':
-            return ALFI_HALIGN_LEFT;
+            return ATTRIBUTE_HALIGN_LEFT;
 
         case 'R':
-            return ALFI_HALIGN_RIGHT;
+            return ATTRIBUTE_HALIGN_RIGHT;
 
         case 'C':
-            return ALFI_HALIGN_CENTER;
+            return ATTRIBUTE_HALIGN_CENTER;
 
         }
 
     }
 
-    return ALFI_HALIGN_LEFT;
+    return ATTRIBUTE_HALIGN_LEFT;
 
 }
 
@@ -128,19 +128,19 @@ unsigned int gridfmt_colvalign(char *format, unsigned int index)
         {
 
         case 'T':
-            return ALFI_VALIGN_TOP;
+            return ATTRIBUTE_VALIGN_TOP;
 
         case 'B':
-            return ALFI_VALIGN_BOTTOM;
+            return ATTRIBUTE_VALIGN_BOTTOM;
 
         case 'M':
-            return ALFI_VALIGN_MIDDLE;
+            return ATTRIBUTE_VALIGN_MIDDLE;
 
         }
 
     }
 
-    return ALFI_VALIGN_TOP;
+    return ATTRIBUTE_VALIGN_TOP;
 
 }
 

@@ -20,8 +20,8 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
     struct widget *widget = pool_widget_create();
 
     widget->header.type = type;
-    widget->header.id.name = pool_string_create(ALFI_ATTRIBUTE_ID, widget->header.id.name, id);
-    widget->header.in.name = pool_string_create(ALFI_ATTRIBUTE_IN, widget->header.in.name, in);
+    widget->header.id.name = pool_string_create(ATTRIBUTE_TYPE_ID, widget->header.id.name, id);
+    widget->header.in.name = pool_string_create(ATTRIBUTE_TYPE_IN, widget->header.in.name, in);
 
     return widget;
 
@@ -30,8 +30,8 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 static struct widget *parser_destroy(struct widget *widget)
 {
 
-    widget->header.id.name = pool_string_destroy(ALFI_ATTRIBUTE_ID, widget->header.id.name);
-    widget->header.in.name = pool_string_destroy(ALFI_ATTRIBUTE_IN, widget->header.in.name);
+    widget->header.id.name = pool_string_destroy(ATTRIBUTE_TYPE_ID, widget->header.id.name);
+    widget->header.in.name = pool_string_destroy(ATTRIBUTE_TYPE_IN, widget->header.in.name);
 
     return pool_widget_destroy(widget);
 
@@ -69,8 +69,8 @@ int main(int argc, char **argv)
 
     pool_setup();
     parser_init(&parser, parser_fail, pool_widget_find, parser_create, parser_destroy, parser_clear, pool_allocate);
-    parser_create(ALFI_WIDGET_WINDOW, "window", "");
-    parser_create(ALFI_WIDGET_TABLE, "main", "window");
+    parser_create(WIDGET_TYPE_WINDOW, "window", "");
+    parser_create(WIDGET_TYPE_TABLE, "main", "window");
 
     while ((count = read(0, data, RESOURCE_PAGESIZE)))
         parser_parse(&parser, "main", count, data);

@@ -50,7 +50,6 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 
     widget_header_create(&widget->header, type, id, in);
     entity_createpayload(widget);
-    entity_setstate(widget, ALFI_STATE_NORMAL);
 
     memset(&widget->frame, 0, sizeof (struct frame));
 
@@ -117,18 +116,18 @@ static unsigned int builddata(char *buffer, unsigned int count)
         switch (widget->header.type)
         {
 
-        case ALFI_WIDGET_FIELD:
+        case WIDGET_TYPE_FIELD:
             offset += buildkeyvalue(buffer + offset, count - offset, offset, widget->header.id.name, widget->payload.field.data.content);
 
             break;
 
-        case ALFI_WIDGET_SELECT:
+        case WIDGET_TYPE_SELECT:
             offset += buildkeyvalue(buffer + offset, count - offset, offset, widget->header.id.name, widget->payload.select.data.content);
 
             break;
 
-        case ALFI_WIDGET_TOGGLE:
-            if (widget->payload.toggle.mode.type == ALFI_MODE_ON)
+        case WIDGET_TYPE_TOGGLE:
+            if (widget->payload.toggle.mode.type == ATTRIBUTE_MODE_ON)
                 offset += buildkeyvalue(buffer + offset, count - offset, offset, widget->header.id.name, widget->payload.select.data.content);
 
             break;
@@ -225,12 +224,12 @@ static void setfocus(struct widget *widget)
     {
 
         if (widget_focus)
-            entity_setstate(widget_focus, ALFI_STATE_UNFOCUS);
+            entity_setstate(widget_focus, WIDGET_STATE_UNFOCUS);
 
         widget_focus = widget;
 
         if (widget_focus)
-            entity_setstate(widget_focus, ALFI_STATE_FOCUS);
+            entity_setstate(widget_focus, WIDGET_STATE_FOCUS);
 
     }
 
@@ -243,12 +242,12 @@ static void sethover(struct widget *widget)
     {
 
         if (widget_hover)
-            entity_setstate(widget_hover, ALFI_STATE_UNHOVER);
+            entity_setstate(widget_hover, WIDGET_STATE_UNHOVER);
 
         widget_hover = widget;
 
         if (widget_hover)
-            entity_setstate(widget_hover, ALFI_STATE_HOVER);
+            entity_setstate(widget_hover, WIDGET_STATE_HOVER);
 
     }
 
@@ -276,7 +275,7 @@ static void loadresources(void)
         switch (widget->header.type)
         {
 
-        case ALFI_WIDGET_IMAGE:
+        case WIDGET_TYPE_IMAGE:
             loadresources_image(widget);
 
             break;
@@ -342,10 +341,10 @@ static void loadblank(char *url, unsigned int count, void *data)
 static void create(char *title)
 {
 
-    widget_root = parser_create(ALFI_WIDGET_WINDOW, "window", "");
-    widget_main = parser_create(ALFI_WIDGET_TABLE, "main", "window");
+    widget_root = parser_create(WIDGET_TYPE_WINDOW, "window", "");
+    widget_main = parser_create(WIDGET_TYPE_TABLE, "main", "window");
 
-    widget_root->payload.window.label.content = pool_string_create(ALFI_ATTRIBUTE_LABEL, widget_root->payload.window.label.content, title);
+    widget_root->payload.window.label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, widget_root->payload.window.label.content, title);
 
 }
 
@@ -458,13 +457,13 @@ static void oninput_toggle(struct widget_payload_toggle *payload, int key, int s
             switch (payload->mode.type)
             {
 
-            case ALFI_MODE_OFF:
-                payload->mode.type = ALFI_MODE_ON;
+            case ATTRIBUTE_MODE_OFF:
+                payload->mode.type = ATTRIBUTE_MODE_ON;
 
                 break;
 
-            case ALFI_MODE_ON:
-                payload->mode.type = ALFI_MODE_OFF;
+            case ATTRIBUTE_MODE_ON:
+                payload->mode.type = ATTRIBUTE_MODE_OFF;
 
                 break;
 
@@ -549,10 +548,10 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
             if (mods & GLFW_MOD_SHIFT)
             {
 
-                struct widget *widget = prevflag(widget_focus, ALFI_FLAG_FOCUSABLE);
+                struct widget *widget = prevflag(widget_focus, WIDGET_FLAG_FOCUSABLE);
 
                 if (!widget)
-                    widget = prevflag(0, ALFI_FLAG_FOCUSABLE);
+                    widget = prevflag(0, WIDGET_FLAG_FOCUSABLE);
 
                 setfocus(widget);
 
@@ -561,10 +560,10 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
             else
             {
 
-                struct widget *widget = nextflag(widget_focus, ALFI_FLAG_FOCUSABLE);
+                struct widget *widget = nextflag(widget_focus, WIDGET_FLAG_FOCUSABLE);
 
                 if (!widget)
-                    widget = nextflag(0, ALFI_FLAG_FOCUSABLE);
+                    widget = nextflag(0, WIDGET_FLAG_FOCUSABLE);
 
                 setfocus(widget);
 
@@ -576,23 +575,23 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
 
     }
 
-    if (widget_focus && entity_checkflag(widget_focus, ALFI_FLAG_FOCUSABLE))
+    if (widget_focus && entity_checkflag(widget_focus, WIDGET_FLAG_FOCUSABLE))
     {
 
         switch (widget_focus->header.type)
         {
 
-        case ALFI_WIDGET_FIELD:
+        case WIDGET_TYPE_FIELD:
             oninput_field(&widget_focus->payload.field, key, scancode, action, mods);
 
             break;
 
-        case ALFI_WIDGET_SELECT:
+        case WIDGET_TYPE_SELECT:
             oninput_select(&widget_focus->payload.select, key, scancode, action, mods);
 
             break;
 
-        case ALFI_WIDGET_TOGGLE:
+        case WIDGET_TYPE_TOGGLE:
             oninput_toggle(&widget_focus->payload.toggle, key, scancode, action, mods);
 
             break;
@@ -673,12 +672,12 @@ static void onclick_anchor(struct widget *widget, float x, float y)
     switch (payload->target.type)
     {
 
-    case ALFI_TARGET_SELF:
+    case ATTRIBUTE_TARGET_SELF:
         loadself(payload->link.url, 0, 0);
 
         break;
 
-    case ALFI_TARGET_BLANK:
+    case ATTRIBUTE_TARGET_BLANK:
         loadblank(payload->link.url, 0, 0);
 
         break;
@@ -705,12 +704,12 @@ static void onclick_button(struct widget *widget, float x, float y)
     switch (payload->target.type)
     {
 
-    case ALFI_TARGET_SELF:
+    case ATTRIBUTE_TARGET_SELF:
         loadself(payload->link.url, builddata(data, RESOURCE_PAGESIZE), data);
 
         break;
 
-    case ALFI_TARGET_BLANK:
+    case ATTRIBUTE_TARGET_BLANK:
         loadblank(payload->link.url, builddata(data, RESOURCE_PAGESIZE), data);
 
         break;
@@ -728,8 +727,8 @@ static void onclick_choice(struct widget *widget, float x, float y)
     switch (parent->header.type)
     {
 
-    case ALFI_WIDGET_SELECT:
-        parent->payload.select.data.content = pool_string_create(ALFI_ATTRIBUTE_DATA, parent->payload.select.data.content, payload->label.content);
+    case WIDGET_TYPE_SELECT:
+        parent->payload.select.data.content = pool_string_create(ATTRIBUTE_TYPE_DATA, parent->payload.select.data.content, payload->label.content);
 
         break;
 
@@ -775,13 +774,13 @@ static void onclick_toggle(struct widget *widget, float x, float y)
     switch (payload->mode.type)
     {
 
-    case ALFI_MODE_OFF:
-        payload->mode.type = ALFI_MODE_ON;
+    case ATTRIBUTE_MODE_OFF:
+        payload->mode.type = ATTRIBUTE_MODE_ON;
 
         break;
 
-    case ALFI_MODE_ON:
-        payload->mode.type = ALFI_MODE_OFF;
+    case ATTRIBUTE_MODE_ON:
+        payload->mode.type = ATTRIBUTE_MODE_OFF;
 
         break;
 
@@ -807,32 +806,32 @@ static void onbutton(GLFWwindow *window, int button, int action, int mods)
                 switch (widget_hover->header.type)
                 {
 
-                case ALFI_WIDGET_ANCHOR:
+                case WIDGET_TYPE_ANCHOR:
                     onclick_anchor(widget_hover, mouse_x, mouse_y);
 
                     break;
 
-                case ALFI_WIDGET_BUTTON:
+                case WIDGET_TYPE_BUTTON:
                     onclick_button(widget_hover, mouse_x, mouse_y);
 
                     break;
 
-                case ALFI_WIDGET_CHOICE:
+                case WIDGET_TYPE_CHOICE:
                     onclick_choice(widget_hover, mouse_x, mouse_y);
 
                     break;
 
-                case ALFI_WIDGET_FIELD:
+                case WIDGET_TYPE_FIELD:
                     onclick_field(widget_hover, mouse_x, mouse_y);
 
                     break;
 
-                case ALFI_WIDGET_SELECT:
+                case WIDGET_TYPE_SELECT:
                     onclick_select(widget_hover, mouse_x, mouse_y);
 
                     break;
 
-                case ALFI_WIDGET_TOGGLE:
+                case WIDGET_TYPE_TOGGLE:
                     onclick_toggle(widget_hover, mouse_x, mouse_y);
 
                     break;
@@ -915,13 +914,13 @@ static void onchar_field(struct widget_payload_field *payload, unsigned int code
 static void onchar(GLFWwindow *window, unsigned int codepoint)
 {
 
-    if (widget_focus && entity_checkflag(widget_focus, ALFI_FLAG_FOCUSABLE))
+    if (widget_focus && entity_checkflag(widget_focus, WIDGET_FLAG_FOCUSABLE))
     {
 
         switch (widget_focus->header.type)
         {
 
-        case ALFI_WIDGET_FIELD:
+        case WIDGET_TYPE_FIELD:
             onchar_field(&widget_focus->payload.field, codepoint);
 
             break;

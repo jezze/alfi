@@ -248,18 +248,18 @@ static unsigned int getattribute(struct parser *parser)
 {
 
     static const struct tokword items[] = {
-        {ALFI_ATTRIBUTE_NONE, ""},
-        {ALFI_ATTRIBUTE_DATA, "data"},
-        {ALFI_ATTRIBUTE_GRID, "grid"},
-        {ALFI_ATTRIBUTE_ICON, "icon"},
-        {ALFI_ATTRIBUTE_ID, "id"},
-        {ALFI_ATTRIBUTE_IN, "in"},
-        {ALFI_ATTRIBUTE_LABEL, "label"},
-        {ALFI_ATTRIBUTE_LINK, "link"},
-        {ALFI_ATTRIBUTE_MODE, "mode"},
-        {ALFI_ATTRIBUTE_RANGE, "range"},
-        {ALFI_ATTRIBUTE_TARGET, "target"},
-        {ALFI_ATTRIBUTE_TYPE, "type"}
+        {ATTRIBUTE_TYPE_NONE, ""},
+        {ATTRIBUTE_TYPE_DATA, "data"},
+        {ATTRIBUTE_TYPE_GRID, "grid"},
+        {ATTRIBUTE_TYPE_ICON, "icon"},
+        {ATTRIBUTE_TYPE_ID, "id"},
+        {ATTRIBUTE_TYPE_IN, "in"},
+        {ATTRIBUTE_TYPE_LABEL, "label"},
+        {ATTRIBUTE_TYPE_LINK, "link"},
+        {ATTRIBUTE_TYPE_MODE, "mode"},
+        {ATTRIBUTE_TYPE_RANGE, "range"},
+        {ATTRIBUTE_TYPE_TARGET, "target"},
+        {ATTRIBUTE_TYPE_TYPE, "type"}
     };
 
     return parsetoken(parser, items, 12);
@@ -285,8 +285,8 @@ static unsigned int geticon(struct parser *parser)
 {
 
     static const struct tokword items[] = {
-        {ALFI_ICON_BURGER, "burger"},
-        {ALFI_ICON_SEARCH, "search"}
+        {ATTRIBUTE_ICON_BURGER, "burger"},
+        {ATTRIBUTE_ICON_SEARCH, "search"}
     };
 
     return parsetoken(parser, items, 2);
@@ -297,9 +297,9 @@ static unsigned int getmode(struct parser *parser)
 {
 
     static const struct tokword items[] = {
-        {ALFI_MODE_OFF, "off"},
-        {ALFI_MODE_ON, "on"},
-        {ALFI_MODE_DISABLED, "disabled"}
+        {ATTRIBUTE_MODE_OFF, "off"},
+        {ATTRIBUTE_MODE_ON, "on"},
+        {ATTRIBUTE_MODE_DISABLED, "disabled"}
     };
 
     return parsetoken(parser, items, 3);
@@ -310,8 +310,8 @@ static unsigned int gettarget(struct parser *parser)
 {
 
     static const struct tokword items[] = {
-        {ALFI_TARGET_SELF, "self"},
-        {ALFI_TARGET_BLANK, "blank"}
+        {ATTRIBUTE_TARGET_SELF, "self"},
+        {ATTRIBUTE_TARGET_BLANK, "blank"}
     };
 
     return parsetoken(parser, items, 2);
@@ -322,8 +322,8 @@ static unsigned int gettype(struct parser *parser)
 {
 
     static const struct tokword items[] = {
-        {ALFI_TYPE_REGULAR, "regular"},
-        {ALFI_TYPE_PASSWORD, "password"}
+        {ATTRIBUTE_TYPE_REGULAR, "regular"},
+        {ATTRIBUTE_TYPE_PASSWORD, "password"}
     };
 
     return parsetoken(parser, items, 2);
@@ -334,21 +334,21 @@ static unsigned int getwidget(struct parser *parser)
 {
 
     static const struct tokword items[] = {
-        {ALFI_WIDGET_ANCHOR, "anchor"},
-        {ALFI_WIDGET_BUTTON, "button"},
-        {ALFI_WIDGET_CHOICE, "choice"},
-        {ALFI_WIDGET_CODE, "code"},
-        {ALFI_WIDGET_DIVIDER, "divider"},
-        {ALFI_WIDGET_FIELD, "field"},
-        {ALFI_WIDGET_HEADER, "header"},
-        {ALFI_WIDGET_IMAGE, "image"},
-        {ALFI_WIDGET_LIST, "list"},
-        {ALFI_WIDGET_SELECT, "select"},
-        {ALFI_WIDGET_SUBHEADER, "subheader"},
-        {ALFI_WIDGET_TABLE, "table"},
-        {ALFI_WIDGET_TEXT, "text"},
-        {ALFI_WIDGET_TOGGLE, "toggle"},
-        {ALFI_WIDGET_WINDOW, "window"}
+        {WIDGET_TYPE_ANCHOR, "anchor"},
+        {WIDGET_TYPE_BUTTON, "button"},
+        {WIDGET_TYPE_CHOICE, "choice"},
+        {WIDGET_TYPE_CODE, "code"},
+        {WIDGET_TYPE_DIVIDER, "divider"},
+        {WIDGET_TYPE_FIELD, "field"},
+        {WIDGET_TYPE_HEADER, "header"},
+        {WIDGET_TYPE_IMAGE, "image"},
+        {WIDGET_TYPE_LIST, "list"},
+        {WIDGET_TYPE_SELECT, "select"},
+        {WIDGET_TYPE_SUBHEADER, "subheader"},
+        {WIDGET_TYPE_TABLE, "table"},
+        {WIDGET_TYPE_TEXT, "text"},
+        {WIDGET_TYPE_TOGGLE, "toggle"},
+        {WIDGET_TYPE_WINDOW, "window"}
     };
 
     return parsetoken(parser, items, 15);
@@ -358,8 +358,8 @@ static unsigned int getwidget(struct parser *parser)
 static void parse_attribute_data(struct parser *parser, struct attribute_data *attribute)
 {
 
-    attribute->total = ALFI_DATASIZE;
-    attribute->content = parser->allocate(ALFI_ATTRIBUTE_DATA, attribute->content, attribute->total, 0, 0);
+    attribute->total = WIDGET_DATASIZE;
+    attribute->content = parser->allocate(ATTRIBUTE_TYPE_DATA, attribute->content, attribute->total, 0, 0);
     attribute->offset = readword(parser, attribute->content, attribute->total);
 
 }
@@ -367,7 +367,7 @@ static void parse_attribute_data(struct parser *parser, struct attribute_data *a
 static void parse_attribute_grid(struct parser *parser, struct attribute_grid *attribute)
 {
 
-    attribute->format = parsestring(parser, ALFI_ATTRIBUTE_GRID, attribute->format);
+    attribute->format = parsestring(parser, ATTRIBUTE_TYPE_GRID, attribute->format);
 
 }
 
@@ -381,29 +381,29 @@ static void parse_attribute_icon(struct parser *parser, struct attribute_icon *a
 static void parse_attribute_id(struct parser *parser, struct attribute_id *attribute)
 {
 
-    attribute->name = parsestring(parser, ALFI_ATTRIBUTE_ID, attribute->name);
+    attribute->name = parsestring(parser, ATTRIBUTE_TYPE_ID, attribute->name);
 
 }
 
 static void parse_attribute_in(struct parser *parser, struct attribute_in *attribute)
 {
 
-    attribute->name = parsestring(parser, ALFI_ATTRIBUTE_IN, attribute->name);
+    attribute->name = parsestring(parser, ATTRIBUTE_TYPE_IN, attribute->name);
 
 }
 
 static void parse_attribute_label(struct parser *parser, struct attribute_label *attribute)
 {
 
-    attribute->content = parsestring(parser, ALFI_ATTRIBUTE_LABEL, attribute->content);
+    attribute->content = parsestring(parser, ATTRIBUTE_TYPE_LABEL, attribute->content);
 
 }
 
 static void parse_attribute_link(struct parser *parser, struct attribute_link *attribute)
 {
 
-    attribute->url = parsestring(parser, ALFI_ATTRIBUTE_LINK, attribute->url);
-    attribute->mime = parsestring(parser, ALFI_ATTRIBUTE_LINK, attribute->mime);
+    attribute->url = parsestring(parser, ATTRIBUTE_TYPE_LINK, attribute->url);
+    attribute->mime = parsestring(parser, ATTRIBUTE_TYPE_LINK, attribute->mime);
 
 }
 
@@ -445,27 +445,27 @@ static void parse_payload_anchor(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
+        case ATTRIBUTE_TYPE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ALFI_ATTRIBUTE_LINK:
+        case ATTRIBUTE_TYPE_LINK:
             parse_attribute_link(parser, &payload->link);
 
             break;
 
-        case ALFI_ATTRIBUTE_TARGET:
+        case ATTRIBUTE_TYPE_TARGET:
             parse_attribute_target(parser, &payload->target);
 
             break;
@@ -490,37 +490,37 @@ static void parse_payload_button(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ICON:
+        case ATTRIBUTE_TYPE_ICON:
             parse_attribute_icon(parser, &payload->icon);
 
             break;
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
+        case ATTRIBUTE_TYPE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ALFI_ATTRIBUTE_LINK:
+        case ATTRIBUTE_TYPE_LINK:
             parse_attribute_link(parser, &payload->link);
 
             break;
 
-        case ALFI_ATTRIBUTE_MODE:
+        case ATTRIBUTE_TYPE_MODE:
             parse_attribute_mode(parser, &payload->mode);
 
             break;
 
-        case ALFI_ATTRIBUTE_TARGET:
+        case ATTRIBUTE_TYPE_TARGET:
             parse_attribute_target(parser, &payload->target);
 
             break;
@@ -545,22 +545,22 @@ static void parse_payload_choice(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
+        case ATTRIBUTE_TYPE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ALFI_ATTRIBUTE_MODE:
+        case ATTRIBUTE_TYPE_MODE:
             parse_attribute_mode(parser, &payload->mode);
 
             break;
@@ -585,17 +585,17 @@ static void parse_payload_code(struct parser *parser, struct widget_header *head
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
+        case ATTRIBUTE_TYPE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
@@ -620,17 +620,17 @@ static void parse_payload_divider(struct parser *parser, struct widget_header *h
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
+        case ATTRIBUTE_TYPE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
@@ -655,32 +655,32 @@ static void parse_payload_field(struct parser *parser, struct widget_header *hea
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_DATA:
+        case ATTRIBUTE_TYPE_DATA:
             parse_attribute_data(parser, &payload->data);
 
             break;
 
-        case ALFI_ATTRIBUTE_ICON:
+        case ATTRIBUTE_TYPE_ICON:
             parse_attribute_icon(parser, &payload->icon);
 
             break;
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
+        case ATTRIBUTE_TYPE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ALFI_ATTRIBUTE_TYPE:
+        case ATTRIBUTE_TYPE_TYPE:
             parse_attribute_type(parser, &payload->type);
 
             break;
@@ -705,17 +705,17 @@ static void parse_payload_header(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
+        case ATTRIBUTE_TYPE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
@@ -740,17 +740,17 @@ static void parse_payload_image(struct parser *parser, struct widget_header *hea
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ALFI_ATTRIBUTE_LINK:
+        case ATTRIBUTE_TYPE_LINK:
             parse_attribute_link(parser, &payload->link);
 
             break;
@@ -775,12 +775,12 @@ static void parse_payload_list(struct parser *parser, struct widget_header *head
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
@@ -805,27 +805,27 @@ static void parse_payload_select(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_DATA:
+        case ATTRIBUTE_TYPE_DATA:
             parse_attribute_data(parser, &payload->data);
 
             break;
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
+        case ATTRIBUTE_TYPE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ALFI_ATTRIBUTE_RANGE:
+        case ATTRIBUTE_TYPE_RANGE:
             parse_attribute_range(parser, &payload->range);
 
             break;
@@ -850,17 +850,17 @@ static void parse_payload_subheader(struct parser *parser, struct widget_header 
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
+        case ATTRIBUTE_TYPE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
@@ -885,17 +885,17 @@ static void parse_payload_table(struct parser *parser, struct widget_header *hea
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_GRID:
+        case ATTRIBUTE_TYPE_GRID:
             parse_attribute_grid(parser, &payload->grid);
 
             break;
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
@@ -920,17 +920,17 @@ static void parse_payload_text(struct parser *parser, struct widget_header *head
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
+        case ATTRIBUTE_TYPE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
@@ -955,22 +955,22 @@ static void parse_payload_toggle(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_IN:
+        case ATTRIBUTE_TYPE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
+        case ATTRIBUTE_TYPE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ALFI_ATTRIBUTE_MODE:
+        case ATTRIBUTE_TYPE_MODE:
             parse_attribute_mode(parser, &payload->mode);
 
             break;
@@ -995,12 +995,12 @@ static void parse_payload_window(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ALFI_ATTRIBUTE_ID:
+        case ATTRIBUTE_TYPE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ALFI_ATTRIBUTE_LABEL:
+        case ATTRIBUTE_TYPE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
@@ -1022,77 +1022,77 @@ static void parse_payload(struct parser *parser, struct widget_header *header, u
     switch (header->type)
     {
 
-    case ALFI_WIDGET_ANCHOR:
+    case WIDGET_TYPE_ANCHOR:
         parse_payload_anchor(parser, header, &payload->anchor);
 
         break;
 
-    case ALFI_WIDGET_BUTTON:
+    case WIDGET_TYPE_BUTTON:
         parse_payload_button(parser, header, &payload->button);
 
         break;
 
-    case ALFI_WIDGET_CHOICE:
+    case WIDGET_TYPE_CHOICE:
         parse_payload_choice(parser, header, &payload->choice);
 
         break;
 
-    case ALFI_WIDGET_CODE:
+    case WIDGET_TYPE_CODE:
         parse_payload_code(parser, header, &payload->code);
 
         break;
 
-    case ALFI_WIDGET_DIVIDER:
+    case WIDGET_TYPE_DIVIDER:
         parse_payload_divider(parser, header, &payload->divider);
 
         break;
 
-    case ALFI_WIDGET_FIELD:
+    case WIDGET_TYPE_FIELD:
         parse_payload_field(parser, header, &payload->field);
 
         break;
 
-    case ALFI_WIDGET_HEADER:
+    case WIDGET_TYPE_HEADER:
         parse_payload_header(parser, header, &payload->header);
 
         break;
 
-    case ALFI_WIDGET_IMAGE:
+    case WIDGET_TYPE_IMAGE:
         parse_payload_image(parser, header, &payload->image);
 
         break;
 
-    case ALFI_WIDGET_LIST:
+    case WIDGET_TYPE_LIST:
         parse_payload_list(parser, header, &payload->list);
 
         break;
 
-    case ALFI_WIDGET_SELECT:
+    case WIDGET_TYPE_SELECT:
         parse_payload_select(parser, header, &payload->select);
 
         break;
 
-    case ALFI_WIDGET_SUBHEADER:
+    case WIDGET_TYPE_SUBHEADER:
         parse_payload_subheader(parser, header, &payload->subheader);
 
         break;
 
-    case ALFI_WIDGET_TABLE:
+    case WIDGET_TYPE_TABLE:
         parse_payload_table(parser, header, &payload->table);
 
         break;
 
-    case ALFI_WIDGET_TEXT:
+    case WIDGET_TYPE_TEXT:
         parse_payload_text(parser, header, &payload->text);
 
         break;
 
-    case ALFI_WIDGET_TOGGLE:
+    case WIDGET_TYPE_TOGGLE:
         parse_payload_toggle(parser, header, &payload->toggle);
 
         break;
 
-    case ALFI_WIDGET_WINDOW:
+    case WIDGET_TYPE_WINDOW:
         parse_payload_window(parser, header, &payload->window);
 
         break;
