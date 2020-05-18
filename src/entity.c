@@ -36,8 +36,13 @@ unsigned int entity_checkflag(struct widget *widget, unsigned int flag)
 
 }
 
-void entity_createpayload(struct widget *widget)
+void entity_create(struct widget *widget, unsigned int type, char *id, char *in)
 {
+
+    memset(&widget->header, 0, sizeof (struct widget_header));
+    memset(&widget->payload, 0, sizeof (union widget_payload));
+    memset(&widget->frame, 0, sizeof (struct frame));
+    widget_header_create(&widget->header, type, id, in);
 
     switch (widget->header.type)
     {
@@ -121,7 +126,7 @@ void entity_createpayload(struct widget *widget)
 
 }
 
-void entity_destroypayload(struct widget *widget)
+void entity_destroy(struct widget *widget)
 {
 
     switch (widget->header.type)
@@ -203,6 +208,8 @@ void entity_destroypayload(struct widget *widget)
         break;
 
     }
+
+    widget_header_destroy(&widget->header);
 
 }
 

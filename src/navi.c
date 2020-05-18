@@ -48,11 +48,7 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 
     struct widget *widget = pool_widget_create();
 
-    memset(&widget->header, 0, sizeof (struct widget_header));
-    memset(&widget->payload, 0, sizeof (union widget_payload));
-    memset(&widget->frame, 0, sizeof (struct frame));
-    widget_header_create(&widget->header, type, id, in);
-    entity_createpayload(widget);
+    entity_create(widget, type, id, in);
 
     return widget;
 
@@ -61,8 +57,7 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 static struct widget *parser_destroy(struct widget *widget)
 {
 
-    widget_header_destroy(&widget->header);
-    entity_destroypayload(widget);
+    entity_destroy(widget);
 
     return pool_widget_destroy(widget);
 
