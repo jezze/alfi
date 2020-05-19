@@ -340,7 +340,7 @@ static void create(char *title)
     widget_root = parser_create(WIDGET_TYPE_WINDOW, "window", "");
     widget_main = parser_create(WIDGET_TYPE_TABLE, "main", "window");
 
-    widget_root->payload.window.label.content = pool_string_create(ATTRIBUTE_TYPE_LABEL, widget_root->payload.window.label.content, title);
+    attribute_label_create(&widget_root->payload.window.label, title);
 
 }
 
@@ -724,7 +724,7 @@ static void onclick_choice(struct widget *widget, float x, float y)
     {
 
     case WIDGET_TYPE_SELECT:
-        parent->payload.select.data.content = pool_string_create(ATTRIBUTE_TYPE_DATA, parent->payload.select.data.content, payload->label.content);
+        attribute_data_create(&parent->payload.select.data, payload->label.content);
 
         break;
 
