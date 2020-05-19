@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     int count;
 
     pool_setup();
-    parser_init(&parser, parser_fail, pool_widget_find, parser_create, parser_destroy, parser_clear, pool_allocate);
+    parser_init(&parser, parser_fail, pool_widget_find, parser_create, parser_destroy, parser_clear);
     parser_create(WIDGET_TYPE_WINDOW, "window", "");
     parser_create(WIDGET_TYPE_TABLE, "main", "window");
 

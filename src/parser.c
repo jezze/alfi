@@ -1228,7 +1228,7 @@ void parser_parse(struct parser *parser, char *in, unsigned int count, void *dat
 
 }
 
-void parser_init(struct parser *parser, void (*fail)(void), struct widget *(*find)(char *name), struct widget *(*create)(unsigned int type, char *id, char *in), struct widget *(*destroy)(struct widget *widget), void (*clear)(struct widget *widget), char *(*allocate)(unsigned int type, char *string, unsigned int size, unsigned int count, char *content))
+void parser_init(struct parser *parser, void (*fail)(void), struct widget *(*find)(char *name), struct widget *(*create)(unsigned int type, char *id, char *in), struct widget *(*destroy)(struct widget *widget), void (*clear)(struct widget *widget))
 {
 
     parser->fail = fail;
@@ -1236,7 +1236,6 @@ void parser_init(struct parser *parser, void (*fail)(void), struct widget *(*fin
     parser->create = create;
     parser->destroy = destroy;
     parser->clear = clear;
-    parser->allocate = allocate;
 
 }
 

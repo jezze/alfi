@@ -1063,7 +1063,7 @@ int main(int argc, char **argv)
 
     view_init(&view, mode->width, mode->height);
     render_create();
-    parser_init(&parser, parser_fail, pool_widget_find, parser_create, parser_destroy, parser_clear, pool_allocate);
+    parser_init(&parser, parser_fail, pool_widget_find, parser_create, parser_destroy, parser_clear);
     pool_setup();
     animation_setup();
     animation_setupfonts();
