@@ -141,8 +141,8 @@ static void parseskip(struct parser *parser)
 struct widget *parsewidget(struct parser *parser)
 {
 
-    char word[RESOURCE_PAGESIZE];
-    unsigned int count = readword(parser, word, RESOURCE_PAGESIZE);
+    char word[32];
+    unsigned int count = readword(parser, word, 32);
 
     return (count) ? parser->find(word) : 0;
 
@@ -151,8 +151,8 @@ struct widget *parsewidget(struct parser *parser)
 static unsigned int parsetoken(struct parser *parser, const struct tokword *items, unsigned int nitems)
 {
 
-    char word[RESOURCE_PAGESIZE];
-    unsigned int count = readword(parser, word, RESOURCE_PAGESIZE);
+    char word[32];
+    unsigned int count = readword(parser, word, 32);
 
     if (count)
     {
@@ -176,8 +176,8 @@ static unsigned int parsetoken(struct parser *parser, const struct tokword *item
 static unsigned int parseuint(struct parser *parser, unsigned int base)
 {
 
-    char word[RESOURCE_PAGESIZE];
-    unsigned int count = readword(parser, word, RESOURCE_PAGESIZE);
+    char word[32];
+    unsigned int count = readword(parser, word, 32);
     unsigned int value = 0;
     unsigned int i;
 
@@ -358,9 +358,9 @@ static void parse_attribute_data(struct parser *parser, struct attribute_data *a
 static void parse_attribute_grid(struct parser *parser, struct attribute_grid *attribute)
 {
 
-    char format[RESOURCE_PAGESIZE];
+    char format[128];
 
-    readword(parser, format, RESOURCE_PAGESIZE);
+    readword(parser, format, 128);
     attribute_grid_create(attribute, format);
 
 }
@@ -377,9 +377,9 @@ static void parse_attribute_icon(struct parser *parser, struct attribute_icon *a
 static void parse_attribute_id(struct parser *parser, struct attribute_id *attribute)
 {
 
-    char name[RESOURCE_PAGESIZE];
+    char name[64];
 
-    readword(parser, name, RESOURCE_PAGESIZE);
+    readword(parser, name, 64);
     attribute_id_create(attribute, name);
 
 }
@@ -387,9 +387,9 @@ static void parse_attribute_id(struct parser *parser, struct attribute_id *attri
 static void parse_attribute_in(struct parser *parser, struct attribute_in *attribute)
 {
 
-    char name[RESOURCE_PAGESIZE];
+    char name[64];
 
-    readword(parser, name, RESOURCE_PAGESIZE);
+    readword(parser, name, 64);
     attribute_in_create(attribute, name);
 
 }
