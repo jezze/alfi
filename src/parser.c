@@ -234,6 +234,21 @@ static unsigned int parseuint(struct parser *parser, unsigned int base)
 
 }
 
+static unsigned int getcommand(struct parser *parser)
+{
+
+    static const struct tokword items[] = {
+        {COMMAND_NONE, ""},
+        {COMMAND_COMMENT, "#"},
+        {COMMAND_DELETE, "-"},
+        {COMMAND_INSERT, "+"},
+        {COMMAND_UPDATE, "="}
+    };
+
+    return parsetoken(parser, items, 5);
+
+}
+
 static unsigned int getattribute(struct parser *parser)
 {
 
@@ -253,70 +268,6 @@ static unsigned int getattribute(struct parser *parser)
     };
 
     return parsetoken(parser, items, 12);
-
-}
-
-static unsigned int getcommand(struct parser *parser)
-{
-
-    static const struct tokword items[] = {
-        {COMMAND_NONE, ""},
-        {COMMAND_COMMENT, "#"},
-        {COMMAND_DELETE, "-"},
-        {COMMAND_INSERT, "+"},
-        {COMMAND_UPDATE, "="}
-    };
-
-    return parsetoken(parser, items, 5);
-
-}
-
-static unsigned int geticon(struct parser *parser)
-{
-
-    static const struct tokword items[] = {
-        {ATTRIBUTE_ICON_BURGER, "burger"},
-        {ATTRIBUTE_ICON_SEARCH, "search"}
-    };
-
-    return parsetoken(parser, items, 2);
-
-}
-
-static unsigned int getmode(struct parser *parser)
-{
-
-    static const struct tokword items[] = {
-        {ATTRIBUTE_MODE_OFF, "off"},
-        {ATTRIBUTE_MODE_ON, "on"},
-        {ATTRIBUTE_MODE_DISABLED, "disabled"}
-    };
-
-    return parsetoken(parser, items, 3);
-
-}
-
-static unsigned int gettarget(struct parser *parser)
-{
-
-    static const struct tokword items[] = {
-        {ATTRIBUTE_TARGET_SELF, "self"},
-        {ATTRIBUTE_TARGET_BLANK, "blank"}
-    };
-
-    return parsetoken(parser, items, 2);
-
-}
-
-static unsigned int gettype(struct parser *parser)
-{
-
-    static const struct tokword items[] = {
-        {ATTRIBUTE_TYPE_REGULAR, "regular"},
-        {ATTRIBUTE_TYPE_PASSWORD, "password"}
-    };
-
-    return parsetoken(parser, items, 2);
 
 }
 
@@ -368,7 +319,12 @@ static void parse_attribute_grid(struct parser *parser, struct attribute_grid *a
 static void parse_attribute_icon(struct parser *parser, struct attribute_icon *attribute)
 {
 
-    unsigned int type = geticon(parser);
+    static const struct tokword items[] = {
+        {ATTRIBUTE_ICON_BURGER, "burger"},
+        {ATTRIBUTE_ICON_SEARCH, "search"}
+    };
+
+    unsigned int type = parsetoken(parser, items, 2);
 
     attribute_icon_create(attribute, type);
 
@@ -419,7 +375,13 @@ static void parse_attribute_link(struct parser *parser, struct attribute_link *a
 static void parse_attribute_mode(struct parser *parser, struct attribute_mode *attribute)
 {
 
-    unsigned int type = getmode(parser);
+    static const struct tokword items[] = {
+        {ATTRIBUTE_MODE_OFF, "off"},
+        {ATTRIBUTE_MODE_ON, "on"},
+        {ATTRIBUTE_MODE_DISABLED, "disabled"}
+    };
+
+    unsigned int type = parsetoken(parser, items, 3);
 
     attribute_mode_create(attribute, type);
 
@@ -438,7 +400,12 @@ static void parse_attribute_range(struct parser *parser, struct attribute_range 
 static void parse_attribute_target(struct parser *parser, struct attribute_target *attribute)
 {
 
-    unsigned int type = gettarget(parser);
+    static const struct tokword items[] = {
+        {ATTRIBUTE_TARGET_SELF, "self"},
+        {ATTRIBUTE_TARGET_BLANK, "blank"}
+    };
+
+    unsigned int type = parsetoken(parser, items, 2);
 
     attribute_target_create(attribute, type);
 
@@ -447,7 +414,12 @@ static void parse_attribute_target(struct parser *parser, struct attribute_targe
 static void parse_attribute_type(struct parser *parser, struct attribute_type *attribute)
 {
 
-    unsigned int type = gettype(parser);
+    static const struct tokword items[] = {
+        {ATTRIBUTE_TYPE_REGULAR, "regular"},
+        {ATTRIBUTE_TYPE_PASSWORD, "password"}
+    };
+
+    unsigned int type = parsetoken(parser, items, 2);
 
     attribute_type_create(attribute, type);
 
