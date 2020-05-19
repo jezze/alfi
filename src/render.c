@@ -363,7 +363,7 @@ float render_textwidth(struct style *style, char *text)
 
     struct textrow row;
     const char *current = text;
-    const char *end = current + strlen(text);
+    const char *end = current + strlen(text) + 1;
     float w = 0;
 
     while ((current = calcline(&style->font, style->box.w, current, end, &row)))
@@ -383,12 +383,12 @@ float render_textheight(struct style *style, char *text)
 
     struct textrow row;
     const char *current = text;
-    const char *end = current + strlen(text);
+    const char *end = current + strlen(text) + 1;
     unsigned int i;
 
     for (i = 0; (current = calcline(&style->font, style->box.w, current, end, &row)); i++);
 
-    return (i) ? i * style->font.size : style->font.size;
+    return i * style->font.size;
 
 }
 
@@ -399,7 +399,7 @@ void render_filltext(struct style *style, char *text)
     struct nvg_paint paint;
     struct textrow row;
     const char *current = text;
-    const char *end = current + strlen(text);
+    const char *end = current + strlen(text) + 1;
     float x = style->box.x;
     float y = style->box.y;
 
@@ -425,7 +425,7 @@ void render_filltextinput(struct style *style, char *text, int offset, struct st
     struct nvg_paint cursorpaint;
     struct textrow row;
     const char *current = text;
-    const char *end = current + strlen(text);
+    const char *end = current + strlen(text) + 1;
     float x = style->box.x;
     float y = style->box.y;
     unsigned int i;

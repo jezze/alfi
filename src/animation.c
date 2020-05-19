@@ -376,15 +376,10 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
 
     }
 
-    if (strlen(payload->data.content))
-    {
-
-        if (widget->header.state == WIDGET_STATE_FOCUS)
-            render_filltextinput(data, payload->data.content, payload->data.offset, &border->color);
-        else
-            render_filltext(data, payload->data.content);
-
-    }
+    if (widget->header.state == WIDGET_STATE_FOCUS)
+        render_filltextinput(data, payload->data.content, payload->data.offset, &border->color);
+    else
+        render_filltext(data, payload->data.content);
 
 }
 
