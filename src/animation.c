@@ -747,17 +747,17 @@ static int table_step(struct widget *widget, struct frame *frame, int x, int y, 
     for (i = 0; (child = pool_widget_nextchild(child, widget)); i++)
     {
 
-        unsigned int csize = gridfmt_colsize(payload->grid.format, i % gsize);
-        int cw = csize * view->unitw * 2;
-        int ch;
+        int cw = gridfmt_colsize(payload->grid.format, i % gsize) * view->unitw * 2;
 
-        if (cx + cw > x + w)
-            cw = (x + w - cx);
+        if (cx + cw <= x + w)
+        {
 
-        ch = animation_step(child, cx, cy, cw, view, u);
+            int ch = animation_step(child, cx, cy, cw, view, u);
 
-        if (h < cy + ch - y)
-            h = cy + ch - y;
+            if (h < cy + ch - y)
+                h = cy + ch - y;
+
+        }
 
         cx += cw;
 
