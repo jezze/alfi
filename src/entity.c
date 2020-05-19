@@ -21,11 +21,11 @@ static unsigned int getflags(struct widget *widget)
     case WIDGET_TYPE_FIELD:
     case WIDGET_TYPE_SELECT:
     case WIDGET_TYPE_TOGGLE:
-        return WIDGET_FLAG_FOCUSABLE;
+        return ENTITY_FLAG_FOCUSABLE;
 
     }
 
-    return WIDGET_FLAG_NONE;
+    return ENTITY_FLAG_NONE;
 
 }
 

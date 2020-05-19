@@ -292,6 +292,11 @@ static void urlself(char *url, unsigned int count, void *data)
     if (resource_load(&temp, count, data))
     {
 
+        struct urlinfo *info = history_get(0);
+
+        if (info)
+            url_set(info, temp.urlinfo.url);
+
         parser_parse(&parser, "main", temp.count, temp.data);
         loadresources();
         animation_step(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, 1.0);
@@ -544,10 +549,10 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
             if (mods & GLFW_MOD_SHIFT)
             {
 
-                struct widget *widget = prevflag(widget_focus, WIDGET_FLAG_FOCUSABLE);
+                struct widget *widget = prevflag(widget_focus, ENTITY_FLAG_FOCUSABLE);
 
                 if (!widget)
-                    widget = prevflag(0, WIDGET_FLAG_FOCUSABLE);
+                    widget = prevflag(0, ENTITY_FLAG_FOCUSABLE);
 
                 setfocus(widget);
 
@@ -556,10 +561,10 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
             else
             {
 
-                struct widget *widget = nextflag(widget_focus, WIDGET_FLAG_FOCUSABLE);
+                struct widget *widget = nextflag(widget_focus, ENTITY_FLAG_FOCUSABLE);
 
                 if (!widget)
-                    widget = nextflag(0, WIDGET_FLAG_FOCUSABLE);
+                    widget = nextflag(0, ENTITY_FLAG_FOCUSABLE);
 
                 setfocus(widget);
 
@@ -571,7 +576,7 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
 
     }
 
-    if (widget_focus && entity_checkflag(widget_focus, WIDGET_FLAG_FOCUSABLE))
+    if (widget_focus && entity_checkflag(widget_focus, ENTITY_FLAG_FOCUSABLE))
     {
 
         switch (widget_focus->header.type)
@@ -910,7 +915,7 @@ static void onchar_field(struct widget_payload_field *payload, unsigned int code
 static void onchar(GLFWwindow *window, unsigned int codepoint)
 {
 
-    if (widget_focus && entity_checkflag(widget_focus, WIDGET_FLAG_FOCUSABLE))
+    if (widget_focus && entity_checkflag(widget_focus, ENTITY_FLAG_FOCUSABLE))
     {
 
         switch (widget_focus->header.type)

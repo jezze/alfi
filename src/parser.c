@@ -14,6 +14,13 @@
 #define COMMAND_DELETE                  2
 #define COMMAND_INSERT                  3
 #define COMMAND_UPDATE                  4
+#define COMMANDS                        5
+#define ATTRIBUTES                      11
+#define WIDGETS                         15
+#define ICONS                           2
+#define MODES                           3
+#define TARGETS                         2
+#define TYPES                           2
 
 struct tokword
 {
@@ -22,6 +29,84 @@ struct tokword
     char *word;
 
 };
+
+static const struct tokword t_command[] = {
+    {COMMAND_NONE, ""},
+    {COMMAND_COMMENT, "#"},
+    {COMMAND_DELETE, "-"},
+    {COMMAND_INSERT, "+"},
+    {COMMAND_UPDATE, "="}
+};
+
+static const struct tokword t_attribute[] = {
+    {ATTRIBUTE_DATA, "data"},
+    {ATTRIBUTE_GRID, "grid"},
+    {ATTRIBUTE_ICON, "icon"},
+    {ATTRIBUTE_ID, "id"},
+    {ATTRIBUTE_IN, "in"},
+    {ATTRIBUTE_LABEL, "label"},
+    {ATTRIBUTE_LINK, "link"},
+    {ATTRIBUTE_MODE, "mode"},
+    {ATTRIBUTE_RANGE, "range"},
+    {ATTRIBUTE_TARGET, "target"},
+    {ATTRIBUTE_TYPE, "type"}
+};
+
+static const struct tokword t_attribute_icon[] = {
+    {ATTRIBUTE_ICON_BURGER, "burger"},
+    {ATTRIBUTE_ICON_SEARCH, "search"}
+};
+
+static const struct tokword t_attribute_mode[] = {
+    {ATTRIBUTE_MODE_OFF, "off"},
+    {ATTRIBUTE_MODE_ON, "on"},
+    {ATTRIBUTE_MODE_DISABLED, "disabled"}
+};
+
+static const struct tokword t_attribute_target[] = {
+    {ATTRIBUTE_TARGET_SELF, "self"},
+    {ATTRIBUTE_TARGET_BLANK, "blank"}
+};
+
+static const struct tokword t_attribute_type[] = {
+    {ATTRIBUTE_TYPE_REGULAR, "regular"},
+    {ATTRIBUTE_TYPE_PASSWORD, "password"}
+};
+
+static const struct tokword t_widget[] = {
+    {WIDGET_TYPE_ANCHOR, "anchor"},
+    {WIDGET_TYPE_BUTTON, "button"},
+    {WIDGET_TYPE_CHOICE, "choice"},
+    {WIDGET_TYPE_CODE, "code"},
+    {WIDGET_TYPE_DIVIDER, "divider"},
+    {WIDGET_TYPE_FIELD, "field"},
+    {WIDGET_TYPE_HEADER, "header"},
+    {WIDGET_TYPE_IMAGE, "image"},
+    {WIDGET_TYPE_LIST, "list"},
+    {WIDGET_TYPE_SELECT, "select"},
+    {WIDGET_TYPE_SUBHEADER, "subheader"},
+    {WIDGET_TYPE_TABLE, "table"},
+    {WIDGET_TYPE_TEXT, "text"},
+    {WIDGET_TYPE_TOGGLE, "toggle"},
+    {WIDGET_TYPE_WINDOW, "window"}
+};
+
+static unsigned int gettoken(const struct tokword *items, unsigned int nitems, unsigned int count, char *word)
+{
+
+    unsigned int i;
+
+    for (i = 0; i < nitems; i++)
+    {
+
+        if (!memcmp(word, items[i].word, count + 1))
+            return items[i].token;
+
+    }
+
+    return 0;
+
+}
 
 static unsigned int readword(struct parser *parser, char *result, unsigned int count)
 {
@@ -154,22 +239,7 @@ static unsigned int parsetoken(struct parser *parser, const struct tokword *item
     char word[32];
     unsigned int count = readword(parser, word, 32);
 
-    if (count)
-    {
-
-        unsigned int i;
-
-        for (i = 0; i < nitems; i++)
-        {
-
-            if (!memcmp(word, items[i].word, count + 1))
-                return items[i].token;
-
-        }
-
-    }
-
-    return 0;
+    return (count) ? gettoken(items, nitems, count, word) : 0;
 
 }
 
@@ -237,62 +307,21 @@ static unsigned int parseuint(struct parser *parser, unsigned int base)
 static unsigned int getcommand(struct parser *parser)
 {
 
-    static const struct tokword items[] = {
-        {COMMAND_NONE, ""},
-        {COMMAND_COMMENT, "#"},
-        {COMMAND_DELETE, "-"},
-        {COMMAND_INSERT, "+"},
-        {COMMAND_UPDATE, "="}
-    };
-
-    return parsetoken(parser, items, 5);
+    return parsetoken(parser, t_command, COMMANDS);
 
 }
 
 static unsigned int getattribute(struct parser *parser)
 {
 
-    static const struct tokword items[] = {
-        {ATTRIBUTE_TYPE_NONE, ""},
-        {ATTRIBUTE_TYPE_DATA, "data"},
-        {ATTRIBUTE_TYPE_GRID, "grid"},
-        {ATTRIBUTE_TYPE_ICON, "icon"},
-        {ATTRIBUTE_TYPE_ID, "id"},
-        {ATTRIBUTE_TYPE_IN, "in"},
-        {ATTRIBUTE_TYPE_LABEL, "label"},
-        {ATTRIBUTE_TYPE_LINK, "link"},
-        {ATTRIBUTE_TYPE_MODE, "mode"},
-        {ATTRIBUTE_TYPE_RANGE, "range"},
-        {ATTRIBUTE_TYPE_TARGET, "target"},
-        {ATTRIBUTE_TYPE_TYPE, "type"}
-    };
-
-    return parsetoken(parser, items, 12);
+    return parsetoken(parser, t_attribute, ATTRIBUTES);
 
 }
 
 static unsigned int getwidget(struct parser *parser)
 {
 
-    static const struct tokword items[] = {
-        {WIDGET_TYPE_ANCHOR, "anchor"},
-        {WIDGET_TYPE_BUTTON, "button"},
-        {WIDGET_TYPE_CHOICE, "choice"},
-        {WIDGET_TYPE_CODE, "code"},
-        {WIDGET_TYPE_DIVIDER, "divider"},
-        {WIDGET_TYPE_FIELD, "field"},
-        {WIDGET_TYPE_HEADER, "header"},
-        {WIDGET_TYPE_IMAGE, "image"},
-        {WIDGET_TYPE_LIST, "list"},
-        {WIDGET_TYPE_SELECT, "select"},
-        {WIDGET_TYPE_SUBHEADER, "subheader"},
-        {WIDGET_TYPE_TABLE, "table"},
-        {WIDGET_TYPE_TEXT, "text"},
-        {WIDGET_TYPE_TOGGLE, "toggle"},
-        {WIDGET_TYPE_WINDOW, "window"}
-    };
-
-    return parsetoken(parser, items, 15);
+    return parsetoken(parser, t_widget, WIDGETS);
 
 }
 
@@ -319,12 +348,7 @@ static void parse_attribute_grid(struct parser *parser, struct attribute_grid *a
 static void parse_attribute_icon(struct parser *parser, struct attribute_icon *attribute)
 {
 
-    static const struct tokword items[] = {
-        {ATTRIBUTE_ICON_BURGER, "burger"},
-        {ATTRIBUTE_ICON_SEARCH, "search"}
-    };
-
-    unsigned int type = parsetoken(parser, items, 2);
+    unsigned int type = parsetoken(parser, t_attribute_icon, ICONS);
 
     attribute_icon_create(attribute, type);
 
@@ -375,13 +399,7 @@ static void parse_attribute_link(struct parser *parser, struct attribute_link *a
 static void parse_attribute_mode(struct parser *parser, struct attribute_mode *attribute)
 {
 
-    static const struct tokword items[] = {
-        {ATTRIBUTE_MODE_OFF, "off"},
-        {ATTRIBUTE_MODE_ON, "on"},
-        {ATTRIBUTE_MODE_DISABLED, "disabled"}
-    };
-
-    unsigned int type = parsetoken(parser, items, 3);
+    unsigned int type = parsetoken(parser, t_attribute_mode, MODES);
 
     attribute_mode_create(attribute, type);
 
@@ -400,12 +418,7 @@ static void parse_attribute_range(struct parser *parser, struct attribute_range 
 static void parse_attribute_target(struct parser *parser, struct attribute_target *attribute)
 {
 
-    static const struct tokword items[] = {
-        {ATTRIBUTE_TARGET_SELF, "self"},
-        {ATTRIBUTE_TARGET_BLANK, "blank"}
-    };
-
-    unsigned int type = parsetoken(parser, items, 2);
+    unsigned int type = parsetoken(parser, t_attribute_target, TARGETS);
 
     attribute_target_create(attribute, type);
 
@@ -414,12 +427,7 @@ static void parse_attribute_target(struct parser *parser, struct attribute_targe
 static void parse_attribute_type(struct parser *parser, struct attribute_type *attribute)
 {
 
-    static const struct tokword items[] = {
-        {ATTRIBUTE_TYPE_REGULAR, "regular"},
-        {ATTRIBUTE_TYPE_PASSWORD, "password"}
-    };
-
-    unsigned int type = parsetoken(parser, items, 2);
+    unsigned int type = parsetoken(parser, t_attribute_type, TYPES);
 
     attribute_type_create(attribute, type);
 
@@ -434,27 +442,27 @@ static void parse_payload_anchor(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ATTRIBUTE_TYPE_LABEL:
+        case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ATTRIBUTE_TYPE_LINK:
+        case ATTRIBUTE_LINK:
             parse_attribute_link(parser, &payload->link);
 
             break;
 
-        case ATTRIBUTE_TYPE_TARGET:
+        case ATTRIBUTE_TARGET:
             parse_attribute_target(parser, &payload->target);
 
             break;
@@ -479,37 +487,37 @@ static void parse_payload_button(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_ICON:
+        case ATTRIBUTE_ICON:
             parse_attribute_icon(parser, &payload->icon);
 
             break;
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ATTRIBUTE_TYPE_LABEL:
+        case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ATTRIBUTE_TYPE_LINK:
+        case ATTRIBUTE_LINK:
             parse_attribute_link(parser, &payload->link);
 
             break;
 
-        case ATTRIBUTE_TYPE_MODE:
+        case ATTRIBUTE_MODE:
             parse_attribute_mode(parser, &payload->mode);
 
             break;
 
-        case ATTRIBUTE_TYPE_TARGET:
+        case ATTRIBUTE_TARGET:
             parse_attribute_target(parser, &payload->target);
 
             break;
@@ -534,22 +542,22 @@ static void parse_payload_choice(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ATTRIBUTE_TYPE_LABEL:
+        case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ATTRIBUTE_TYPE_MODE:
+        case ATTRIBUTE_MODE:
             parse_attribute_mode(parser, &payload->mode);
 
             break;
@@ -574,17 +582,17 @@ static void parse_payload_code(struct parser *parser, struct widget_header *head
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ATTRIBUTE_TYPE_LABEL:
+        case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
@@ -609,17 +617,17 @@ static void parse_payload_divider(struct parser *parser, struct widget_header *h
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ATTRIBUTE_TYPE_LABEL:
+        case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
@@ -644,32 +652,32 @@ static void parse_payload_field(struct parser *parser, struct widget_header *hea
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_DATA:
+        case ATTRIBUTE_DATA:
             parse_attribute_data(parser, &payload->data);
 
             break;
 
-        case ATTRIBUTE_TYPE_ICON:
+        case ATTRIBUTE_ICON:
             parse_attribute_icon(parser, &payload->icon);
 
             break;
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ATTRIBUTE_TYPE_LABEL:
+        case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ATTRIBUTE_TYPE_TYPE:
+        case ATTRIBUTE_TYPE:
             parse_attribute_type(parser, &payload->type);
 
             break;
@@ -694,17 +702,17 @@ static void parse_payload_header(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ATTRIBUTE_TYPE_LABEL:
+        case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
@@ -729,17 +737,17 @@ static void parse_payload_image(struct parser *parser, struct widget_header *hea
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ATTRIBUTE_TYPE_LINK:
+        case ATTRIBUTE_LINK:
             parse_attribute_link(parser, &payload->link);
 
             break;
@@ -764,12 +772,12 @@ static void parse_payload_list(struct parser *parser, struct widget_header *head
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
@@ -794,27 +802,27 @@ static void parse_payload_select(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_DATA:
+        case ATTRIBUTE_DATA:
             parse_attribute_data(parser, &payload->data);
 
             break;
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ATTRIBUTE_TYPE_LABEL:
+        case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ATTRIBUTE_TYPE_RANGE:
+        case ATTRIBUTE_RANGE:
             parse_attribute_range(parser, &payload->range);
 
             break;
@@ -839,17 +847,17 @@ static void parse_payload_subheader(struct parser *parser, struct widget_header 
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ATTRIBUTE_TYPE_LABEL:
+        case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
@@ -874,17 +882,17 @@ static void parse_payload_table(struct parser *parser, struct widget_header *hea
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_GRID:
+        case ATTRIBUTE_GRID:
             parse_attribute_grid(parser, &payload->grid);
 
             break;
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
@@ -909,17 +917,17 @@ static void parse_payload_text(struct parser *parser, struct widget_header *head
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ATTRIBUTE_TYPE_LABEL:
+        case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
@@ -944,22 +952,22 @@ static void parse_payload_toggle(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_IN:
+        case ATTRIBUTE_IN:
             parse_attribute_in(parser, &header->in);
 
             break;
 
-        case ATTRIBUTE_TYPE_LABEL:
+        case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;
 
-        case ATTRIBUTE_TYPE_MODE:
+        case ATTRIBUTE_MODE:
             parse_attribute_mode(parser, &payload->mode);
 
             break;
@@ -984,12 +992,12 @@ static void parse_payload_window(struct parser *parser, struct widget_header *he
         switch (getattribute(parser))
         {
 
-        case ATTRIBUTE_TYPE_ID:
+        case ATTRIBUTE_ID:
             parse_attribute_id(parser, &header->id);
 
             break;
 
-        case ATTRIBUTE_TYPE_LABEL:
+        case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
 
             break;

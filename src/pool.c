@@ -160,7 +160,7 @@ struct resource *pool_resource_destroy(struct resource *resource)
 
 }
 
-char *pool_allocate(unsigned int type, char *string, unsigned int size, unsigned int count, char *content)
+static char *allocate(unsigned int type, char *string, unsigned int size, unsigned int count, char *content)
 {
 
     if (string)
@@ -186,17 +186,17 @@ char *pool_allocate(unsigned int type, char *string, unsigned int size, unsigned
 
 }
 
-char *pool_string_create(unsigned int type, char *string, char *content)
+char *pool_string_create(unsigned int type, char *string, unsigned int size, unsigned int count, char *content)
 {
 
-    return pool_allocate(type, string, strlen(content) + 1, strlen(content) + 1, content);
+    return allocate(type, string, (size) ? size : count, count, content);
 
 }
 
 char *pool_string_destroy(unsigned int type, char *string)
 {
 
-    return pool_allocate(type, string, 0, 0, 0);
+    return allocate(type, string, 0, 0, 0);
 
 }
 

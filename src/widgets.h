@@ -1,4 +1,3 @@
-#define WIDGET_TYPE_NONE                0
 #define WIDGET_TYPE_ANCHOR              1
 #define WIDGET_TYPE_AUDIO               2
 #define WIDGET_TYPE_BUTTON              3
@@ -24,8 +23,6 @@
 #define WIDGET_STATE_UNHOVER            2
 #define WIDGET_STATE_FOCUS              3
 #define WIDGET_STATE_UNFOCUS            4
-#define WIDGET_FLAG_NONE                0
-#define WIDGET_FLAG_FOCUSABLE           1
 
 struct widget_header
 {

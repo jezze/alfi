@@ -11,32 +11,32 @@
 void attribute_data_create(struct attribute_data *attribute, char *content)
 {
 
-    attribute->total = ATTRIBUTE_DATASIZE;
+    attribute->total = 128;
     attribute->offset = strlen(content);
-    attribute->content = pool_allocate(ATTRIBUTE_TYPE_DATA, attribute->content, attribute->total, attribute->offset + 1, content);
+    attribute->content = pool_string_create(ATTRIBUTE_DATA, attribute->content, attribute->total, attribute->offset + 1, content);
 
 }
 
 void attribute_data_destroy(struct attribute_data *attribute)
 {
 
-    attribute->content = pool_string_destroy(ATTRIBUTE_TYPE_DATA, attribute->content);
     attribute->total = 0;
     attribute->offset = 0;
+    attribute->content = pool_string_destroy(ATTRIBUTE_DATA, attribute->content);
 
 }
 
 void attribute_grid_create(struct attribute_grid *attribute, char *format)
 {
 
-    attribute->format = pool_string_create(ATTRIBUTE_TYPE_GRID, attribute->format, format);
+    attribute->format = pool_string_create(ATTRIBUTE_GRID, attribute->format, 0, strlen(format) + 1, format);
 
 }
 
 void attribute_grid_destroy(struct attribute_grid *attribute)
 {
 
-    attribute->format = pool_string_destroy(ATTRIBUTE_TYPE_GRID, attribute->format);
+    attribute->format = pool_string_destroy(ATTRIBUTE_GRID, attribute->format);
 
 }
 
@@ -57,58 +57,58 @@ void attribute_icon_destroy(struct attribute_icon *attribute)
 void attribute_id_create(struct attribute_id *attribute, char *name)
 {
 
-    attribute->name = pool_string_create(ATTRIBUTE_TYPE_ID, attribute->name, name);
+    attribute->name = pool_string_create(ATTRIBUTE_ID, attribute->name, 0, strlen(name) + 1, name);
 
 }
 
 void attribute_id_destroy(struct attribute_id *attribute)
 {
 
-    attribute->name = pool_string_destroy(ATTRIBUTE_TYPE_ID, attribute->name);
+    attribute->name = pool_string_destroy(ATTRIBUTE_ID, attribute->name);
 
 }
 
 void attribute_in_create(struct attribute_in *attribute, char *name)
 {
 
-    attribute->name = pool_string_create(ATTRIBUTE_TYPE_IN, attribute->name, name);
+    attribute->name = pool_string_create(ATTRIBUTE_IN, attribute->name, 0, strlen(name) + 1, name);
 
 }
 
 void attribute_in_destroy(struct attribute_in *attribute)
 {
 
-    attribute->name = pool_string_destroy(ATTRIBUTE_TYPE_IN, attribute->name);
+    attribute->name = pool_string_destroy(ATTRIBUTE_IN, attribute->name);
 
 }
 
 void attribute_label_create(struct attribute_label *attribute, char *content)
 {
 
-    attribute->content = pool_string_create(ATTRIBUTE_TYPE_LABEL, attribute->content, content);
+    attribute->content = pool_string_create(ATTRIBUTE_LABEL, attribute->content, 0, strlen(content) + 1, content);
 
 }
 
 void attribute_label_destroy(struct attribute_label *attribute)
 {
 
-    attribute->content = pool_string_destroy(ATTRIBUTE_TYPE_LABEL, attribute->content);
+    attribute->content = pool_string_destroy(ATTRIBUTE_LABEL, attribute->content);
 
 }
 
 void attribute_link_create(struct attribute_link *attribute, char *url, char *mime)
 {
 
-    attribute->url = pool_string_create(ATTRIBUTE_TYPE_LINK, attribute->url, url);
-    attribute->mime = pool_string_create(ATTRIBUTE_TYPE_LINK, attribute->mime, mime);
+    attribute->url = pool_string_create(ATTRIBUTE_LINK, attribute->url, 0, strlen(url) + 1, url);
+    attribute->mime = pool_string_create(ATTRIBUTE_LINK, attribute->mime, 0, strlen(mime) + 1, mime);
 
 }
 
 void attribute_link_destroy(struct attribute_link *attribute)
 {
 
-    attribute->url = pool_string_destroy(ATTRIBUTE_TYPE_LINK, attribute->url);
-    attribute->mime = pool_string_destroy(ATTRIBUTE_TYPE_LINK, attribute->mime);
+    attribute->url = pool_string_destroy(ATTRIBUTE_LINK, attribute->url);
+    attribute->mime = pool_string_destroy(ATTRIBUTE_LINK, attribute->mime);
 
 }
 

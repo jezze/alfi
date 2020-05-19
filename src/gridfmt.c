@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
-#include "attributes.h"
+#include "gridfmt.h"
 
 static unsigned int copycolumn(char *coldata, char *format)
 {
@@ -99,19 +99,19 @@ unsigned int gridfmt_colhalign(char *format, unsigned int index)
         {
 
         case 'L':
-            return ATTRIBUTE_HALIGN_LEFT;
+            return GRIDFMT_HALIGN_LEFT;
 
         case 'R':
-            return ATTRIBUTE_HALIGN_RIGHT;
+            return GRIDFMT_HALIGN_RIGHT;
 
         case 'C':
-            return ATTRIBUTE_HALIGN_CENTER;
+            return GRIDFMT_HALIGN_CENTER;
 
         }
 
     }
 
-    return ATTRIBUTE_HALIGN_LEFT;
+    return GRIDFMT_HALIGN_LEFT;
 
 }
 
@@ -128,19 +128,19 @@ unsigned int gridfmt_colvalign(char *format, unsigned int index)
         {
 
         case 'T':
-            return ATTRIBUTE_VALIGN_TOP;
+            return GRIDFMT_VALIGN_TOP;
 
         case 'B':
-            return ATTRIBUTE_VALIGN_BOTTOM;
+            return GRIDFMT_VALIGN_BOTTOM;
 
         case 'M':
-            return ATTRIBUTE_VALIGN_MIDDLE;
+            return GRIDFMT_VALIGN_MIDDLE;
 
         }
 
     }
 
-    return ATTRIBUTE_VALIGN_TOP;
+    return GRIDFMT_VALIGN_TOP;
 
 }
 
