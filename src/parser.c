@@ -138,7 +138,7 @@ static void parseskip(struct parser *parser)
 
 }
 
-struct widget *parsewidget(struct parser *parser)
+static struct widget *parsewidget(struct parser *parser)
 {
 
     char word[32];
