@@ -749,7 +749,12 @@ static int table_step(struct widget *widget, struct frame *frame, int x, int y, 
 
         unsigned int csize = gridfmt_colsize(payload->grid.format, i % gsize);
         int cw = csize * view->unitw * 2;
-        int ch = animation_step(child, cx, cy, cw, view, u);
+        int ch;
+
+        if (cx + cw > x + w)
+            cw = (x + w - cx);
+
+        ch = animation_step(child, cx, cy, cw, view, u);
 
         if (h < cy + ch - y)
             h = cy + ch - y;
