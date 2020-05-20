@@ -1064,7 +1064,7 @@ void animation_settheme(unsigned int type)
         style_color_init(&color_text, 192, 192, 192, 255);
         style_color_init(&color_header, 224, 224, 224, 255);
         style_color_init(&color_focus, 96, 192, 192, 255);
-        style_color_init(&color_line, 96, 96, 96, 255);
+        style_color_init(&color_line, 64, 64, 64, 255);
 
         break;
 
