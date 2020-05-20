@@ -442,9 +442,9 @@ void render_filltextinput(struct style *style, char *text, int offset, struct st
     for (i = 0; (current = calcline(&style->font, style->box.w, current, end, &row)); i++)
     {
 
-        int length = row.end - row.start;
+        int length = row.end - row.start + 1;
 
-        if (offset >= 0 && offset <= length)
+        if (offset >= 0 && offset < length)
         {
 
             x = rendertext(&textpaint, &scissor, style->font.face, style->font.align, style->font.size, x, y, row.start, row.start + offset);
