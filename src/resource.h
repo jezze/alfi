@@ -16,7 +16,8 @@ struct resource
 
 };
 
-unsigned int resource_load(struct resource *resource, unsigned int count, void *data);
+void resource_load(struct resource *resource, unsigned int count, void *data);
+void resource_unload(struct resource *resource);
 unsigned int resource_iref(struct resource *resource);
 unsigned int resource_dref(struct resource *resource);
 void resource_init(struct resource *resource, char *url);

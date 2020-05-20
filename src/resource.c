@@ -206,7 +206,9 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
 
         url_set(&resource->urlinfo, urlparam + 4);
 
-        return resource_load(resource, 0, 0);
+        resource_load(resource, 0, 0);
+
+        return resource->count;
 
     }
 
@@ -235,17 +237,23 @@ static unsigned int _external_load(struct resource *resource, unsigned int count
 
 }
 
-unsigned int resource_load(struct resource *resource, unsigned int count, void *data)
+void resource_load(struct resource *resource, unsigned int count, void *data)
 {
 
     if (_navi_match(resource))
-        return _navi_load(resource, count, data);
+        _navi_load(resource, count, data);
     else if (_curl_match(resource))
-        return _curl_load(resource, count, data);
+        _curl_load(resource, count, data);
     else if (_external_match(resource))
-        return _external_load(resource, count, data);
+        _external_load(resource, count, data);
 
-    return 0;
+}
+
+void resource_unload(struct resource *resource)
+{
+
+    if (resource->data)
+        free(resource->data);
 
 }
 
@@ -279,9 +287,6 @@ void resource_destroy(struct resource *resource)
 {
 
     url_unset(&resource->urlinfo);
-
-    if (resource->data)
-        free(resource->data);
 
     resource->data = 0;
     resource->size = 0;

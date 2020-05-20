@@ -264,16 +264,17 @@ static void loadresources_code(struct widget_payload_code *payload)
     resource_init(&resource, payload->link.url);
     resource_load(&resource, 0, 0);
 
-    if (resource.size)
+    if (resource.count)
     {
 
         data = resource.data;
-        data[resource.size - 1] = '\0';
+        data[resource.count - 1] = '\0';
 
         attribute_label_create(&payload->label, data);
 
     }
 
+    resource_unload(&resource);
     resource_destroy(&resource);
 
 }
@@ -307,16 +308,17 @@ static void loadresources_text(struct widget_payload_text *payload)
     resource_init(&resource, payload->link.url);
     resource_load(&resource, 0, 0);
 
-    if (resource.size)
+    if (resource.count)
     {
 
         data = resource.data;
-        data[resource.size - 1] = '\0';
+        data[resource.count - 1] = '\0';
 
         attribute_label_create(&payload->label, data);
 
     }
 
+    resource_unload(&resource);
     resource_destroy(&resource);
 
 }
@@ -359,8 +361,9 @@ static void urlself(char *url, unsigned int count, void *data)
     struct resource temp;
 
     resource_init(&temp, url);
+    resource_load(&temp, count, data);
 
-    if (resource_load(&temp, count, data))
+    if (temp.count)
     {
 
         struct urlinfo *info = history_get(0);
@@ -376,6 +379,7 @@ static void urlself(char *url, unsigned int count, void *data)
 
     }
 
+    resource_unload(&temp);
     resource_destroy(&temp);
 
 }
