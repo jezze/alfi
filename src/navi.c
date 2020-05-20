@@ -249,10 +249,34 @@ static void sethover(struct widget *widget)
 
 }
 
-static void loadresources_image(struct widget *widget)
+static void loadresources_code(struct widget_payload_code *payload)
 {
 
-    struct widget_payload_image *payload = &widget->payload.image;
+    struct resource resource;
+    struct urlinfo info;
+    char *data;
+
+    url_merge(&info, history_geturl(0), payload->link.url);
+    resource_init(&resource, info.url);
+    resource_load(&resource, 0, 0);
+
+    if (resource.size)
+    {
+
+        data = resource.data;
+        data[resource.size - 1] = '\0';
+
+        attribute_label_create(&payload->label, data);
+
+    }
+
+    resource_destroy(&resource);
+
+}
+
+static void loadresources_image(struct widget_payload_image *payload)
+{
+
     struct urlinfo info;
 
     url_merge(&info, history_geturl(0), payload->link.url);
@@ -271,8 +295,13 @@ static void loadresources(void)
         switch (widget->header.type)
         {
 
+        case WIDGET_TYPE_CODE:
+            loadresources_code(&widget->payload.code);
+
+            break;
+
         case WIDGET_TYPE_IMAGE:
-            loadresources_image(widget);
+            loadresources_image(&widget->payload.image);
 
             break;
 

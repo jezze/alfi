@@ -105,6 +105,7 @@ void widget_payload_code_create(struct widget_payload_code *payload)
 {
 
     attribute_label_create(&payload->label, "");
+    attribute_link_create(&payload->link, "", "");
 
 }
 
@@ -112,6 +113,7 @@ void widget_payload_code_destroy(struct widget_payload_code *payload)
 {
 
     attribute_label_destroy(&payload->label);
+    attribute_link_destroy(&payload->link);
 
 }
 

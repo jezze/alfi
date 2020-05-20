@@ -74,4 +74,7 @@
 # Add some text and then modify the text at once
 + text id extra2 label "This text will be replaced."
 = extra2 label "This is even more text!"
-+ text label "This is a \"quote\" followed by\na newline."
+
+# This is the source of the page
++ divider
++ code link "file:///usr/share/navi/example.alfi" "text/alfi"

@@ -597,6 +597,11 @@ static void parse_payload_code(struct parser *parser, struct widget_header *head
 
             break;
 
+        case ATTRIBUTE_LINK:
+            parse_attribute_link(parser, &payload->link);
+
+            break;
+
         default:
             parser->fail();
 
