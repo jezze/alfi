@@ -31,7 +31,6 @@ static struct style_color color_background;
 static struct style_color color_text;
 static struct style_color color_header;
 static struct style_color color_focus;
-static struct style_color color_focustext;
 static struct style_color color_line;
 
 static int anchor_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
@@ -82,7 +81,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
     style_font_init(&text->font, font_bold->index, view->fontsizemedium, STYLE_ALIGN_CENTER | STYLE_ALIGN_TOP);
 
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
-        style_color_clone(&text->color, &color_focustext);
+        style_color_clone(&text->color, &color_background);
     else
         style_color_clone(&text->color, &color_text);
 
@@ -1056,7 +1055,6 @@ void animation_settheme(unsigned int type)
         style_color_init(&color_text, 96, 96, 96, 255);
         style_color_init(&color_header, 64, 64, 64, 255);
         style_color_init(&color_focus, 96, 192, 192, 255);
-        style_color_init(&color_focustext, 255, 255, 255, 255);
         style_color_init(&color_line, 192, 192, 192, 255);
 
         break;
@@ -1066,7 +1064,6 @@ void animation_settheme(unsigned int type)
         style_color_init(&color_text, 192, 192, 192, 255);
         style_color_init(&color_header, 224, 224, 224, 255);
         style_color_init(&color_focus, 96, 192, 192, 255);
-        style_color_init(&color_focustext, 255, 255, 255, 255);
         style_color_init(&color_line, 96, 96, 96, 255);
 
         break;
