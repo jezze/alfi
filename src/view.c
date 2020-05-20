@@ -21,8 +21,8 @@ void view_init(struct view *view, int w, int h)
     view->pageh = h;
     view->unitw = (w > 1024) ? w / 32 : 32;
     view->unith = 40;
-    view->marginw = 12;
-    view->marginh = 12;
+    view->marginw = 16;
+    view->marginh = 16;
     view->scrollw = view->unitw * 28;
     view->scrollh = view->unith * 28;
     view->fontsizesmall = 24;
