@@ -143,6 +143,7 @@ struct widget_payload_text
 {
 
     struct attribute_label label;
+    struct attribute_link link;
 
 };
 
