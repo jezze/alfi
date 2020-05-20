@@ -40,10 +40,10 @@
 
 # A row of images
 + table id gallery grid "02:04"
-+ image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
-+ image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
-+ image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
-+ image in gallery link "file:///usr/share/navi/image6.jpg" "image/jpeg"
++ image in gallery link "image6.jpg" "image/jpeg"
++ image in gallery link "image6.jpg" "image/jpeg"
++ image in gallery link "image6.jpg" "image/jpeg"
++ image in gallery link "image6.jpg" "image/jpeg"
 
 # Add some items to the previous list
 + text in list1 label "Item 1-3"
@@ -60,7 +60,7 @@
 + text in table1 label "Cell 0-3"
 + text in table1 label "Cell 1-0"
 + text in table1 label "Cell 1-1"
-+ image in table1 link "file:///usr/share/navi/image6.jpg" "image/jpeg"
++ image in table1 link "image6.jpg" "image/jpeg"
 + text in table1 label "Cell 1-3"
 + text in table1 label "Cell 2-0"
 + text in table1
@@ -77,4 +77,4 @@
 
 # This is the source of the page
 + divider
-+ code link "file:///usr/share/navi/example.alfi" "text/alfi"
++ code link "example.alfi" "text/alfi"
