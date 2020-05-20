@@ -409,7 +409,12 @@ void render_filltext(struct style *style, char *text)
     while ((current = calcline(&style->font, style->box.w, current, end, &row)))
     {
 
-        rendertext(&paint, &scissor, style->font.face, style->font.align, style->font.size, x, y, row.start, row.end);
+        if (style->font.align & STYLE_ALIGN_RIGHT)
+            rendertext(&paint, &scissor, style->font.face, style->font.align, style->font.size, x + style->box.w, y, row.start, row.end);
+        else if (style->font.align & STYLE_ALIGN_CENTER)
+            rendertext(&paint, &scissor, style->font.face, style->font.align, style->font.size, x + style->box.w / 2, y, row.start, row.end);
+        else
+            rendertext(&paint, &scissor, style->font.face, style->font.align, style->font.size, x, y, row.start, row.end);
 
         y += style->font.size;
 

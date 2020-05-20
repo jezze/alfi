@@ -79,7 +79,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
     struct style *surface = &frame->styles[0];
     struct style *text = &frame->styles[1];
 
-    style_font_init(&text->font, font_bold->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&text->font, font_bold->index, view->fontsizemedium, STYLE_ALIGN_CENTER | STYLE_ALIGN_TOP);
 
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
         style_color_clone(&text->color, &color_focustext);
