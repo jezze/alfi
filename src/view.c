@@ -19,7 +19,11 @@ void view_init(struct view *view, int w, int h, unsigned int size)
 
     view->pagew = w;
     view->pageh = h;
-    view->unitw = (w > 1024) ? w / 32 : 32;
+    view->unitw = w / 28;
+
+    if (view->unitw < 32)
+        view->unitw = 32;
+
     view->unith = 40;
     view->marginw = 16;
     view->marginh = 16;
