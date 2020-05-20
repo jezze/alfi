@@ -261,7 +261,7 @@ static void loadresources_code(struct widget_payload_code *payload)
 
     url_merge(&info, history_geturl(0), payload->link.url);
     attribute_link_create(&payload->link, info.url, payload->link.mime);
-    resource_init(&resource, info.url);
+    resource_init(&resource, payload->link.url);
     resource_load(&resource, 0, 0);
 
     if (resource.size)
@@ -288,7 +288,7 @@ static void loadresources_image(struct widget_payload_image *payload)
 
     url_merge(&info, history_geturl(0), payload->link.url);
     attribute_link_create(&payload->link, info.url, payload->link.mime);
-    render_loadimage(info.url);
+    render_loadimage(payload->link.url);
 
 }
 
@@ -304,7 +304,7 @@ static void loadresources_text(struct widget_payload_text *payload)
 
     url_merge(&info, history_geturl(0), payload->link.url);
     attribute_link_create(&payload->link, info.url, payload->link.mime);
-    resource_init(&resource, info.url);
+    resource_init(&resource, payload->link.url);
     resource_load(&resource, 0, 0);
 
     if (resource.size)
