@@ -20,7 +20,7 @@ void view_init(struct view *view, int w, int h)
     view->pagew = w;
     view->pageh = h;
     view->unitw = (w > 1024) ? w / 32 : 32;
-    view->unith = (h > 1024) ? h / 32 : 32;
+    view->unith = 40;
     view->marginw = 12;
     view->marginh = 12;
     view->scrollw = view->unitw * 28;
