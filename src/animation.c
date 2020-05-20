@@ -87,8 +87,8 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
         style_color_clone(&text->color, &color_text);
 
     style_box_init(&text->box, x, y, w, 0, 0);
-    style_box_shrink(&text->box, 3 * view->marginw, 3 * view->marginh);
-    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+    style_box_shrink(&text->box, view->unitw, view->unith);
+    style_box_scale(&text->box, text->box.w, render_textheight(text, payload->label.content));
 
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
         style_color_clone(&surface->color, &color_focus);
@@ -97,7 +97,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
 
     style_box_init(&surface->box, x, y, w, 0, 4);
     style_box_shrink(&surface->box, view->marginw, view->marginh);
-    style_box_expand(&surface->box, &text->box, 0, 2 * view->marginh);
+    style_box_expand(&surface->box, &text->box, view->unitw - view->marginw, view->unith - view->marginh);
 
     return surface->box.h + 2 * view->marginh;
 
