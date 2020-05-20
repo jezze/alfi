@@ -9,6 +9,8 @@ struct view
     int marginh;
     int scrollx;
     int scrolly;
+    int padw;
+    int padh;
     int fontsizesmall;
     int fontsizemedium;
     int fontsizelarge;
@@ -16,7 +18,8 @@ struct view
 
 };
 
-void view_init(struct view *view, int w, int h);
+void view_init(struct view *view, int w, int h, unsigned int size);
+void view_fontsize(struct view *view, unsigned int size);
 void view_reset(struct view *view);
 void view_scroll(struct view *view, int x, int y);
 void view_adjust(struct view *view, float w, float h);

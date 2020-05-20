@@ -373,7 +373,7 @@ static void urlself(char *url, unsigned int count, void *data)
 
         parser_parse(&parser, "main", temp.count, temp.data);
         loadresources();
-        animation_step(widget_root, view.scrollx + view.unitw * 2, view.scrolly + view.unith * 2, view.unitw * 24, &view, 1.0);
+        animation_step(widget_root, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24, &view, 1.0);
 
         updatetitle = 1;
 
@@ -434,7 +434,7 @@ static void onerror(int error, const char *desc)
 static void onwindowsize(GLFWwindow *window, int width, int height)
 {
 
-    view_init(&view, width, height);
+    view_init(&view, width, height, 0);
 
 }
 
@@ -1062,7 +1062,7 @@ static void render(float u)
     {
 
         view_adjust(&view, widget_root->frame.bounds.w, widget_root->frame.bounds.h);
-        animation_step(widget_root, view.scrollx + view.unitw * 2, view.scrolly + view.unith * 2, view.unitw * 24, &view, u);
+        animation_step(widget_root, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24, &view, u);
         animation_render(widget_root, &view);
 
     }
@@ -1141,7 +1141,7 @@ int main(int argc, char **argv)
     glewInit();
 #endif
 
-    view_init(&view, mode->width, mode->height);
+    view_init(&view, mode->width, mode->height, 0);
     render_create();
     parser_init(&parser, parser_fail, pool_widget_find, parser_create, parser_destroy, parser_clear);
     pool_setup();
