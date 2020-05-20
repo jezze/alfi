@@ -5,7 +5,10 @@
 static float flerp(float t, float c, float u)
 {
 
-    return c + roundf((t - c) * u);
+    if (fabs(t - c) <= 1)
+        return t;
+
+    return c + (t - c) * u;
 
 }
 
