@@ -864,6 +864,46 @@ static void onclick_toggle(struct widget *widget, float x, float y)
 
 }
 
+static void onclick(struct widget *widget, float x, float y)
+{
+
+    switch (widget_hover->header.type)
+    {
+
+    case WIDGET_TYPE_ANCHOR:
+        onclick_anchor(widget_hover, x, y);
+
+        break;
+
+    case WIDGET_TYPE_BUTTON:
+        onclick_button(widget_hover, x, y);
+
+        break;
+
+    case WIDGET_TYPE_CHOICE:
+        onclick_choice(widget_hover, x, y);
+
+        break;
+
+    case WIDGET_TYPE_FIELD:
+        onclick_field(widget_hover, x, y);
+
+        break;
+
+    case WIDGET_TYPE_SELECT:
+        onclick_select(widget_hover, x, y);
+
+        break;
+
+    case WIDGET_TYPE_TOGGLE:
+        onclick_toggle(widget_hover, x, y);
+
+        break;
+
+    }
+
+}
+
 static void onbutton(GLFWwindow *window, int button, int action, int mods)
 {
 
@@ -877,44 +917,7 @@ static void onbutton(GLFWwindow *window, int button, int action, int mods)
             setfocus(0);
 
             if (widget_hover)
-            {
-
-                switch (widget_hover->header.type)
-                {
-
-                case WIDGET_TYPE_ANCHOR:
-                    onclick_anchor(widget_hover, mouse_x, mouse_y);
-
-                    break;
-
-                case WIDGET_TYPE_BUTTON:
-                    onclick_button(widget_hover, mouse_x, mouse_y);
-
-                    break;
-
-                case WIDGET_TYPE_CHOICE:
-                    onclick_choice(widget_hover, mouse_x, mouse_y);
-
-                    break;
-
-                case WIDGET_TYPE_FIELD:
-                    onclick_field(widget_hover, mouse_x, mouse_y);
-
-                    break;
-
-                case WIDGET_TYPE_SELECT:
-                    onclick_select(widget_hover, mouse_x, mouse_y);
-
-                    break;
-
-                case WIDGET_TYPE_TOGGLE:
-                    onclick_toggle(widget_hover, mouse_x, mouse_y);
-
-                    break;
-
-                }
-
-            }
+                onclick(widget_hover, mouse_x, mouse_y);
 
             break;
 
