@@ -7,8 +7,6 @@ struct view
     int unith;
     int marginw;
     int marginh;
-    int scrollw;
-    int scrollh;
     int scrollx;
     int scrolly;
     int fontsizesmall;

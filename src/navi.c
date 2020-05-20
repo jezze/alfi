@@ -373,7 +373,7 @@ static void urlself(char *url, unsigned int count, void *data)
 
         parser_parse(&parser, "main", temp.count, temp.data);
         loadresources();
-        animation_step(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, 1.0);
+        animation_step(widget_root, view.scrollx + view.unitw * 2, view.scrolly + view.unith * 2, view.unitw * 24, &view, 1.0);
 
         updatetitle = 1;
 
@@ -1062,7 +1062,7 @@ static void render(float u)
     {
 
         view_adjust(&view, widget_root->frame.bounds.w, widget_root->frame.bounds.h);
-        animation_step(widget_root, view.scrollx, view.scrolly, view.scrollw, &view, u);
+        animation_step(widget_root, view.scrollx + view.unitw * 2, view.scrolly + view.unith * 2, view.unitw * 24, &view, u);
         animation_render(widget_root, &view);
 
     }

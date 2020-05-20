@@ -23,8 +23,6 @@ void view_init(struct view *view, int w, int h)
     view->unith = 40;
     view->marginw = 16;
     view->marginh = 16;
-    view->scrollw = view->unitw * 28;
-    view->scrollh = view->unith * 28;
     view->fontsizesmall = 24;
     view->fontsizemedium = 32;
     view->fontsizelarge = 48;
@@ -51,8 +49,8 @@ void view_scroll(struct view *view, int x, int y)
 void view_adjust(struct view *view, float w, float h)
 {
 
-    view->scrollx = (view->pagew < w) ? clamp(view->scrollx, view->pagew - w, 0) : view->pagew / 2 - w / 2;
-    view->scrolly = (view->pageh < h) ? clamp(view->scrolly, view->pageh - h, 0) : 0;
+    view->scrollx = (view->pagew < w) ? clamp(view->scrollx, view->pagew - w - view->unitw * 4, 0) : view->pagew / 2 - (w + view->unitw * 4) / 2;
+    view->scrolly = (view->pageh < h) ? clamp(view->scrolly, view->pageh - h - view->unith * 4, 0) : 0;
 
 }
 

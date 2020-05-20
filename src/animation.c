@@ -914,11 +914,9 @@ static int window_step(struct widget *widget, struct frame *frame, int x, int y,
 {
 
     struct widget *child = 0;
-    int pw = view->unitw * 2;
-    int ph = view->unith * 2;
-    int cx = x + pw;
-    int cy = y + ph;
-    int cw = w - pw * 2;
+    int cx = x;
+    int cy = y;
+    int cw = w;
     int h = 0;
 
     while ((child = pool_widget_nextchild(child, widget)))
@@ -926,8 +924,8 @@ static int window_step(struct widget *widget, struct frame *frame, int x, int y,
 
         int ch = animation_step(child, cx, cy, cw, view, u);
 
-        if (h < cy + ch + ph - y)
-            h = cy + ch + ph - y;
+        if (h < cy + ch - y)
+            h = cy + ch - y;
 
     }
 
