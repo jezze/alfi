@@ -25,14 +25,6 @@ enum fons_align
 
 };
 
-enum fons_glyphbitmap
-{
-
-    FONS_GLYPH_BITMAP_OPTIONAL = 1,
-    FONS_GLYPH_BITMAP_REQUIRED = 2
-
-};
-
 struct fons_quad
 {
 
@@ -56,7 +48,6 @@ struct fons_textiter
     const char *next;
     const char *end;
     unsigned int utf8state;
-    int bitmapoption;
 
 };
 
@@ -119,6 +110,7 @@ struct fons_context
 void fons_create(struct fons_context *fsctx, int width, int height, unsigned char flags);
 void fons_delete(struct fons_context *fsctx);
 int fons_addfont(struct fons_context *fsctx, unsigned char *data, unsigned int count);
-int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, int font, int align, float size, float spacing, float x, float y, const char *str, const char *end, int bitmapoption);
+struct fons_glyph *fons_getglyph(struct fons_context *fsctx, struct fons_font *font, unsigned int codepoint, short size);
+int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, int font, int align, float size, float spacing, float x, float y, const char *str, const char *end);
 int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct fons_quad *quad);
 int fons_validate(struct fons_context *fsctx, int *dirty);

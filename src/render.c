@@ -89,7 +89,7 @@ static const char *calcline(struct style_font *font, float width, const char *st
     float breakWidth = 0;
     unsigned int ptype = CHARTYPE_SPACE;
 
-    fons_inititer(&fsctx, &iter, font->face, font->align, font->size, 0, 0, 0, string, end, FONS_GLYPH_BITMAP_OPTIONAL);
+    fons_inititer(&fsctx, &iter, font->face, font->align, font->size, 0, 0, 0, string, end);
 
     while (fons_nextiter(&fsctx, &iter, &q))
     {
@@ -206,7 +206,7 @@ static float rendertext(struct nvg_paint *paint, struct nvg_scissor *scissor, in
     int nverts = 0;
     int dirty[4];
 
-    fons_inititer(&fsctx, &iter, font, align, size, 0, x, y, string, end, FONS_GLYPH_BITMAP_REQUIRED);
+    fons_inititer(&fsctx, &iter, font, align, size, 0, x, y, string, end);
 
     while (fons_nextiter(&fsctx, &iter, &q))
     {

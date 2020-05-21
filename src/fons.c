@@ -321,7 +321,7 @@ int fons_addfont(struct fons_context *fsctx, unsigned char *data, unsigned int c
 
 }
 
-static struct fons_glyph *getglyph(struct fons_context *fsctx, struct fons_font *font, unsigned int codepoint, short size, int bitmapoption)
+struct fons_glyph *fons_getglyph(struct fons_context *fsctx, struct fons_font *font, unsigned int codepoint, short size)
 {
 
     int i, g, advance, lsb;
@@ -349,7 +349,7 @@ static struct fons_glyph *getglyph(struct fons_context *fsctx, struct fons_font 
 
             glyph = &font->glyphs[i];
 
-            if (bitmapoption == FONS_GLYPH_BITMAP_OPTIONAL || (glyph->x0 >= 0 && glyph->y0 >= 0))
+            if (glyph->x0 >= 0 && glyph->y0 >= 0)
                 return glyph;
 
             break;
@@ -373,23 +373,10 @@ static struct fons_glyph *getglyph(struct fons_context *fsctx, struct fons_font 
     gw = x1 - x0 + pad * 2;
     gh = y1 - y0 + pad * 2;
 
-    if (bitmapoption == FONS_GLYPH_BITMAP_REQUIRED)
-    {
+    added = atlasaddrect(&fsctx->atlas, gw, gh, &gx, &gy);
 
-        added = atlasaddrect(&fsctx->atlas, gw, gh, &gx, &gy);
-
-        if (!added)
-            return 0;
-
-    }
-
-    else
-    {
-
-        gx = -1;
-        gy = -1;
-
-    }
+    if (!added)
+        return 0;
 
     if (!glyph)
     {
@@ -412,9 +399,6 @@ static struct fons_glyph *getglyph(struct fons_context *fsctx, struct fons_font 
     glyph->xadv = scale * advance;
     glyph->xoff = x0 - pad;
     glyph->yoff = y0 - pad;
-
-    if (bitmapoption == FONS_GLYPH_BITMAP_OPTIONAL)
-        return glyph;
 
     dst = &fsctx->texdata[(glyph->x0 + pad) + (glyph->y0 + pad) * fsctx->width];
 
@@ -562,7 +546,7 @@ static float getwidth(struct fons_context *fsctx, struct fons_font *font, int al
         if (decutf8(&utf8state, &codepoint, *(const unsigned char *)str))
             continue;
 
-        glyph = getglyph(fsctx, font, codepoint, size, FONS_GLYPH_BITMAP_OPTIONAL);
+        glyph = fons_getglyph(fsctx, font, codepoint, size);
 
         if (glyph)
             x = getquad(fsctx, font, prevglyphindex, glyph, scale, spacing, x, y, &q);
@@ -575,7 +559,7 @@ static float getwidth(struct fons_context *fsctx, struct fons_font *font, int al
 
 }
 
-int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, int font, int align, float size, float spacing, float x, float y, const char *str, const char *end, int bitmapoption)
+int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, int font, int align, float size, float spacing, float x, float y, const char *str, const char *end)
 {
 
     iter->font = &fsctx->fonts[font];
@@ -610,7 +594,6 @@ int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, int fo
     iter->end = end;
     iter->codepoint = 0;
     iter->prevglyphindex = -1;
-    iter->bitmapoption = bitmapoption;
     iter->utf8state = 0;
 
     return 1;
@@ -638,7 +621,7 @@ int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct
         str++;
         iter->x = iter->nextx;
         iter->y = iter->nexty;
-        glyph = getglyph(fsctx, iter->font, iter->codepoint, iter->size, iter->bitmapoption);
+        glyph = fons_getglyph(fsctx, iter->font, iter->codepoint, iter->size);
 
         if (glyph)
             iter->nextx = getquad(fsctx, iter->font, iter->prevglyphindex, glyph, iter->scale, iter->spacing, iter->nextx, iter->nexty, quad);
