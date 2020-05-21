@@ -17,13 +17,6 @@ static unsigned int hashint(unsigned int a)
 
 }
 
-static int mini(int a, int b)
-{
-
-    return a < b ? a : b;
-
-}
-
 static int maxi(int a, int b)
 {
 
@@ -254,11 +247,6 @@ void fons_create(struct fons_context *fsctx, int width, int height)
 
     memset(fsctx->texdata, 0, fsctx->width * fsctx->height);
 
-    fsctx->dirtyrect[0] = fsctx->width;
-    fsctx->dirtyrect[1] = fsctx->height;
-    fsctx->dirtyrect[2] = 0;
-    fsctx->dirtyrect[3] = 0;
-
 }
 
 int fons_addfont(struct fons_context *fsctx, unsigned char *data, unsigned int count)
@@ -390,11 +378,6 @@ struct fons_glyph *fons_getglyph(struct fons_context *fsctx, struct fons_font *f
         dst[x + (gh - 1) * fsctx->width] = 0;
 
     }
-
-    fsctx->dirtyrect[0] = mini(fsctx->dirtyrect[0], glyph->x0);
-    fsctx->dirtyrect[1] = mini(fsctx->dirtyrect[1], glyph->y0);
-    fsctx->dirtyrect[2] = maxi(fsctx->dirtyrect[2], glyph->x1);
-    fsctx->dirtyrect[3] = maxi(fsctx->dirtyrect[3], glyph->y1);
 
     return glyph;
 
@@ -543,29 +526,6 @@ int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct
     iter->next = str;
 
     return 1;
-
-}
-
-int fons_validate(struct fons_context *fsctx, int *dirty)
-{
-
-    if (fsctx->dirtyrect[0] < fsctx->dirtyrect[2] && fsctx->dirtyrect[1] < fsctx->dirtyrect[3])
-    {
-
-        dirty[0] = fsctx->dirtyrect[0];
-        dirty[1] = fsctx->dirtyrect[1];
-        dirty[2] = fsctx->dirtyrect[2];
-        dirty[3] = fsctx->dirtyrect[3];
-        fsctx->dirtyrect[0] = fsctx->width;
-        fsctx->dirtyrect[1] = fsctx->height;
-        fsctx->dirtyrect[2] = 0;
-        fsctx->dirtyrect[3] = 0;
-
-        return 1;
-
-    }
-
-    return 0;
 
 }
 

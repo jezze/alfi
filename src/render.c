@@ -204,7 +204,6 @@ static float rendertext(struct nvg_paint *paint, struct nvg_scissor *scissor, st
     struct fons_quad q;
     int cverts = (end - string) * 6;
     int nverts = 0;
-    int dirty[4];
 
     fons_inititer(&fsctx, &iter, &fsctx.fonts[font->face], font->align, font->size, 0, x, y, string, end);
 
@@ -234,8 +233,7 @@ static float rendertext(struct nvg_paint *paint, struct nvg_scissor *scissor, st
 
     }
 
-    if (fons_validate(&fsctx, dirty))
-        nvg_gl_texture_update(&glctx, glctx.fontimage, dirty[0], dirty[1], dirty[2] - dirty[0], dirty[3] - dirty[1], fsctx.texdata);
+    nvg_gl_texture_update(&glctx, glctx.fontimage, 0, 0, fsctx.width, fsctx.height, fsctx.texdata);
 
     paint->image = glctx.fontimage;
 
