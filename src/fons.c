@@ -300,13 +300,13 @@ struct fons_glyph *fons_getglyph(struct fons_context *fsctx, struct fons_font *f
     float scale;
     struct fons_glyph *glyph = 0;
     unsigned int h;
-    int pad, added;
+    int pad = 2;
+    int added;
     unsigned char *dst;
 
     if (size < 2)
         return 0;
 
-    pad = 2;
     h = hashint(codepoint) & (FONS_HASH_LUT_SIZE - 1);
     i = font->lut[h];
 
