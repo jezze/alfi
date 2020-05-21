@@ -867,36 +867,36 @@ static void onclick_toggle(struct widget *widget, float x, float y)
 static void onclick(struct widget *widget, float x, float y)
 {
 
-    switch (widget_hover->header.type)
+    switch (widget->header.type)
     {
 
     case WIDGET_TYPE_ANCHOR:
-        onclick_anchor(widget_hover, x, y);
+        onclick_anchor(widget, x, y);
 
         break;
 
     case WIDGET_TYPE_BUTTON:
-        onclick_button(widget_hover, x, y);
+        onclick_button(widget, x, y);
 
         break;
 
     case WIDGET_TYPE_CHOICE:
-        onclick_choice(widget_hover, x, y);
+        onclick_choice(widget, x, y);
 
         break;
 
     case WIDGET_TYPE_FIELD:
-        onclick_field(widget_hover, x, y);
+        onclick_field(widget, x, y);
 
         break;
 
     case WIDGET_TYPE_SELECT:
-        onclick_select(widget_hover, x, y);
+        onclick_select(widget, x, y);
 
         break;
 
     case WIDGET_TYPE_TOGGLE:
-        onclick_toggle(widget_hover, x, y);
+        onclick_toggle(widget, x, y);
 
         break;
 
@@ -1010,15 +1010,15 @@ static void onchar(GLFWwindow *window, unsigned int codepoint)
 
 }
 
-static void checkhover(GLFWwindow *window)
+static void checkhover(GLFWwindow *window, double x, double y)
 {
 
-    struct widget *touch = findtouchingwidget(widget_root, mouse_x, mouse_y);
+    struct widget *touch = findtouchingwidget(widget_root, x, y);
 
     sethover(touch);
 
     if (touch)
-        setcursor(window, animation_getcursor(touch, mouse_x, mouse_y));
+        setcursor(window, animation_getcursor(touch, x, y));
 
 }
 
@@ -1098,7 +1098,7 @@ static void run(GLFWwindow *window)
         {
 
             glfwPollEvents();
-            checkhover(window);
+            checkhover(window, mouse_x, mouse_y);
             checktitle(window);
             render(0.5);
             glfwSwapBuffers(window);
