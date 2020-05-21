@@ -8,6 +8,3 @@ struct widget
 
 };
 
-void entity_create(struct widget *widget, unsigned int type, char *id, char *in);
-void entity_destroy(struct widget *widget);
-void entity_setstate(struct widget *widget, unsigned int state);

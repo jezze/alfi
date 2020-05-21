@@ -68,7 +68,7 @@ void widget_payload_button_destroy(struct widget_payload_button *payload)
 
 }
 
-unsigned int widget_payload_button_setstate(struct widget_header *header, unsigned int state)
+unsigned int widget_payload_button_changestate(struct widget_header *header, unsigned int state)
 {
 
     switch (state)
@@ -153,7 +153,7 @@ void widget_payload_field_destroy(struct widget_payload_field *payload)
 
 }
 
-unsigned int widget_payload_field_setstate(struct widget_header *header, unsigned int state)
+unsigned int widget_payload_field_changestate(struct widget_header *header, unsigned int state)
 {
 
     switch (state)
@@ -230,7 +230,7 @@ void widget_payload_select_destroy(struct widget_payload_select *payload)
 
 }
 
-unsigned int widget_payload_select_setstate(struct widget_header *header, unsigned int state)
+unsigned int widget_payload_select_changestate(struct widget_header *header, unsigned int state)
 {
 
     switch (state)
@@ -307,7 +307,7 @@ void widget_payload_toggle_destroy(struct widget_payload_toggle *payload)
 
 }
 
-unsigned int widget_payload_toggle_setstate(struct widget_header *header, unsigned int state)
+unsigned int widget_payload_toggle_changestate(struct widget_header *header, unsigned int state)
 {
 
     switch (state)
