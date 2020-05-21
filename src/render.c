@@ -89,7 +89,7 @@ static const char *calcline(struct style_font *font, float width, const char *st
     float breakWidth = 0;
     unsigned int ptype = CHARTYPE_SPACE;
 
-    fons_inititer(&fsctx, &iter, font->face, font->align, font->size, 0, 0, 0, string, end);
+    fons_inititer(&fsctx, &iter, &fsctx.fonts[font->face], font->align, font->size, 0, 0, 0, string, end);
 
     while (fons_nextiter(&fsctx, &iter, &q))
     {
@@ -197,7 +197,7 @@ static void renderfill(struct nvg_paint *paint, struct nvg_scissor *scissor)
 
 }
 
-static float rendertext(struct nvg_paint *paint, struct nvg_scissor *scissor, int font, int align, float size, float x, float y, const char *string, const char *end)
+static float rendertext(struct nvg_paint *paint, struct nvg_scissor *scissor, struct style_font *font, float x, float y, const char *string, const char *end)
 {
 
     struct fons_textiter iter;
@@ -206,7 +206,7 @@ static float rendertext(struct nvg_paint *paint, struct nvg_scissor *scissor, in
     int nverts = 0;
     int dirty[4];
 
-    fons_inititer(&fsctx, &iter, font, align, size, 0, x, y, string, end);
+    fons_inititer(&fsctx, &iter, &fsctx.fonts[font->face], font->align, font->size, 0, x, y, string, end);
 
     while (fons_nextiter(&fsctx, &iter, &q))
     {
@@ -410,11 +410,11 @@ void render_filltext(struct style *style, char *text)
     {
 
         if (style->font.align & STYLE_ALIGN_RIGHT)
-            rendertext(&paint, &scissor, style->font.face, style->font.align, style->font.size, x + style->box.w, y, row.start, row.end);
+            rendertext(&paint, &scissor, &style->font, x + style->box.w, y, row.start, row.end);
         else if (style->font.align & STYLE_ALIGN_CENTER)
-            rendertext(&paint, &scissor, style->font.face, style->font.align, style->font.size, x + style->box.w / 2, y, row.start, row.end);
+            rendertext(&paint, &scissor, &style->font, x + style->box.w / 2, y, row.start, row.end);
         else
-            rendertext(&paint, &scissor, style->font.face, style->font.align, style->font.size, x, y, row.start, row.end);
+            rendertext(&paint, &scissor, &style->font, x, y, row.start, row.end);
 
         y += style->font.size;
 
@@ -447,9 +447,9 @@ void render_filltextinput(struct style *style, char *text, int offset, struct st
         if (offset >= 0 && offset < length)
         {
 
-            x = rendertext(&textpaint, &scissor, style->font.face, style->font.align, style->font.size, x, y, row.start, row.start + offset);
+            x = rendertext(&textpaint, &scissor, &style->font, x, y, row.start, row.start + offset);
 
-            rendertext(&textpaint, &scissor, style->font.face, style->font.align, style->font.size, x, y, row.start + offset, row.end);
+            rendertext(&textpaint, &scissor, &style->font, x, y, row.start + offset, row.end);
             nvg_path_begin(&ctx);
             nvg_path_roundedrect(&ctx, x, y, 3, style->font.size, 0);
             renderfill(&cursorpaint, &scissor);
@@ -461,7 +461,7 @@ void render_filltextinput(struct style *style, char *text, int offset, struct st
         else
         {
 
-            rendertext(&textpaint, &scissor, style->font.face, style->font.align, style->font.size, x, y, row.start, row.end);
+            rendertext(&textpaint, &scissor, &style->font, x, y, row.start, row.end);
 
         }
 

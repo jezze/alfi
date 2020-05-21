@@ -471,10 +471,10 @@ static float getwidth(struct fons_context *fsctx, struct fons_font *font, int al
 
 }
 
-int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, int font, int align, float size, float spacing, float x, float y, const char *str, const char *end)
+int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, struct fons_font *font, int align, float size, float spacing, float x, float y, const char *str, const char *end)
 {
 
-    iter->font = &fsctx->fonts[font];
+    iter->font = font;
     iter->size = size;
     iter->scale = stbtt_ScaleForPixelHeight(&iter->font->font, iter->size);
 
