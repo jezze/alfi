@@ -30,8 +30,8 @@
 #include "render.h"
 #include "history.h"
 
-#define ENTITY_FLAG_NONE                0
-#define ENTITY_FLAG_FOCUSABLE           1
+#define FLAG_NONE                       0
+#define FLAG_FOCUSABLE                  1
 
 static struct view view;
 static struct parser parser;
@@ -166,11 +166,11 @@ static unsigned int getflags(struct widget *widget)
     case WIDGET_TYPE_FIELD:
     case WIDGET_TYPE_SELECT:
     case WIDGET_TYPE_TOGGLE:
-        return ENTITY_FLAG_FOCUSABLE;
+        return FLAG_FOCUSABLE;
 
     }
 
-    return ENTITY_FLAG_NONE;
+    return FLAG_NONE;
 
 }
 
@@ -652,10 +652,10 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
             if (mods & GLFW_MOD_SHIFT)
             {
 
-                struct widget *widget = prevflag(widget_focus, ENTITY_FLAG_FOCUSABLE);
+                struct widget *widget = prevflag(widget_focus, FLAG_FOCUSABLE);
 
                 if (!widget)
-                    widget = prevflag(0, ENTITY_FLAG_FOCUSABLE);
+                    widget = prevflag(0, FLAG_FOCUSABLE);
 
                 setfocus(widget);
 
@@ -664,10 +664,10 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
             else
             {
 
-                struct widget *widget = nextflag(widget_focus, ENTITY_FLAG_FOCUSABLE);
+                struct widget *widget = nextflag(widget_focus, FLAG_FOCUSABLE);
 
                 if (!widget)
-                    widget = nextflag(0, ENTITY_FLAG_FOCUSABLE);
+                    widget = nextflag(0, FLAG_FOCUSABLE);
 
                 setfocus(widget);
 
@@ -679,7 +679,7 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
 
     }
 
-    if (widget_focus && checkflag(widget_focus, ENTITY_FLAG_FOCUSABLE))
+    if (widget_focus && checkflag(widget_focus, FLAG_FOCUSABLE))
     {
 
         switch (widget_focus->header.type)
@@ -1021,7 +1021,7 @@ static void onchar_field(struct widget_payload_field *payload, unsigned int code
 static void onchar(GLFWwindow *window, unsigned int codepoint)
 {
 
-    if (widget_focus && checkflag(widget_focus, ENTITY_FLAG_FOCUSABLE))
+    if (widget_focus && checkflag(widget_focus, FLAG_FOCUSABLE))
     {
 
         switch (widget_focus->header.type)
