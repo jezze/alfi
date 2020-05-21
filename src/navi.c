@@ -153,13 +153,38 @@ static struct widget *findtouchingwidget(struct widget *widget, float x, float y
 
 }
 
+static unsigned int getflags(struct widget *widget)
+{
+
+    switch (widget->header.type)
+    {
+
+    case WIDGET_TYPE_BUTTON:
+    case WIDGET_TYPE_FIELD:
+    case WIDGET_TYPE_SELECT:
+    case WIDGET_TYPE_TOGGLE:
+        return ENTITY_FLAG_FOCUSABLE;
+
+    }
+
+    return ENTITY_FLAG_NONE;
+
+}
+
+static unsigned int checkflag(struct widget *widget, unsigned int flag)
+{
+
+    return getflags(widget) & flag;
+
+}
+
 static struct widget *prevflag(struct widget *widget, unsigned int flag)
 {
 
     while ((widget = pool_widget_prev(widget)))
     {
 
-        if (entity_checkflag(widget, flag))
+        if (checkflag(widget, flag))
             return widget;
 
     }
@@ -174,7 +199,7 @@ static struct widget *nextflag(struct widget *widget, unsigned int flag)
     while ((widget = pool_widget_next(widget)))
     {
 
-        if (entity_checkflag(widget, flag))
+        if (checkflag(widget, flag))
             return widget;
 
     }
@@ -651,7 +676,7 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
 
     }
 
-    if (widget_focus && entity_checkflag(widget_focus, ENTITY_FLAG_FOCUSABLE))
+    if (widget_focus && checkflag(widget_focus, ENTITY_FLAG_FOCUSABLE))
     {
 
         switch (widget_focus->header.type)
@@ -993,7 +1018,7 @@ static void onchar_field(struct widget_payload_field *payload, unsigned int code
 static void onchar(GLFWwindow *window, unsigned int codepoint)
 {
 
-    if (widget_focus && entity_checkflag(widget_focus, ENTITY_FLAG_FOCUSABLE))
+    if (widget_focus && checkflag(widget_focus, ENTITY_FLAG_FOCUSABLE))
     {
 
         switch (widget_focus->header.type)

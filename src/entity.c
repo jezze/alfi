@@ -11,31 +11,6 @@
 #include "pool.h"
 #include "render.h"
 
-static unsigned int getflags(struct widget *widget)
-{
-
-    switch (widget->header.type)
-    {
-
-    case WIDGET_TYPE_BUTTON:
-    case WIDGET_TYPE_FIELD:
-    case WIDGET_TYPE_SELECT:
-    case WIDGET_TYPE_TOGGLE:
-        return ENTITY_FLAG_FOCUSABLE;
-
-    }
-
-    return ENTITY_FLAG_NONE;
-
-}
-
-unsigned int entity_checkflag(struct widget *widget, unsigned int flag)
-{
-
-    return getflags(widget) & flag;
-
-}
-
 void entity_create(struct widget *widget, unsigned int type, char *id, char *in)
 {
 
