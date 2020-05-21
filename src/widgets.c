@@ -264,7 +264,7 @@ void widget_payload_subheader_destroy(struct widget_payload_subheader *payload)
 void widget_payload_table_create(struct widget_payload_table *payload)
 {
 
-    attribute_grid_create(&payload->grid, "12LT");
+    attribute_grid_create(&payload->grid, "");
 
 }
 

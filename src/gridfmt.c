@@ -74,15 +74,11 @@ unsigned int gridfmt_colsize(char *format, unsigned int index)
 
     char coldata[8];
     unsigned int count = getcolumn(coldata, index, format);
-    unsigned int colsize = 12;
 
     if (count >= 2)
-        colsize = 10 * (coldata[0] - '0') + (coldata[1] - '0');
+        return 10 * (coldata[0] - '0') + (coldata[1] - '0');
 
-    if (colsize > 12)
-        colsize = 12;
-
-    return colsize;
+    return 0;
 
 }
 

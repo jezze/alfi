@@ -736,17 +736,23 @@ static int table_step(struct widget *widget, struct frame *frame, int x, int y, 
 {
 
     struct widget_payload_table *payload = &widget->payload.table;
-    unsigned int gsize = gridfmt_size(payload->grid.format);
+    unsigned int gsize;
     struct widget *child = 0;
     unsigned int i;
     int cx = x;
     int cy = y;
     int h = 0;
 
+    if (strlen(payload->grid.format))
+        gsize = gridfmt_size(payload->grid.format);
+
     for (i = 0; (child = pool_widget_nextchild(child, widget)); i++)
     {
 
-        int cw = gridfmt_colsize(payload->grid.format, i % gsize) * view->unitw * 2;
+        int cw = w;
+
+        if (strlen(payload->grid.format))
+            cw = gridfmt_colsize(payload->grid.format, i % gsize) * view->unitw * 2;
 
         if (cx + cw <= x + w)
         {
