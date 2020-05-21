@@ -2,15 +2,6 @@
 #define FONS_INIT_FONTS 8
 #define FONS_INIT_GLYPHS 256
 #define FONS_INIT_ATLAS_NODES 256
-#define FONS_VERTEX_COUNT 1024
-
-enum fons_flags
-{
-
-    FONS_ZERO_TOPLEFT = 1,
-    FONS_ZERO_BOTTOMLEFT = 2
-
-};
 
 enum fons_align
 {
@@ -98,7 +89,6 @@ struct fons_context
 {
 
     int width, height;
-    unsigned char flags;
     unsigned char *texdata;
     int dirtyrect[4];
     struct fons_atlas atlas;
@@ -107,7 +97,7 @@ struct fons_context
 
 };
 
-void fons_create(struct fons_context *fsctx, int width, int height, unsigned char flags);
+void fons_create(struct fons_context *fsctx, int width, int height);
 void fons_delete(struct fons_context *fsctx);
 int fons_addfont(struct fons_context *fsctx, unsigned char *data, unsigned int count);
 struct fons_glyph *fons_getglyph(struct fons_context *fsctx, struct fons_font *font, unsigned int codepoint, short size);

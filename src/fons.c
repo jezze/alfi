@@ -263,12 +263,11 @@ static void addwhiterect(struct fons_context *fsctx, int w, int h)
 
 }
 
-void fons_create(struct fons_context *fsctx, int width, int height, unsigned char flags)
+void fons_create(struct fons_context *fsctx, int width, int height)
 {
 
     fsctx->width = width;
     fsctx->height = height;
-    fsctx->flags = flags;
     fsctx->atlas.width = width;
     fsctx->atlas.height = height;
     fsctx->atlas.nodes[0].x = 0;
@@ -456,75 +455,18 @@ static float getquad(struct fons_context *fsctx, struct fons_font *font, int pre
     y1 = glyph->y1 - 1;
     itw = 1.0f / fsctx->width;
     ith = 1.0f / fsctx->height;
-
-    if (fsctx->flags & FONS_ZERO_TOPLEFT)
-    {
-
-        rx = (int)(x + xoff);
-        ry = (int)(y + yoff);
-        q->x0 = rx;
-        q->y0 = ry;
-        q->x1 = rx + x1 - x0;
-        q->y1 = ry + y1 - y0;
-        q->s0 = x0 * itw;
-        q->t0 = y0 * ith;
-        q->s1 = x1 * itw;
-        q->t1 = y1 * ith;
-
-    }
-
-    else
-    {
-
-        rx = (int)(x + xoff);
-        ry = (int)(y - yoff);
-        q->x0 = rx;
-        q->y0 = ry;
-        q->x1 = rx + x1 - x0;
-        q->y1 = ry - y1 + y0;
-        q->s0 = x0 * itw;
-        q->t0 = y0 * ith;
-        q->s1 = x1 * itw;
-        q->t1 = y1 * ith;
-
-    }
+    rx = (int)(x + xoff);
+    ry = (int)(y + yoff);
+    q->x0 = rx;
+    q->y0 = ry;
+    q->x1 = rx + x1 - x0;
+    q->y1 = ry + y1 - y0;
+    q->s0 = x0 * itw;
+    q->t0 = y0 * ith;
+    q->s1 = x1 * itw;
+    q->t1 = y1 * ith;
 
     return x + (int)(glyph->xadv);
-
-}
-
-static float getvertalign(struct fons_context *fsctx, struct fons_font *font, int align, short size)
-{
-
-    if (fsctx->flags & FONS_ZERO_TOPLEFT)
-    {
-
-        if (align & FONS_ALIGN_TOP)
-            return font->ascender * size;
-        else if (align & FONS_ALIGN_MIDDLE)
-            return (font->ascender + font->descender) / 2.0f * size;
-        else if (align & FONS_ALIGN_BASELINE)
-            return 0.0f;
-        else if (align & FONS_ALIGN_BOTTOM)
-            return font->descender * size;
-
-    }
-
-    else
-    {
-
-        if (align & FONS_ALIGN_TOP)
-            return -font->ascender * size;
-        else if (align & FONS_ALIGN_MIDDLE)
-            return -(font->ascender + font->descender) / 2.0f * size;
-        else if (align & FONS_ALIGN_BASELINE)
-            return 0.0f;
-        else if (align & FONS_ALIGN_BOTTOM)
-            return -font->descender * size;
-
-    }
-
-    return 0.0;
 
 }
 
@@ -565,29 +507,25 @@ int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, int fo
     iter->font = &fsctx->fonts[font];
     iter->size = size;
     iter->scale = stbtt_ScaleForPixelHeight(&iter->font->font, iter->size);
-    iter->y = iter->nexty = y + getvertalign(fsctx, iter->font, align, iter->size);
 
     if (align & FONS_ALIGN_LEFT)
-    {
-
-        iter->x = iter->nextx = x;
-
-    }
-
+        iter->x = x;
     else if (align & FONS_ALIGN_RIGHT)
-    {
-
-        iter->x = iter->nextx = x - getwidth(fsctx, iter->font, align, iter->size, spacing, x, y, str, end);
-
-    }
-
+        iter->x = x - getwidth(fsctx, iter->font, align, iter->size, spacing, x, y, str, end);
     else if (align & FONS_ALIGN_CENTER)
-    {
+        iter->x = x - getwidth(fsctx, iter->font, align, iter->size, spacing, x, y, str, end) * 0.5f;
 
-        iter->x = iter->nextx = x - getwidth(fsctx, iter->font, align, iter->size, spacing, x, y, str, end) * 0.5f;
+    if (align & FONS_ALIGN_BASELINE)
+        iter->y = y;
+    else if (align & FONS_ALIGN_TOP)
+        iter->y = y + iter->font->ascender * size;
+    else if (align & FONS_ALIGN_MIDDLE)
+        iter->y = y + (iter->font->ascender + iter->font->descender) / 2.0f * size;
+    else if (align & FONS_ALIGN_BOTTOM)
+        iter->y = y + iter->font->descender * size;
 
-    }
-
+    iter->nextx = iter->x;
+    iter->nexty = iter->y;
     iter->spacing = spacing;
     iter->str = str;
     iter->next = str;

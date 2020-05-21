@@ -345,7 +345,7 @@ void render_flush(void)
 void render_create(void)
 {
 
-    fons_create(&fsctx, 512, 512, FONS_ZERO_TOPLEFT);
+    fons_create(&fsctx, 512, 512);
     nvg_gl_create(&glctx, fsctx.width, fsctx.height);
 
 }
