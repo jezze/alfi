@@ -235,34 +235,6 @@ static int atlasaddrect(struct fons_atlas *atlas, int rw, int rh, int *rx, int *
 
 }
 
-static void addwhiterect(struct fons_context *fsctx, int w, int h)
-{
-
-    int x, y, gx, gy;
-    unsigned char *dst;
-
-    if (!atlasaddrect(&fsctx->atlas, w, h, &gx, &gy))
-        return;
-
-    dst = &fsctx->texdata[gx + gy * fsctx->width];
-
-    for (y = 0; y < h; y++)
-    {
-
-        for (x = 0; x < w; x++)
-            dst[x] = 0xff;
-
-        dst += fsctx->width;
-
-    }
-
-    fsctx->dirtyrect[0] = mini(fsctx->dirtyrect[0], gx);
-    fsctx->dirtyrect[1] = mini(fsctx->dirtyrect[1], gy);
-    fsctx->dirtyrect[2] = maxi(fsctx->dirtyrect[2], gx + w);
-    fsctx->dirtyrect[3] = maxi(fsctx->dirtyrect[3], gy + h);
-
-}
-
 void fons_create(struct fons_context *fsctx, int width, int height)
 {
 
@@ -286,8 +258,6 @@ void fons_create(struct fons_context *fsctx, int width, int height)
     fsctx->dirtyrect[1] = fsctx->height;
     fsctx->dirtyrect[2] = 0;
     fsctx->dirtyrect[3] = 0;
-
-    addwhiterect(fsctx, 2, 2);
 
 }
 
