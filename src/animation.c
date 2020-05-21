@@ -33,6 +33,13 @@ static struct style_color color_header;
 static struct style_color color_focus;
 static struct style_color color_line;
 
+static float max(float a, float b)
+{
+
+    return (a > b) ? a : b;
+
+}
+
 static int anchor_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
@@ -495,9 +502,7 @@ static int list_step(struct widget *widget, struct frame *frame, int x, int y, i
 
         int ch = animation_step(child, cx, cy, cw, view, u);
 
-        if (h < cy + ch - y)
-            h = cy + ch - y;
-
+        h = max(h, cy + ch - y);
         cy += ch;
 
     }
@@ -547,25 +552,20 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
     struct style *label = &frame->styles[1];
     struct style *data = &frame->styles[2];
     struct widget *child = 0;
-    int cx = view->unitw;
-    int cy = view->unith * 3;
+    int cx = x + view->unitw;
+    int cy = y + view->unith * 3;
     int cw = w - view->unitw * 2;
     int h = view->unith * 3;
 
     while ((child = pool_widget_nextchild(child, widget)))
     {
 
-        int ch = animation_step(child, x + cx, y + cy, cw, view, u);
-
-        cy += ch;
+        int ch = animation_step(child, cx, cy, cw, view, u);
 
         if (widget->header.state == WIDGET_STATE_FOCUS)
-        {
+            h = max(h, cy + ch - y + view->unith);
 
-            if (h < cy + view->unith)
-                h = cy + view->unith;
-
-        }
+        cy += ch;
 
     }
 
@@ -753,8 +753,7 @@ static int table_step(struct widget *widget, struct frame *frame, int x, int y, 
 
             int ch = animation_step(child, cx, cy, cw, view, u);
 
-            if (h < cy + ch - y)
-                h = cy + ch - y;
+            h = max(h, cy + ch - y);
 
         }
 
@@ -923,8 +922,7 @@ static int window_step(struct widget *widget, struct frame *frame, int x, int y,
 
         int ch = animation_step(child, cx, cy, cw, view, u);
 
-        if (h < cy + ch - y)
-            h = cy + ch - y;
+        h = max(h, cy + ch - y);
 
     }
 
