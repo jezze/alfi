@@ -4,8 +4,8 @@
 #include "style.h"
 #include "url.h"
 #include "resource.h"
-#include "attributes.h"
-#include "widgets.h"
+#include "attribute.h"
+#include "widget.h"
 #include "entity.h"
 
 #define NWIDGETS                        512

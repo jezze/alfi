@@ -5,8 +5,8 @@
 #include "url.h"
 #include "resource.h"
 #include "view.h"
-#include "attributes.h"
-#include "widgets.h"
+#include "attribute.h"
+#include "widget.h"
 #include "pool.h"
 
 void widget_header_create(struct widget_header *header, unsigned int type, char *id, char *in)

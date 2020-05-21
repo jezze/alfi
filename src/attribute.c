@@ -5,7 +5,7 @@
 #include "url.h"
 #include "resource.h"
 #include "view.h"
-#include "attributes.h"
+#include "attribute.h"
 #include "pool.h"
 
 void attribute_data_create(struct attribute_data *attribute, char *content)
