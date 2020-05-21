@@ -30,6 +30,9 @@
 #include "render.h"
 #include "history.h"
 
+#define ENTITY_FLAG_NONE                0
+#define ENTITY_FLAG_FOCUSABLE           1
+
 static struct view view;
 static struct parser parser;
 static double mouse_x;

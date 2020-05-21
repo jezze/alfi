@@ -1,6 +1,3 @@
-#define ENTITY_FLAG_NONE                0
-#define ENTITY_FLAG_FOCUSABLE           1
-
 struct widget
 {
 
