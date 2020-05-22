@@ -24,8 +24,8 @@
 + toggle id toggle2 label "Toggle 2" mode "on"
 + toggle id toggle3 label "Toggle 3"
 + table id buttonrow grid "04"
-+ button id submit in buttonrow label "SEND" mode "on"
-+ button id cancel in buttonrow label "CANCEL"
++ button id submit in buttonrow label "SEND" mode "on" icon "check"
++ button id cancel in buttonrow label "CANCEL" icon "close"
 
 # Two nested lists
 + list id list1

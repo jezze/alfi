@@ -84,7 +84,9 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
     struct widget_payload_button *payload = &widget->payload.button;
     struct style *surface = &frame->styles[0];
     struct style *text = &frame->styles[1];
+    struct style *icon = &frame->styles[2];
 
+    /* Text */
     style_font_init(&text->font, font_bold->index, view->fontsizemedium, STYLE_ALIGN_CENTER | STYLE_ALIGN_TOP);
 
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
@@ -96,6 +98,23 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
     style_box_shrink(&text->box, view->unitw, view->unith);
     style_box_scale(&text->box, text->box.w, render_textheight(text, payload->label.content));
 
+    /* Icon */
+    style_font_init(&icon->font, font_icon->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+
+    if (payload->mode.type == ATTRIBUTE_MODE_ON)
+        style_color_clone(&icon->color, &color_background);
+    else
+        style_color_clone(&icon->color, &color_text);
+
+    style_box_init(&icon->box, x, y + view->unith * 0.5 + view->marginh * 0.5, w, 0, 0);
+    style_box_shrink(&icon->box, view->unitw, view->unith);
+    style_box_scale(&icon->box, view->fontsizemedium, view->fontsizemedium);
+
+    /*
+    style_box_init(&icon->box, text->box.x, text->box.y, view->fontsizemedium * 2, view->fontsizemedium * 2, 0);
+    */
+
+    /* Surface */
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
         style_color_clone(&surface->color, &color_focus);
     else
@@ -115,11 +134,15 @@ static void button_render(struct widget *widget, struct frame *frame, struct vie
     struct widget_payload_button *payload = &widget->payload.button;
     struct style *surface = &frame->styles[0];
     struct style *text = &frame->styles[1];
+    struct style *icon = &frame->styles[2];
 
     render_fillrect(surface);
 
     if (strlen(payload->label.content))
         render_filltext(text, payload->label.content);
+
+    if (payload->icon.type)
+        render_fillicon(icon, payload->icon.type);
 
 }
 

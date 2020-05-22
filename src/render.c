@@ -196,6 +196,48 @@ static void renderfill(struct nvg_paint *paint, struct nvg_scissor *scissor)
 
 }
 
+static void rendericon(struct nvg_paint *paint, struct nvg_scissor *scissor, struct style_font *font, float x, float y, int codepoint)
+{
+
+    struct fons_glyph *glyph = fons_getglyph(&fsctx, &fsctx.fonts[font->face], codepoint, font->size);
+    unsigned int nverts = 0;
+
+    if (glyph)
+    {
+
+        struct fons_quad q;
+        float c[8];
+
+        fons_getquad(&fsctx, glyph, &q, x, y);
+        nvg_getpoints(&c[0], &c[1], ctx.xform, q.x0, q.y0);
+        nvg_getpoints(&c[2], &c[3], ctx.xform, q.x1, q.y0);
+        nvg_getpoints(&c[4], &c[5], ctx.xform, q.x1, q.y1);
+        nvg_getpoints(&c[6], &c[7], ctx.xform, q.x0, q.y1);
+
+        if (nverts + 6 <= NVG_VERTSSIZE)
+        {
+
+            nvg_setvertex(&ctx.verts[nverts + 0], c[0], c[1], q.s0, q.t0);
+            nvg_setvertex(&ctx.verts[nverts + 1], c[4], c[5], q.s1, q.t1);
+            nvg_setvertex(&ctx.verts[nverts + 2], c[2], c[3], q.s1, q.t0);
+            nvg_setvertex(&ctx.verts[nverts + 3], c[0], c[1], q.s0, q.t0);
+            nvg_setvertex(&ctx.verts[nverts + 4], c[6], c[7], q.s0, q.t1);
+            nvg_setvertex(&ctx.verts[nverts + 5], c[4], c[5], q.s1, q.t1);
+
+            nverts += 6;
+
+        }
+
+    }
+
+    nvg_gl_texture_update(&glctx, glctx.fontimage, 0, 0, fsctx.width, fsctx.height, fsctx.texdata);
+
+    paint->image = glctx.fontimage;
+
+    nvg_gl_render_vertices(&glctx, paint, scissor, ctx.verts, nverts);
+
+}
+
 static float rendertext(struct nvg_paint *paint, struct nvg_scissor *scissor, struct style_font *font, float x, float y, const char *string, const char *end)
 {
 
@@ -473,6 +515,18 @@ void render_filltextinput(struct style *style, char *text, int offset, struct st
         y += style->font.size;
 
     }
+
+}
+
+void render_fillicon(struct style *style, int type)
+{
+
+    struct nvg_scissor scissor;
+    struct nvg_paint paint;
+
+    nvg_scissor_init(&scissor);
+    nvg_paint_color(&paint, style->color.r, style->color.g, style->color.b, style->color.a);
+    rendericon(&paint, &scissor, &style->font, style->box.x, style->box.y, type);
 
 }
 

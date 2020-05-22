@@ -53,8 +53,8 @@ static const struct tokword t_attribute[] = {
 };
 
 static const struct tokword t_attribute_icon[] = {
-    {ATTRIBUTE_ICON_BURGER, "burger"},
-    {ATTRIBUTE_ICON_SEARCH, "search"}
+    {ATTRIBUTE_ICON_CHECK, "check"},
+    {ATTRIBUTE_ICON_CLOSE, "close"}
 };
 
 static const struct tokword t_attribute_mode[] = {

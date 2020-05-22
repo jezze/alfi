@@ -9,6 +9,7 @@ float render_textwidth(struct style *style, char *text);
 float render_textheight(struct style *style, char *text);
 void render_filltext(struct style *style, char *text);
 void render_filltextinput(struct style *style, char *text, int offset, struct style_color *frame_color_focus);
+void render_fillicon(struct style *style, int type);
 void render_fillrectborder(struct style *border, float bordersize);
 void render_fillrectbordergap(struct style *border, float bordersize, float x, float w);
 void render_fillrect(struct style *style);

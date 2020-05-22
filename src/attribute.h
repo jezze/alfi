@@ -2,8 +2,8 @@
 #define ATTRIBUTE_GRID                  2
 #define ATTRIBUTE_ICON                  3
 #define ATTRIBUTE_ICON_NONE             0
-#define ATTRIBUTE_ICON_BURGER           1
-#define ATTRIBUTE_ICON_SEARCH           2
+#define ATTRIBUTE_ICON_CHECK            0xEC4B
+#define ATTRIBUTE_ICON_CLOSE            0xEC4F
 #define ATTRIBUTE_ID                    4
 #define ATTRIBUTE_IN                    5
 #define ATTRIBUTE_LABEL                 6
