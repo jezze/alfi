@@ -4,7 +4,8 @@
 # A header and some text
 + header label "This is the title that doesn't say anything right now!"
 + text label "This is some text. It is just here so I can see if word wrapping works the way it should or if there are some troubles with it. Word wrapping was actually one of the more trickier things to solve."
-+ subheader label "This is a subheader"
++ header2 label "This is a header2"
++ header3 label "This is a header3"
 + text label "Below is a form."
 
 # Basic form elements

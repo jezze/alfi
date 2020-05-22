@@ -463,6 +463,84 @@ static unsigned int header_getcursor(struct widget *widget, struct frame *frame,
 
 }
 
+static int header2_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+{
+
+    struct widget_payload_header2 *payload = &widget->payload.header2;
+    struct style *text = &frame->styles[0];
+
+    style_font_init(&text->font, font_bold->index, view->fontsizelarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&text->color, &color_header);
+    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_shrink(&text->box, view->marginw, view->marginh);
+    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+
+    return text->box.h + view->marginh * 2;
+
+}
+
+static void header2_render(struct widget *widget, struct frame *frame, struct view *view)
+{
+
+    struct widget_payload_header2 *payload = &widget->payload.header2;
+    struct style *text = &frame->styles[0];
+
+    if (strlen(payload->label.content))
+        render_filltext(text, payload->label.content);
+
+}
+
+static unsigned int header2_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+{
+
+    struct style *text = &frame->styles[0];
+
+    if (style_box_istouching(&text->box, x, y))
+        return ANIMATION_CURSOR_IBEAM;
+    else
+        return ANIMATION_CURSOR_ARROW;
+
+}
+
+static int header3_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+{
+
+    struct widget_payload_header3 *payload = &widget->payload.header3;
+    struct style *text = &frame->styles[0];
+
+    style_font_init(&text->font, font_bold->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&text->color, &color_header);
+    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_shrink(&text->box, view->marginw, view->marginh);
+    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+
+    return text->box.h + view->marginh * 2;
+
+}
+
+static void header3_render(struct widget *widget, struct frame *frame, struct view *view)
+{
+
+    struct widget_payload_header3 *payload = &widget->payload.header3;
+    struct style *text = &frame->styles[0];
+
+    if (strlen(payload->label.content))
+        render_filltext(text, payload->label.content);
+
+}
+
+static unsigned int header3_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+{
+
+    struct style *text = &frame->styles[0];
+
+    if (style_box_istouching(&text->box, x, y))
+        return ANIMATION_CURSOR_IBEAM;
+    else
+        return ANIMATION_CURSOR_ARROW;
+
+}
+
 static int image_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
@@ -711,45 +789,6 @@ static unsigned int select_getcursor(struct widget *widget, struct frame *frame,
 
     if (style_box_istouching(&border->box, x, y))
         return ANIMATION_CURSOR_HAND;
-    else
-        return ANIMATION_CURSOR_ARROW;
-
-}
-
-static int subheader_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
-{
-
-    struct widget_payload_subheader *payload = &widget->payload.subheader;
-    struct style *text = &frame->styles[0];
-
-    style_font_init(&text->font, font_bold->index, view->fontsizelarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
-    style_color_clone(&text->color, &color_header);
-    style_box_init(&text->box, x, y, w, 0, 0);
-    style_box_shrink(&text->box, view->marginw, view->marginh);
-    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
-
-    return text->box.h + view->marginh * 2;
-
-}
-
-static void subheader_render(struct widget *widget, struct frame *frame, struct view *view)
-{
-
-    struct widget_payload_subheader *payload = &widget->payload.subheader;
-    struct style *text = &frame->styles[0];
-
-    if (strlen(payload->label.content))
-        render_filltext(text, payload->label.content);
-
-}
-
-static unsigned int subheader_getcursor(struct widget *widget, struct frame *frame, int x, int y)
-{
-
-    struct style *text = &frame->styles[0];
-
-    if (style_box_istouching(&text->box, x, y))
-        return ANIMATION_CURSOR_IBEAM;
     else
         return ANIMATION_CURSOR_ARROW;
 
@@ -1118,10 +1157,11 @@ void animation_setup(void)
     setcallback(WIDGET_TYPE_DIVIDER, divider_step, divider_render, divider_getcursor);
     setcallback(WIDGET_TYPE_FIELD, field_step, field_render, field_getcursor);
     setcallback(WIDGET_TYPE_HEADER, header_step, header_render, header_getcursor);
+    setcallback(WIDGET_TYPE_HEADER2, header2_step, header2_render, header2_getcursor);
+    setcallback(WIDGET_TYPE_HEADER3, header3_step, header3_render, header3_getcursor);
     setcallback(WIDGET_TYPE_IMAGE, image_step, image_render, image_getcursor);
     setcallback(WIDGET_TYPE_LIST, list_step, list_render, list_getcursor);
     setcallback(WIDGET_TYPE_SELECT, select_step, select_render, select_getcursor);
-    setcallback(WIDGET_TYPE_SUBHEADER, subheader_step, subheader_render, subheader_getcursor);
     setcallback(WIDGET_TYPE_TABLE, table_step, table_render, table_getcursor);
     setcallback(WIDGET_TYPE_TEXT, text_step, text_render, text_getcursor);
     setcallback(WIDGET_TYPE_TOGGLE, toggle_step, toggle_render, toggle_getcursor);

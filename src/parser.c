@@ -16,7 +16,7 @@
 #define COMMAND_UPDATE                  4
 #define COMMANDS                        5
 #define ATTRIBUTES                      11
-#define WIDGETS                         15
+#define WIDGETS                         16
 #define ICONS                           3
 #define MODES                           3
 #define TARGETS                         2
@@ -82,10 +82,11 @@ static const struct tokword t_widget[] = {
     {WIDGET_TYPE_DIVIDER, "divider"},
     {WIDGET_TYPE_FIELD, "field"},
     {WIDGET_TYPE_HEADER, "header"},
+    {WIDGET_TYPE_HEADER2, "header2"},
+    {WIDGET_TYPE_HEADER3, "header3"},
     {WIDGET_TYPE_IMAGE, "image"},
     {WIDGET_TYPE_LIST, "list"},
     {WIDGET_TYPE_SELECT, "select"},
-    {WIDGET_TYPE_SUBHEADER, "subheader"},
     {WIDGET_TYPE_TABLE, "table"},
     {WIDGET_TYPE_TEXT, "text"},
     {WIDGET_TYPE_TOGGLE, "toggle"},
@@ -842,7 +843,42 @@ static void parse_payload_select(struct parser *parser, struct widget_header *he
 
 }
 
-static void parse_payload_subheader(struct parser *parser, struct widget_header *header, struct widget_payload_subheader *payload)
+static void parse_payload_header2(struct parser *parser, struct widget_header *header, struct widget_payload_header2 *payload)
+{
+
+    while (!parser->expr.linebreak)
+    {
+
+        switch (getattribute(parser))
+        {
+
+        case ATTRIBUTE_ID:
+            parse_attribute_id(parser, &header->id);
+
+            break;
+
+        case ATTRIBUTE_IN:
+            parse_attribute_in(parser, &header->in);
+
+            break;
+
+        case ATTRIBUTE_LABEL:
+            parse_attribute_label(parser, &payload->label);
+
+            break;
+
+        default:
+            parser->fail();
+
+            break;
+
+        }
+
+    }
+
+}
+
+static void parse_payload_header3(struct parser *parser, struct widget_header *header, struct widget_payload_header3 *payload)
 {
 
     while (!parser->expr.linebreak)
@@ -1063,6 +1099,16 @@ static void parse_payload(struct parser *parser, struct widget *widget)
 
         break;
 
+    case WIDGET_TYPE_HEADER2:
+        parse_payload_header2(parser, &widget->header, &widget->payload.header2);
+
+        break;
+
+    case WIDGET_TYPE_HEADER3:
+        parse_payload_header3(parser, &widget->header, &widget->payload.header3);
+
+        break;
+
     case WIDGET_TYPE_IMAGE:
         parse_payload_image(parser, &widget->header, &widget->payload.image);
 
@@ -1075,11 +1121,6 @@ static void parse_payload(struct parser *parser, struct widget *widget)
 
     case WIDGET_TYPE_SELECT:
         parse_payload_select(parser, &widget->header, &widget->payload.select);
-
-        break;
-
-    case WIDGET_TYPE_SUBHEADER:
-        parse_payload_subheader(parser, &widget->header, &widget->payload.subheader);
 
         break;
 

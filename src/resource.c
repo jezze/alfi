@@ -146,10 +146,10 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
             "+ table id maintbl grid \"06\"\n"
             "+ table id ltbl in maintbl\n"
             "+ table id rtbl in maintbl\n"
-            "+ subheader in ltbl label \"Bookmarks\"\n"
+            "+ header2 in ltbl label \"Bookmarks\"\n"
             "+ anchor in ltbl label \"blunder.se\" link \"http://www.blunder.se/\"\n"
             "+ anchor in ltbl label \"example\" link \"file:///usr/share/navi/example.alfi\"\n"
-            "+ subheader in rtbl label \"Instructions\"\n"
+            "+ header2 in rtbl label \"Instructions\"\n"
             "+ table id instrtbl in rtbl grid \"03\"\n"
             "+ text in instrtbl label \"Left mouse button\"\n"
             "+ text in instrtbl label \"Interact\"\n"
@@ -190,7 +190,7 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
         char buffer[4096];
         static char *fmt =
             "= window label \"Internal error\"\n"
-            "+ subheader label \"Internal error\"\n"
+            "+ header2 label \"Internal error\"\n"
             "+ text label \"An internal error occured.\"\n";
 
         resource->count = sprintf(buffer, fmt);

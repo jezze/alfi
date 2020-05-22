@@ -94,6 +94,16 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 
         break;
 
+    case WIDGET_TYPE_HEADER2:
+        widget_payload_header2_create(&widget->payload.header2);
+
+        break;
+
+    case WIDGET_TYPE_HEADER3:
+        widget_payload_header3_create(&widget->payload.header3);
+
+        break;
+
     case WIDGET_TYPE_IMAGE:
         widget_payload_image_create(&widget->payload.image);
 
@@ -106,11 +116,6 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 
     case WIDGET_TYPE_SELECT:
         widget_payload_select_create(&widget->payload.select);
-
-        break;
-
-    case WIDGET_TYPE_SUBHEADER:
-        widget_payload_subheader_create(&widget->payload.subheader);
 
         break;
 
@@ -181,6 +186,16 @@ static struct widget *parser_destroy(struct widget *widget)
 
         break;
 
+    case WIDGET_TYPE_HEADER2:
+        widget_payload_header2_destroy(&widget->payload.header2);
+
+        break;
+
+    case WIDGET_TYPE_HEADER3:
+        widget_payload_header3_destroy(&widget->payload.header3);
+
+        break;
+
     case WIDGET_TYPE_IMAGE:
         widget_payload_image_destroy(&widget->payload.image);
 
@@ -193,11 +208,6 @@ static struct widget *parser_destroy(struct widget *widget)
 
     case WIDGET_TYPE_SELECT:
         widget_payload_select_destroy(&widget->payload.select);
-
-        break;
-
-    case WIDGET_TYPE_SUBHEADER:
-        widget_payload_subheader_destroy(&widget->payload.subheader);
 
         break;
 

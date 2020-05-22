@@ -67,9 +67,9 @@ resolve_file() {
         echo "+ header label \"Index of $path\""
         echo "+ divider"
         echo "+ table id table1 grid \"06:02:04\""
-        echo "+ subheader in table1 label \"Name\""
-        echo "+ subheader in table1 label \"Size\""
-        echo "+ subheader in table1 label \"Modified\""
+        echo "+ header2 in table1 label \"Name\""
+        echo "+ header2 in table1 label \"Size\""
+        echo "+ header2 in table1 label \"Modified\""
 
         find $path -mindepth 1 -maxdepth 1 -type d | while read entry
         do

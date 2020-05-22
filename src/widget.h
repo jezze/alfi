@@ -7,17 +7,18 @@
 #define WIDGET_TYPE_DIVIDER             7
 #define WIDGET_TYPE_FIELD               8
 #define WIDGET_TYPE_HEADER              9
-#define WIDGET_TYPE_IMAGE               10
-#define WIDGET_TYPE_LIST                11
-#define WIDGET_TYPE_MAP                 12
-#define WIDGET_TYPE_RICHTEXT            13
-#define WIDGET_TYPE_SELECT              14
-#define WIDGET_TYPE_SUBHEADER           15
-#define WIDGET_TYPE_TABLE               16
-#define WIDGET_TYPE_TEXT                17
-#define WIDGET_TYPE_TOGGLE              18
-#define WIDGET_TYPE_VIDEO               19
-#define WIDGET_TYPE_WINDOW              20
+#define WIDGET_TYPE_HEADER2             10
+#define WIDGET_TYPE_HEADER3             11
+#define WIDGET_TYPE_IMAGE               12
+#define WIDGET_TYPE_LIST                13
+#define WIDGET_TYPE_MAP                 14
+#define WIDGET_TYPE_RICHTEXT            15
+#define WIDGET_TYPE_SELECT              16
+#define WIDGET_TYPE_TABLE               17
+#define WIDGET_TYPE_TEXT                18
+#define WIDGET_TYPE_TOGGLE              19
+#define WIDGET_TYPE_VIDEO               20
+#define WIDGET_TYPE_WINDOW              21
 #define WIDGET_STATE_NORMAL             0
 #define WIDGET_STATE_HOVER              1
 #define WIDGET_STATE_UNHOVER            2
@@ -102,6 +103,20 @@ struct widget_payload_header
 
 };
 
+struct widget_payload_header2
+{
+
+    struct attribute_label label;
+
+};
+
+struct widget_payload_header3
+{
+
+    struct attribute_label label;
+
+};
+
 struct widget_payload_image
 {
 
@@ -122,13 +137,6 @@ struct widget_payload_select
     struct attribute_data data;
     struct attribute_label label;
     struct attribute_range range;
-
-};
-
-struct widget_payload_subheader
-{
-
-    struct attribute_label label;
 
 };
 
@@ -180,10 +188,11 @@ union widget_payload
     struct widget_payload_divider divider;
     struct widget_payload_field field;
     struct widget_payload_header header;
+    struct widget_payload_header2 header2;
+    struct widget_payload_header3 header3;
     struct widget_payload_image image;
     struct widget_payload_list list;
     struct widget_payload_select select;
-    struct widget_payload_subheader subheader;
     struct widget_payload_table table;
     struct widget_payload_text text;
     struct widget_payload_toggle toggle;
@@ -210,6 +219,10 @@ void widget_payload_field_destroy(struct widget_payload_field *payload);
 unsigned int widget_payload_field_changestate(struct widget_header *header, unsigned int state);
 void widget_payload_header_create(struct widget_payload_header *payload);
 void widget_payload_header_destroy(struct widget_payload_header *payload);
+void widget_payload_header2_create(struct widget_payload_header2 *payload);
+void widget_payload_header2_destroy(struct widget_payload_header2 *payload);
+void widget_payload_header3_create(struct widget_payload_header3 *payload);
+void widget_payload_header3_destroy(struct widget_payload_header3 *payload);
 void widget_payload_image_create(struct widget_payload_image *payload);
 void widget_payload_image_destroy(struct widget_payload_image *payload);
 void widget_payload_list_create(struct widget_payload_list *payload);
@@ -217,8 +230,6 @@ void widget_payload_list_destroy(struct widget_payload_list *payload);
 void widget_payload_select_create(struct widget_payload_select *payload);
 void widget_payload_select_destroy(struct widget_payload_select *payload);
 unsigned int widget_payload_select_changestate(struct widget_header *header, unsigned int state);
-void widget_payload_subheader_create(struct widget_payload_subheader *payload);
-void widget_payload_subheader_destroy(struct widget_payload_subheader *payload);
 void widget_payload_table_create(struct widget_payload_table *payload);
 void widget_payload_table_destroy(struct widget_payload_table *payload);
 void widget_payload_text_create(struct widget_payload_text *payload);

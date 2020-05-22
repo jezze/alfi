@@ -184,6 +184,34 @@ void widget_payload_header_destroy(struct widget_payload_header *payload)
 
 }
 
+void widget_payload_header2_create(struct widget_payload_header2 *payload)
+{
+
+    attribute_label_create(&payload->label, "");
+
+}
+
+void widget_payload_header2_destroy(struct widget_payload_header2 *payload)
+{
+
+    attribute_label_destroy(&payload->label);
+
+}
+
+void widget_payload_header3_create(struct widget_payload_header3 *payload)
+{
+
+    attribute_label_create(&payload->label, "");
+
+}
+
+void widget_payload_header3_destroy(struct widget_payload_header3 *payload)
+{
+
+    attribute_label_destroy(&payload->label);
+
+}
+
 void widget_payload_image_create(struct widget_payload_image *payload)
 {
 
@@ -244,20 +272,6 @@ unsigned int widget_payload_select_changestate(struct widget_header *header, uns
     }
 
     return state;
-
-}
-
-void widget_payload_subheader_create(struct widget_payload_subheader *payload)
-{
-
-    attribute_label_create(&payload->label, "");
-
-}
-
-void widget_payload_subheader_destroy(struct widget_payload_subheader *payload)
-{
-
-    attribute_label_destroy(&payload->label);
 
 }
 
