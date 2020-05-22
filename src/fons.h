@@ -29,8 +29,6 @@ struct fons_textiter
 
     float x, y;
     float nextx, nexty;
-    float scale;
-    float spacing;
     unsigned int codepoint;
     short size;
     struct fons_font *font;
@@ -99,6 +97,6 @@ void fons_create(struct fons_context *fsctx, int width, int height);
 void fons_delete(struct fons_context *fsctx);
 int fons_addfont(struct fons_context *fsctx, unsigned char *data, unsigned int count);
 struct fons_glyph *fons_getglyph(struct fons_context *fsctx, struct fons_font *font, unsigned int codepoint, short size);
-void fons_getquad(struct fons_context *fsctx, struct fons_quad *quad, struct fons_font *font, int codepoint, float size, float scale, float spacing, float x, float y);
-int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, struct fons_font *font, int align, float size, float spacing, float x, float y, const char *str, const char *end);
+void fons_getquad(struct fons_context *fsctx, struct fons_quad *quad, struct fons_font *font, int codepoint, float size, float x, float y);
+int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, struct fons_font *font, int align, float size, float x, float y, const char *str, const char *end);
 int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter);

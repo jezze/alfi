@@ -88,7 +88,7 @@ static const char *calcline(struct style_font *font, float width, const char *st
     float breakWidth = 0;
     unsigned int ptype = CHARTYPE_SPACE;
 
-    fons_inititer(&fsctx, &iter, &fsctx.fonts[font->face], font->align, font->size, 0, 0, 0, string, end);
+    fons_inititer(&fsctx, &iter, &fsctx.fonts[font->face], font->align, font->size, 0, 0, string, end);
 
     while (fons_nextiter(&fsctx, &iter))
     {
@@ -203,7 +203,7 @@ static float rendertext(struct nvg_paint *paint, struct nvg_scissor *scissor, st
     int cverts = (end - string) * 6;
     int nverts = 0;
 
-    fons_inititer(&fsctx, &iter, &fsctx.fonts[font->face], font->align, font->size, 0, x, y, string, end);
+    fons_inititer(&fsctx, &iter, &fsctx.fonts[font->face], font->align, font->size, x, y, string, end);
 
     while (fons_nextiter(&fsctx, &iter))
     {
@@ -211,7 +211,7 @@ static float rendertext(struct nvg_paint *paint, struct nvg_scissor *scissor, st
         struct fons_quad q;
         float c[8];
 
-        fons_getquad(&fsctx, &q, iter.font, iter.codepoint, iter.size, iter.scale, iter.spacing, iter.x, iter.y);
+        fons_getquad(&fsctx, &q, iter.font, iter.codepoint, iter.size, iter.x, iter.y);
         nvg_getpoints(&c[0], &c[1], ctx.xform, q.x0, q.y0);
         nvg_getpoints(&c[2], &c[3], ctx.xform, q.x1, q.y0);
         nvg_getpoints(&c[4], &c[5], ctx.xform, q.x1, q.y1);

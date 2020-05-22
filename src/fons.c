@@ -392,7 +392,29 @@ float getglyphwidth(struct fons_context *fsctx, struct fons_font *font, int code
 
 }
 
-void fons_getquad(struct fons_context *fsctx, struct fons_quad *quad, struct fons_font *font, int codepoint, float size, float scale, float spacing, float x, float y)
+static float getstringwidth(struct fons_context *fsctx, struct fons_font *font, float size, float x, const char *str, const char *end)
+{
+
+    unsigned int utf8state = 0;
+    float startx = x;
+
+    for (; str != end; ++str)
+    {
+
+        unsigned int codepoint;
+
+        if (decutf8(&utf8state, &codepoint, *(const unsigned char *)str))
+            continue;
+
+        x += getglyphwidth(fsctx, font, codepoint, size);
+
+    }
+
+    return x - startx;
+
+}
+
+void fons_getquad(struct fons_context *fsctx, struct fons_quad *quad, struct fons_font *font, int codepoint, float size, float x, float y)
 {
 
     struct fons_glyph *glyph = fons_getglyph(fsctx, font, codepoint, size);
@@ -424,34 +446,11 @@ void fons_getquad(struct fons_context *fsctx, struct fons_quad *quad, struct fon
 
 }
 
-static float getstringwidth(struct fons_context *fsctx, struct fons_font *font, float size, float x, const char *str, const char *end)
-{
-
-    unsigned int utf8state = 0;
-    float startx = x;
-
-    for (; str != end; ++str)
-    {
-
-        unsigned int codepoint;
-
-        if (decutf8(&utf8state, &codepoint, *(const unsigned char *)str))
-            continue;
-
-        x += getglyphwidth(fsctx, font, codepoint, size);
-
-    }
-
-    return x - startx;
-
-}
-
-int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, struct fons_font *font, int align, float size, float spacing, float x, float y, const char *str, const char *end)
+int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, struct fons_font *font, int align, float size, float x, float y, const char *str, const char *end)
 {
 
     iter->font = font;
     iter->size = size;
-    iter->scale = stbtt_ScaleForPixelHeight(&iter->font->font, iter->size);
 
     if (align & FONS_ALIGN_LEFT)
         iter->x = x;
@@ -471,7 +470,6 @@ int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, struct
 
     iter->nextx = iter->x;
     iter->nexty = iter->y;
-    iter->spacing = spacing;
     iter->str = str;
     iter->next = str;
     iter->end = end;
