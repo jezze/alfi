@@ -64,7 +64,7 @@ void view_adjust(struct view *view, float w, float h)
 {
 
     view->scrollx = (view->pagew < w) ? clamp(view->scrollx, view->pagew - w - view->padw * 2, 0) : view->pagew / 2 - (w + view->padw * 2) / 2;
-    view->scrolly = (view->pageh < h) ? clamp(view->scrolly, view->pageh - h - view->padh * 2, 0) : 0;
+    view->scrolly = (view->pageh < h + view->padh * 2) ? clamp(view->scrolly, view->pageh - h - view->padh * 2, 0) : 0;
 
 }
 
