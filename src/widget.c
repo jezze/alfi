@@ -50,7 +50,7 @@ void widget_payload_button_create(struct widget_payload_button *payload)
 {
 
     attribute_icon_create(&payload->icon, ATTRIBUTE_ICON_NONE);
-    attribute_label_create(&payload->label, "undefined");
+    attribute_label_create(&payload->label, "");
     attribute_link_create(&payload->link, "", "");
     attribute_target_create(&payload->target, ATTRIBUTE_TARGET_BLANK);
     attribute_mode_create(&payload->mode, ATTRIBUTE_MODE_OFF);
