@@ -414,35 +414,28 @@ static float getstringwidth(struct fons_context *fsctx, struct fons_font *font, 
 
 }
 
-void fons_getquad(struct fons_context *fsctx, struct fons_quad *quad, struct fons_font *font, int codepoint, float size, float x, float y)
+void fons_getquad(struct fons_context *fsctx, struct fons_glyph *glyph, struct fons_quad *quad, float x, float y)
 {
 
-    struct fons_glyph *glyph = fons_getglyph(fsctx, font, codepoint, size);
+    float xoff = glyph->xoff + 1;
+    float yoff = glyph->yoff + 1;
+    float x0 = glyph->x0 + 1;
+    float y0 = glyph->y0 + 1;
+    float x1 = glyph->x1 - 1;
+    float y1 = glyph->y1 - 1;
+    float itw = 1.0f / fsctx->width;
+    float ith = 1.0f / fsctx->height;
+    float rx = (int)(x + xoff);
+    float ry = (int)(y + yoff);
 
-    if (glyph)
-    {
-
-        float xoff = glyph->xoff + 1;
-        float yoff = glyph->yoff + 1;
-        float x0 = glyph->x0 + 1;
-        float y0 = glyph->y0 + 1;
-        float x1 = glyph->x1 - 1;
-        float y1 = glyph->y1 - 1;
-        float itw = 1.0f / fsctx->width;
-        float ith = 1.0f / fsctx->height;
-        float rx = (int)(x + xoff);
-        float ry = (int)(y + yoff);
-
-        quad->x0 = rx;
-        quad->y0 = ry;
-        quad->x1 = rx + x1 - x0;
-        quad->y1 = ry + y1 - y0;
-        quad->s0 = x0 * itw;
-        quad->t0 = y0 * ith;
-        quad->s1 = x1 * itw;
-        quad->t1 = y1 * ith;
-
-    }
+    quad->x0 = rx;
+    quad->y0 = ry;
+    quad->x1 = rx + x1 - x0;
+    quad->y1 = ry + y1 - y0;
+    quad->s0 = x0 * itw;
+    quad->t0 = y0 * ith;
+    quad->s1 = x1 * itw;
+    quad->t1 = y1 * ith;
 
 }
 

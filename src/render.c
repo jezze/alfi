@@ -207,26 +207,33 @@ static float rendertext(struct nvg_paint *paint, struct nvg_scissor *scissor, st
     while (fons_nextiter(&fsctx, &iter))
     {
 
-        struct fons_quad q;
-        float c[8];
+        struct fons_glyph *glyph = fons_getglyph(&fsctx, iter.font, iter.codepoint, iter.size);
 
-        fons_getquad(&fsctx, &q, iter.font, iter.codepoint, iter.size, iter.x, iter.y);
-        nvg_getpoints(&c[0], &c[1], ctx.xform, q.x0, q.y0);
-        nvg_getpoints(&c[2], &c[3], ctx.xform, q.x1, q.y0);
-        nvg_getpoints(&c[4], &c[5], ctx.xform, q.x1, q.y1);
-        nvg_getpoints(&c[6], &c[7], ctx.xform, q.x0, q.y1);
-
-        if (nverts + 6 <= NVG_VERTSSIZE)
+        if (glyph)
         {
 
-            nvg_setvertex(&ctx.verts[nverts + 0], c[0], c[1], q.s0, q.t0);
-            nvg_setvertex(&ctx.verts[nverts + 1], c[4], c[5], q.s1, q.t1);
-            nvg_setvertex(&ctx.verts[nverts + 2], c[2], c[3], q.s1, q.t0);
-            nvg_setvertex(&ctx.verts[nverts + 3], c[0], c[1], q.s0, q.t0);
-            nvg_setvertex(&ctx.verts[nverts + 4], c[6], c[7], q.s0, q.t1);
-            nvg_setvertex(&ctx.verts[nverts + 5], c[4], c[5], q.s1, q.t1);
+            struct fons_quad q;
+            float c[8];
 
-            nverts += 6;
+            fons_getquad(&fsctx, glyph, &q, iter.x, iter.y);
+            nvg_getpoints(&c[0], &c[1], ctx.xform, q.x0, q.y0);
+            nvg_getpoints(&c[2], &c[3], ctx.xform, q.x1, q.y0);
+            nvg_getpoints(&c[4], &c[5], ctx.xform, q.x1, q.y1);
+            nvg_getpoints(&c[6], &c[7], ctx.xform, q.x0, q.y1);
+
+            if (nverts + 6 <= NVG_VERTSSIZE)
+            {
+
+                nvg_setvertex(&ctx.verts[nverts + 0], c[0], c[1], q.s0, q.t0);
+                nvg_setvertex(&ctx.verts[nverts + 1], c[4], c[5], q.s1, q.t1);
+                nvg_setvertex(&ctx.verts[nverts + 2], c[2], c[3], q.s1, q.t0);
+                nvg_setvertex(&ctx.verts[nverts + 3], c[0], c[1], q.s0, q.t0);
+                nvg_setvertex(&ctx.verts[nverts + 4], c[6], c[7], q.s0, q.t1);
+                nvg_setvertex(&ctx.verts[nverts + 5], c[4], c[5], q.s1, q.t1);
+
+                nverts += 6;
+
+            }
 
         }
 
