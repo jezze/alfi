@@ -37,10 +37,10 @@ void view_init(struct view *view, int w, int h, unsigned int size)
 void view_fontsize(struct view *view, unsigned int size)
 {
 
-    view->fontsizesmall = 24 + 8 * size;
-    view->fontsizemedium = 32 + 8 * size;
-    view->fontsizelarge = 48 + 8 * size;
-    view->fontsizexlarge = 96 + 8 * size;
+    view->fontsizesmall = 20 + 8 * size;
+    view->fontsizemedium = 28 + 8 * size;
+    view->fontsizelarge = 44 + 8 * size;
+    view->fontsizexlarge = 76 + 8 * size;
 
 }
 
