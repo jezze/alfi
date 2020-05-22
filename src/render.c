@@ -200,8 +200,7 @@ static float rendertext(struct nvg_paint *paint, struct nvg_scissor *scissor, st
 {
 
     struct fons_textiter iter;
-    int cverts = (end - string) * 6;
-    int nverts = 0;
+    unsigned int nverts = 0;
 
     fons_inititer(&fsctx, &iter, &fsctx.fonts[font->face], font->align, font->size, x, y, string, end);
 
@@ -217,7 +216,7 @@ static float rendertext(struct nvg_paint *paint, struct nvg_scissor *scissor, st
         nvg_getpoints(&c[4], &c[5], ctx.xform, q.x1, q.y1);
         nvg_getpoints(&c[6], &c[7], ctx.xform, q.x0, q.y1);
 
-        if (nverts + 6 <= cverts)
+        if (nverts + 6 <= NVG_VERTSSIZE)
         {
 
             nvg_setvertex(&ctx.verts[nverts + 0], c[0], c[1], q.s0, q.t0);
