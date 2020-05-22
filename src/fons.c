@@ -383,7 +383,7 @@ struct fons_glyph *fons_getglyph(struct fons_context *fsctx, struct fons_font *f
 
 }
 
-float fons_getadv(struct fons_context *fsctx, struct fons_font *font, int codepoint, float size)
+float getglyphwidth(struct fons_context *fsctx, struct fons_font *font, int codepoint, float size)
 {
 
     struct fons_glyph *glyph = fons_getglyph(fsctx, font, codepoint, size);
@@ -392,7 +392,7 @@ float fons_getadv(struct fons_context *fsctx, struct fons_font *font, int codepo
 
 }
 
-float fons_getquad(struct fons_context *fsctx, struct fons_quad *quad, struct fons_font *font, int codepoint, float size, float scale, float spacing, float x, float y)
+void fons_getquad(struct fons_context *fsctx, struct fons_quad *quad, struct fons_font *font, int codepoint, float size, float scale, float spacing, float x, float y)
 {
 
     struct fons_glyph *glyph = fons_getglyph(fsctx, font, codepoint, size);
@@ -420,15 +420,11 @@ float fons_getquad(struct fons_context *fsctx, struct fons_quad *quad, struct fo
         quad->s1 = x1 * itw;
         quad->t1 = y1 * ith;
 
-        return x + (int)(glyph->xadv);
-
     }
-
-    return x;
 
 }
 
-static float getwidth(struct fons_context *fsctx, struct fons_font *font, float size, float x, const char *str, const char *end)
+static float getstringwidth(struct fons_context *fsctx, struct fons_font *font, float size, float x, const char *str, const char *end)
 {
 
     unsigned int utf8state = 0;
@@ -442,7 +438,7 @@ static float getwidth(struct fons_context *fsctx, struct fons_font *font, float 
         if (decutf8(&utf8state, &codepoint, *(const unsigned char *)str))
             continue;
 
-        x += fons_getadv(fsctx, font, codepoint, size);
+        x += getglyphwidth(fsctx, font, codepoint, size);
 
     }
 
@@ -460,9 +456,9 @@ int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, struct
     if (align & FONS_ALIGN_LEFT)
         iter->x = x;
     else if (align & FONS_ALIGN_RIGHT)
-        iter->x = x - getwidth(fsctx, iter->font, iter->size, x, str, end);
+        iter->x = x - getstringwidth(fsctx, iter->font, iter->size, x, str, end);
     else if (align & FONS_ALIGN_CENTER)
-        iter->x = x - getwidth(fsctx, iter->font, iter->size, x, str, end) * 0.5f;
+        iter->x = x - getstringwidth(fsctx, iter->font, iter->size, x, str, end) * 0.5f;
 
     if (align & FONS_ALIGN_BASELINE)
         iter->y = y;
@@ -486,7 +482,7 @@ int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, struct
 
 }
 
-int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct fons_quad *quad)
+int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter)
 {
 
     const char *str = iter->next;
@@ -505,7 +501,7 @@ int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct
         str++;
         iter->x = iter->nextx;
         iter->y = iter->nexty;
-        iter->nextx = fons_getquad(fsctx, quad, iter->font, iter->codepoint, iter->size, iter->scale, iter->spacing, iter->nextx, iter->nexty);
+        iter->nextx += getglyphwidth(fsctx, iter->font, iter->codepoint, iter->size);
 
         break;
 
