@@ -389,11 +389,9 @@ static void parse_attribute_link(struct parser *parser, struct attribute_link *a
 {
 
     char url[1024];
-    char mime[128];
 
     readword(parser, url, 1024);
-    readword(parser, mime, 128);
-    attribute_link_create(attribute, url, mime);
+    attribute_link_create(attribute, url);
 
 }
 

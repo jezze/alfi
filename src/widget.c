@@ -32,7 +32,7 @@ void widget_payload_anchor_create(struct widget_payload_anchor *payload)
 {
 
     attribute_label_create(&payload->label, "");
-    attribute_link_create(&payload->link, "", "");
+    attribute_link_create(&payload->link, "");
     attribute_target_create(&payload->target, ATTRIBUTE_TARGET_BLANK);
 
 }
@@ -51,7 +51,7 @@ void widget_payload_button_create(struct widget_payload_button *payload)
 
     attribute_icon_create(&payload->icon, ATTRIBUTE_ICON_NONE);
     attribute_label_create(&payload->label, "");
-    attribute_link_create(&payload->link, "", "");
+    attribute_link_create(&payload->link, "");
     attribute_target_create(&payload->target, ATTRIBUTE_TARGET_BLANK);
     attribute_mode_create(&payload->mode, ATTRIBUTE_MODE_OFF);
 
@@ -105,7 +105,7 @@ void widget_payload_code_create(struct widget_payload_code *payload)
 {
 
     attribute_label_create(&payload->label, "");
-    attribute_link_create(&payload->link, "", "");
+    attribute_link_create(&payload->link, "");
 
 }
 
@@ -187,7 +187,7 @@ void widget_payload_header_destroy(struct widget_payload_header *payload)
 void widget_payload_image_create(struct widget_payload_image *payload)
 {
 
-    attribute_link_create(&payload->link, "", "");
+    attribute_link_create(&payload->link, "");
 
 }
 
@@ -279,7 +279,7 @@ void widget_payload_text_create(struct widget_payload_text *payload)
 {
 
     attribute_label_create(&payload->label, "");
-    attribute_link_create(&payload->link, "", "");
+    attribute_link_create(&payload->link, "");
 
 }
 

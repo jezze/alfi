@@ -69,7 +69,6 @@ struct attribute_link
 {
 
     char *url;
-    char *mime;
 
 };
 
@@ -114,7 +113,7 @@ void attribute_in_create(struct attribute_in *attribute, char *name);
 void attribute_in_destroy(struct attribute_in *attribute);
 void attribute_label_create(struct attribute_label *attribute, char *content);
 void attribute_label_destroy(struct attribute_label *attribute);
-void attribute_link_create(struct attribute_link *attribute, char *url, char *mime);
+void attribute_link_create(struct attribute_link *attribute, char *url);
 void attribute_link_destroy(struct attribute_link *attribute);
 void attribute_mode_create(struct attribute_mode *attribute, unsigned int type);
 void attribute_mode_destroy(struct attribute_mode *attribute);

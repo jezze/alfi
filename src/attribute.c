@@ -96,11 +96,10 @@ void attribute_label_destroy(struct attribute_label *attribute)
 
 }
 
-void attribute_link_create(struct attribute_link *attribute, char *url, char *mime)
+void attribute_link_create(struct attribute_link *attribute, char *url)
 {
 
     attribute->url = pool_string_create(ATTRIBUTE_LINK, attribute->url, 0, strlen(url) + 1, url);
-    attribute->mime = pool_string_create(ATTRIBUTE_LINK, attribute->mime, 0, strlen(mime) + 1, mime);
 
 }
 
@@ -108,7 +107,6 @@ void attribute_link_destroy(struct attribute_link *attribute)
 {
 
     attribute->url = pool_string_destroy(ATTRIBUTE_LINK, attribute->url);
-    attribute->mime = pool_string_destroy(ATTRIBUTE_LINK, attribute->mime);
 
 }
 
