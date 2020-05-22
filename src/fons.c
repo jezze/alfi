@@ -24,7 +24,7 @@ static int maxi(int a, int b)
 
 }
 
-static unsigned int decutf8(unsigned int *state, unsigned int *codep, unsigned int byte)
+static unsigned int decutf8(unsigned int state, unsigned int *codep, unsigned int byte)
 {
 
     static const unsigned char utf8d[] = {
@@ -45,10 +45,9 @@ static unsigned int decutf8(unsigned int *state, unsigned int *codep, unsigned i
 
     unsigned int type = utf8d[byte];
 
-    *codep = (*state) ? (byte & 0x3fu) | (*codep << 6) : (0xff >> type) & (byte);
-    *state = utf8d[256 + *state + type];
+    *codep = (state) ? (byte & 0x3fu) | (*codep << 6) : (0xff >> type) & (byte);
 
-    return *state;
+    return utf8d[256 + state + type];
 
 }
 
@@ -383,37 +382,6 @@ struct fons_glyph *fons_getglyph(struct fons_context *fsctx, struct fons_font *f
 
 }
 
-float getglyphwidth(struct fons_context *fsctx, struct fons_font *font, int codepoint, float size)
-{
-
-    struct fons_glyph *glyph = fons_getglyph(fsctx, font, codepoint, size);
-
-    return (glyph) ? (int)(glyph->xadv) : 0;
-
-}
-
-static float getstringwidth(struct fons_context *fsctx, struct fons_font *font, float size, float x, const char *str, const char *end)
-{
-
-    unsigned int utf8state = 0;
-    float startx = x;
-
-    for (; str != end; ++str)
-    {
-
-        unsigned int codepoint;
-
-        if (decutf8(&utf8state, &codepoint, *(const unsigned char *)str))
-            continue;
-
-        x += getglyphwidth(fsctx, font, codepoint, size);
-
-    }
-
-    return x - startx;
-
-}
-
 void fons_getquad(struct fons_context *fsctx, struct fons_glyph *glyph, struct fons_quad *quad, float x, float y)
 {
 
@@ -439,35 +407,68 @@ void fons_getquad(struct fons_context *fsctx, struct fons_glyph *glyph, struct f
 
 }
 
+float getglyphwidth(struct fons_context *fsctx, struct fons_font *font, int codepoint, float size)
+{
+
+    struct fons_glyph *glyph = fons_getglyph(fsctx, font, codepoint, size);
+
+    return (glyph) ? (int)(glyph->xadv) : 0;
+
+}
+
+static float getstringwidth(struct fons_context *fsctx, struct fons_textiter *iter, float x)
+{
+
+    unsigned int state = 0;
+    float startx = x;
+
+    for (; iter->str != iter->end; ++iter->str)
+    {
+
+        unsigned int codepoint;
+
+        state = decutf8(state, &codepoint, *(const unsigned char *)iter->str);
+
+        if (state)
+            continue;
+
+        x += getglyphwidth(fsctx, iter->font, codepoint, iter->size);
+
+    }
+
+    return x - startx;
+
+}
+
 int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, struct fons_font *font, int align, float size, float x, float y, const char *str, const char *end)
 {
 
     iter->font = font;
     iter->size = size;
-
-    if (align & FONS_ALIGN_LEFT)
-        iter->x = x;
-    else if (align & FONS_ALIGN_RIGHT)
-        iter->x = x - getstringwidth(fsctx, iter->font, iter->size, x, str, end);
-    else if (align & FONS_ALIGN_CENTER)
-        iter->x = x - getstringwidth(fsctx, iter->font, iter->size, x, str, end) * 0.5f;
-
-    if (align & FONS_ALIGN_BASELINE)
-        iter->y = y;
-    else if (align & FONS_ALIGN_TOP)
-        iter->y = y + iter->font->ascender * size;
-    else if (align & FONS_ALIGN_MIDDLE)
-        iter->y = y + (iter->font->ascender + iter->font->descender) / 2.0f * size;
-    else if (align & FONS_ALIGN_BOTTOM)
-        iter->y = y + iter->font->descender * size;
-
-    iter->nextx = iter->x;
-    iter->nexty = iter->y;
     iter->str = str;
     iter->next = str;
     iter->end = end;
     iter->codepoint = 0;
     iter->utf8state = 0;
+
+    if (align & FONS_ALIGN_LEFT)
+        iter->x = x;
+    else if (align & FONS_ALIGN_RIGHT)
+        iter->x = x - getstringwidth(fsctx, iter, x);
+    else if (align & FONS_ALIGN_CENTER)
+        iter->x = x - getstringwidth(fsctx, iter, x) * 0.5f;
+
+    if (align & FONS_ALIGN_BASELINE)
+        iter->y = y;
+    else if (align & FONS_ALIGN_TOP)
+        iter->y = y + iter->font->ascender * iter->size;
+    else if (align & FONS_ALIGN_MIDDLE)
+        iter->y = y + (iter->font->ascender + iter->font->descender) / 2.0f * iter->size;
+    else if (align & FONS_ALIGN_BOTTOM)
+        iter->y = y + iter->font->descender * iter->size;
+
+    iter->nextx = iter->x;
+    iter->nexty = iter->y;
 
     return 1;
 
@@ -486,7 +487,9 @@ int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter)
     for (; str != iter->end; str++)
     {
 
-        if (decutf8(&iter->utf8state, &iter->codepoint, *(const unsigned char *)str))
+        iter->utf8state = decutf8(iter->utf8state, &iter->codepoint, *(const unsigned char *)str);
+
+        if (iter->utf8state)
             continue;
 
         str++;
