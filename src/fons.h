@@ -34,7 +34,6 @@ struct fons_textiter
     unsigned int codepoint;
     short size;
     struct fons_font *font;
-    int prevglyphindex;
     const char *str;
     const char *next;
     const char *end;

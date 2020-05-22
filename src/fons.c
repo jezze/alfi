@@ -383,33 +383,20 @@ struct fons_glyph *fons_getglyph(struct fons_context *fsctx, struct fons_font *f
 
 }
 
-static float getquad(struct fons_context *fsctx, struct fons_font *font, int prevglyphindex, struct fons_glyph *glyph, float scale, float spacing, float x, float y, struct fons_quad *q)
+static float getquad(struct fons_context *fsctx, struct fons_font *font, struct fons_glyph *glyph, float scale, float spacing, float x, float y, struct fons_quad *q)
 {
 
-    float rx, ry;
-    float xoff, yoff;
-    float x0, y0, x1, y1;
-    float itw, ith;
+    float xoff = glyph->xoff + 1;
+    float yoff = glyph->yoff + 1;
+    float x0 = glyph->x0 + 1;
+    float y0 = glyph->y0 + 1;
+    float x1 = glyph->x1 - 1;
+    float y1 = glyph->y1 - 1;
+    float itw = 1.0f / fsctx->width;
+    float ith = 1.0f / fsctx->height;
+    float rx = (int)(x + xoff);
+    float ry = (int)(y + yoff);
 
-    if (prevglyphindex != -1)
-    {
-
-        float adv = stbtt_GetGlyphKernAdvance(&font->font, prevglyphindex, glyph->index) * scale;
-
-        x += (int)(adv + spacing + 0.5f);
-
-    }
-
-    xoff = glyph->xoff + 1;
-    yoff = glyph->yoff + 1;
-    x0 = glyph->x0 + 1;
-    y0 = glyph->y0 + 1;
-    x1 = glyph->x1 - 1;
-    y1 = glyph->y1 - 1;
-    itw = 1.0f / fsctx->width;
-    ith = 1.0f / fsctx->height;
-    rx = (int)(x + xoff);
-    ry = (int)(y + yoff);
     q->x0 = rx;
     q->y0 = ry;
     q->x1 = rx + x1 - x0;
@@ -428,7 +415,6 @@ static float getwidth(struct fons_context *fsctx, struct fons_font *font, int al
 
     float scale = stbtt_ScaleForPixelHeight(&font->font, size);
     unsigned int utf8state = 0;
-    int prevglyphindex = -1;
     float startx = x;
 
     for (; str != end; ++str)
@@ -444,9 +430,7 @@ static float getwidth(struct fons_context *fsctx, struct fons_font *font, int al
         glyph = fons_getglyph(fsctx, font, codepoint, size);
 
         if (glyph)
-            x = getquad(fsctx, font, prevglyphindex, glyph, scale, spacing, x, y, &q);
-
-        prevglyphindex = glyph != 0 ? glyph->index : -1;
+            x = getquad(fsctx, font, glyph, scale, spacing, x, y, &q);
 
     }
 
@@ -484,7 +468,6 @@ int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, struct
     iter->next = str;
     iter->end = end;
     iter->codepoint = 0;
-    iter->prevglyphindex = -1;
     iter->utf8state = 0;
 
     return 1;
@@ -515,9 +498,7 @@ int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct
         glyph = fons_getglyph(fsctx, iter->font, iter->codepoint, iter->size);
 
         if (glyph)
-            iter->nextx = getquad(fsctx, iter->font, iter->prevglyphindex, glyph, iter->scale, iter->spacing, iter->nextx, iter->nexty, quad);
-
-        iter->prevglyphindex = glyph != 0 ? glyph->index : -1;
+            iter->nextx = getquad(fsctx, iter->font, glyph, iter->scale, iter->spacing, iter->nextx, iter->nexty, quad);
 
         break;
 
