@@ -410,6 +410,15 @@ static float getquad(struct fons_context *fsctx, struct fons_font *font, struct 
 
 }
 
+float fons_getquad(struct fons_context *fsctx, struct fons_quad *quad, struct fons_font *font, int codepoint, float size, float scale, float spacing, float x, float y)
+{
+
+    struct fons_glyph *glyph = fons_getglyph(fsctx, font, codepoint, size);
+
+    return (glyph) ? getquad(fsctx, font, glyph, scale, spacing, x, y, quad) : x;
+
+}
+
 static float getwidth(struct fons_context *fsctx, struct fons_font *font, int align, float size, float spacing, float x, float y, const char *str, const char *end)
 {
 
@@ -420,17 +429,13 @@ static float getwidth(struct fons_context *fsctx, struct fons_font *font, int al
     for (; str != end; ++str)
     {
 
-        struct fons_glyph *glyph;
-        struct fons_quad q;
+        struct fons_quad quad;
         unsigned int codepoint;
 
         if (decutf8(&utf8state, &codepoint, *(const unsigned char *)str))
             continue;
 
-        glyph = fons_getglyph(fsctx, font, codepoint, size);
-
-        if (glyph)
-            x = getquad(fsctx, font, glyph, scale, spacing, x, y, &q);
+        x = fons_getquad(fsctx, &quad, font, codepoint, size, scale, spacing, x, y);
 
     }
 
@@ -487,18 +492,13 @@ int fons_nextiter(struct fons_context *fsctx, struct fons_textiter *iter, struct
     for (; str != iter->end; str++)
     {
 
-        struct fons_glyph *glyph;
-
         if (decutf8(&iter->utf8state, &iter->codepoint, *(const unsigned char *)str))
             continue;
 
         str++;
         iter->x = iter->nextx;
         iter->y = iter->nexty;
-        glyph = fons_getglyph(fsctx, iter->font, iter->codepoint, iter->size);
-
-        if (glyph)
-            iter->nextx = getquad(fsctx, iter->font, glyph, iter->scale, iter->spacing, iter->nextx, iter->nexty, quad);
+        iter->nextx = fons_getquad(fsctx, quad, iter->font, iter->codepoint, iter->size, iter->scale, iter->spacing, iter->nextx, iter->nexty);
 
         break;
 
