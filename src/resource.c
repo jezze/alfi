@@ -139,15 +139,18 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
         char buffer[4096];
         static char *fmt =
             "= window label \"Navi 1.0\"\n"
-            "+ subheader label \"Lookup address\"\n"
             "+ table id bar grid \"08:04\"\n"
             "+ field id \"url\" in bar label \"URL\" data \"%s\"\n"
-            "+ button in bar label \"Lookup\" link \"navi://lookup\" \"text/alfi\" mode \"on\" icon \"search\"\n"
-            "+ subheader label \"Quick links\"\n"
-            "+ anchor label \"blunder.se\" link \"http://www.blunder.se/\" \"text/alfi\"\n"
-            "+ anchor label \"example\" link \"file:///usr/share/navi/example.alfi\" \"text/alfi\"\n"
-            "+ subheader label \"Instructions\"\n"
-            "+ table id instrtbl grid \"04:08\"\n"
+            "+ button in bar label \"Search\" link \"navi://lookup\" \"text/alfi\" mode \"on\" icon \"search\"\n"
+            "+ divider\n"
+            "+ table id maintbl grid \"06\"\n"
+            "+ table id ltbl in maintbl\n"
+            "+ table id rtbl in maintbl\n"
+            "+ subheader in ltbl label \"Bookmarks\"\n"
+            "+ anchor in ltbl label \"blunder.se\" link \"http://www.blunder.se/\" \"text/alfi\"\n"
+            "+ anchor in ltbl label \"example\" link \"file:///usr/share/navi/example.alfi\" \"text/alfi\"\n"
+            "+ subheader in rtbl label \"Instructions\"\n"
+            "+ table id instrtbl in rtbl grid \"03\"\n"
             "+ text in instrtbl label \"Left mouse button\"\n"
             "+ text in instrtbl label \"Interact\"\n"
             "+ text in instrtbl label \"Right mouse button\"\n"
@@ -170,7 +173,7 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
             "+ text in instrtbl label \"Quit\"\n"
             "+ text in instrtbl label \"Ctrl+R\"\n"
             "+ text in instrtbl label \"Refresh\"\n"
-            "+ text label \"* = Needs certain setup to work.\"\n";
+            "+ text in rtbl label \"* = Needs certain setup to work.\"\n";
 
         resource->count = sprintf(buffer, fmt, "http://");
         resource->data = malloc(resource->count);
