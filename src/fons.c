@@ -383,30 +383,12 @@ struct fons_glyph *fons_getglyph(struct fons_context *fsctx, struct fons_font *f
 
 }
 
-static float getquad(struct fons_context *fsctx, struct fons_font *font, struct fons_glyph *glyph, float scale, float spacing, float x, float y, struct fons_quad *q)
+float fons_getadv(struct fons_context *fsctx, struct fons_font *font, int codepoint, float size)
 {
 
-    float xoff = glyph->xoff + 1;
-    float yoff = glyph->yoff + 1;
-    float x0 = glyph->x0 + 1;
-    float y0 = glyph->y0 + 1;
-    float x1 = glyph->x1 - 1;
-    float y1 = glyph->y1 - 1;
-    float itw = 1.0f / fsctx->width;
-    float ith = 1.0f / fsctx->height;
-    float rx = (int)(x + xoff);
-    float ry = (int)(y + yoff);
+    struct fons_glyph *glyph = fons_getglyph(fsctx, font, codepoint, size);
 
-    q->x0 = rx;
-    q->y0 = ry;
-    q->x1 = rx + x1 - x0;
-    q->y1 = ry + y1 - y0;
-    q->s0 = x0 * itw;
-    q->t0 = y0 * ith;
-    q->s1 = x1 * itw;
-    q->t1 = y1 * ith;
-
-    return x + (int)(glyph->xadv);
+    return (glyph) ? (int)(glyph->xadv) : 0;
 
 }
 
@@ -415,27 +397,52 @@ float fons_getquad(struct fons_context *fsctx, struct fons_quad *quad, struct fo
 
     struct fons_glyph *glyph = fons_getglyph(fsctx, font, codepoint, size);
 
-    return (glyph) ? getquad(fsctx, font, glyph, scale, spacing, x, y, quad) : x;
+    if (glyph)
+    {
+
+        float xoff = glyph->xoff + 1;
+        float yoff = glyph->yoff + 1;
+        float x0 = glyph->x0 + 1;
+        float y0 = glyph->y0 + 1;
+        float x1 = glyph->x1 - 1;
+        float y1 = glyph->y1 - 1;
+        float itw = 1.0f / fsctx->width;
+        float ith = 1.0f / fsctx->height;
+        float rx = (int)(x + xoff);
+        float ry = (int)(y + yoff);
+
+        quad->x0 = rx;
+        quad->y0 = ry;
+        quad->x1 = rx + x1 - x0;
+        quad->y1 = ry + y1 - y0;
+        quad->s0 = x0 * itw;
+        quad->t0 = y0 * ith;
+        quad->s1 = x1 * itw;
+        quad->t1 = y1 * ith;
+
+        return x + (int)(glyph->xadv);
+
+    }
+
+    return x;
 
 }
 
-static float getwidth(struct fons_context *fsctx, struct fons_font *font, int align, float size, float spacing, float x, float y, const char *str, const char *end)
+static float getwidth(struct fons_context *fsctx, struct fons_font *font, float size, float x, const char *str, const char *end)
 {
 
-    float scale = stbtt_ScaleForPixelHeight(&font->font, size);
     unsigned int utf8state = 0;
     float startx = x;
 
     for (; str != end; ++str)
     {
 
-        struct fons_quad quad;
         unsigned int codepoint;
 
         if (decutf8(&utf8state, &codepoint, *(const unsigned char *)str))
             continue;
 
-        x = fons_getquad(fsctx, &quad, font, codepoint, size, scale, spacing, x, y);
+        x += fons_getadv(fsctx, font, codepoint, size);
 
     }
 
@@ -453,9 +460,9 @@ int fons_inititer(struct fons_context *fsctx, struct fons_textiter *iter, struct
     if (align & FONS_ALIGN_LEFT)
         iter->x = x;
     else if (align & FONS_ALIGN_RIGHT)
-        iter->x = x - getwidth(fsctx, iter->font, align, iter->size, spacing, x, y, str, end);
+        iter->x = x - getwidth(fsctx, iter->font, iter->size, x, str, end);
     else if (align & FONS_ALIGN_CENTER)
-        iter->x = x - getwidth(fsctx, iter->font, align, iter->size, spacing, x, y, str, end) * 0.5f;
+        iter->x = x - getwidth(fsctx, iter->font, iter->size, x, str, end) * 0.5f;
 
     if (align & FONS_ALIGN_BASELINE)
         iter->y = y;
