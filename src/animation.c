@@ -99,16 +99,16 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
     style_box_scale(&text->box, text->box.w, render_textheight(text, payload->label.content));
 
     /* Icon */
-    style_font_init(&icon->font, font_icon->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&icon->font, font_icon->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
 
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
         style_color_clone(&icon->color, &color_background);
     else
         style_color_clone(&icon->color, &color_text);
 
-    style_box_init(&icon->box, x, y + view->unith * 0.5 + view->marginh * 0.5, w, 0, 0);
+    style_box_init(&icon->box, x + view->marginh, y + view->fontsizesmall, w, 0, 0);
     style_box_shrink(&icon->box, view->unitw, view->unith);
-    style_box_scale(&icon->box, view->fontsizemedium, view->fontsizemedium);
+    style_box_scale(&icon->box, view->fontsizesmall, view->fontsizesmall);
 
     /*
     style_box_init(&icon->box, text->box.x, text->box.y, view->fontsizemedium * 2, view->fontsizemedium * 2, 0);
@@ -120,7 +120,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
     else
         style_color_clone(&surface->color, &color_line);
 
-    style_box_init(&surface->box, x, y, w, 0, 4);
+    style_box_init(&surface->box, x, y, w, 0, view->fontsizemedium);
     style_box_shrink(&surface->box, view->marginw, view->marginh);
     style_box_expand(&surface->box, &text->box, view->unitw - view->marginw, view->unith - view->marginh);
 

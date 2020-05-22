@@ -142,7 +142,7 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
             "+ subheader label \"Lookup address\"\n"
             "+ table id bar grid \"08:04\"\n"
             "+ field id \"url\" in bar label \"URL\" data \"%s\"\n"
-            "+ button in bar label \"Lookup\" link \"navi://lookup\" \"text/alfi\" mode \"on\"\n"
+            "+ button in bar label \"Lookup\" link \"navi://lookup\" \"text/alfi\" mode \"on\" icon \"search\"\n"
             "+ subheader label \"Quick links\"\n"
             "+ anchor label \"blunder.se\" link \"http://www.blunder.se/\" \"text/alfi\"\n"
             "+ anchor label \"example\" link \"file:///usr/share/navi/example.alfi\" \"text/alfi\"\n"

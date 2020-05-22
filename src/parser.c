@@ -17,7 +17,7 @@
 #define COMMANDS                        5
 #define ATTRIBUTES                      11
 #define WIDGETS                         15
-#define ICONS                           2
+#define ICONS                           3
 #define MODES                           3
 #define TARGETS                         2
 #define TYPES                           2
@@ -54,7 +54,8 @@ static const struct tokword t_attribute[] = {
 
 static const struct tokword t_attribute_icon[] = {
     {ATTRIBUTE_ICON_CHECK, "check"},
-    {ATTRIBUTE_ICON_CLOSE, "close"}
+    {ATTRIBUTE_ICON_CLOSE, "close"},
+    {ATTRIBUTE_ICON_SEARCH, "search"}
 };
 
 static const struct tokword t_attribute_mode[] = {
