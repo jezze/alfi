@@ -40,6 +40,50 @@ static float max(float a, float b)
 
 }
 
+static void initframe(struct frame *frame, int x, int y, int w)
+{
+
+    unsigned int i;
+
+    style_box_init(&frame->bounds, x, y, w, 0, 0);
+
+    for (i = 0; i < 8; i++)
+        style_init(&frame->styles[i]);
+
+}
+
+static void tweenframe(struct frame *frame, struct frame *keyframe, float u)
+{
+
+    unsigned int i;
+
+    style_box_tween(&frame->bounds, &keyframe->bounds, u);
+
+    for (i = 0; i < 8; i++)
+        style_tween(&frame->styles[i], &keyframe->styles[i], u);
+
+}
+
+static unsigned int compareframe(struct frame *frame, struct frame *keyframe)
+{
+
+    unsigned int i;
+
+    if (style_box_compare(&frame->bounds, &keyframe->bounds))
+        return 1;
+
+    for (i = 0; i < 8; i++)
+    {
+
+        if (style_compare(&frame->styles[i], &keyframe->styles[i]))
+            return 1;
+
+    }
+
+    return 0;
+
+}
+
 static int anchor_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
@@ -1014,50 +1058,6 @@ static unsigned int window_getcursor(struct frame *frame, int x, int y)
 {
 
     return ANIMATION_CURSOR_ARROW;
-
-}
-
-static void initframe(struct frame *frame, int x, int y, int w)
-{
-
-    unsigned int i;
-
-    style_box_init(&frame->bounds, x, y, w, 0, 0);
-
-    for (i = 0; i < 8; i++)
-        style_init(&frame->styles[i]);
-
-}
-
-static void tweenframe(struct frame *frame, struct frame *keyframe, float u)
-{
-
-    unsigned int i;
-
-    style_box_tween(&frame->bounds, &keyframe->bounds, u);
-
-    for (i = 0; i < 8; i++)
-        style_tween(&frame->styles[i], &keyframe->styles[i], u);
-
-}
-
-static unsigned int compareframe(struct frame *frame, struct frame *keyframe)
-{
-
-    unsigned int i;
-
-    if (style_box_compare(&frame->bounds, &keyframe->bounds))
-        return 1;
-
-    for (i = 0; i < 8; i++)
-    {
-
-        if (style_compare(&frame->styles[i], &keyframe->styles[i]))
-            return 1;
-
-    }
-
-    return 0;
 
 }
 
