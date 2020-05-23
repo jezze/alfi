@@ -635,7 +635,6 @@ static int list_step(struct widget *widget, struct frame *frame, struct view *vi
     int cx = frame->bounds.x + pw;
     int cy = frame->bounds.y;
     int cw = frame->bounds.w - pw * 2;
-    int h = 0;
 
     while ((child = pool_widget_nextchild(child, widget)))
     {
@@ -646,12 +645,12 @@ static int list_step(struct widget *widget, struct frame *frame, struct view *vi
         animation_step(child, &keyframe, view, u);
         animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
-        h = max(h, cy + child->frame.bounds.h - frame->bounds.y);
+        frame->bounds.h = max(frame->bounds.h, cy + child->frame.bounds.h - frame->bounds.y);
         cy += child->frame.bounds.h;
 
     }
 
-    return h;
+    return frame->bounds.h;
 
 }
 
@@ -692,7 +691,8 @@ static int select_step(struct widget *widget, struct frame *frame, struct view *
     int cx = frame->bounds.x + view->unitw;
     int cy = frame->bounds.y + view->unith * 3;
     int cw = frame->bounds.w - view->unitw * 2;
-    int h = view->unith * 3;
+
+    frame->bounds.h = view->unith * 3;
 
     while ((child = pool_widget_nextchild(child, widget)))
     {
@@ -704,7 +704,7 @@ static int select_step(struct widget *widget, struct frame *frame, struct view *
         animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
         if (widget->header.state == WIDGET_STATE_FOCUS)
-            h = max(h, cy + child->frame.bounds.h - frame->bounds.y + view->unith);
+            frame->bounds.h = max(frame->bounds.h, cy + child->frame.bounds.h - frame->bounds.y + view->unith);
 
         cy += child->frame.bounds.h;
 
@@ -712,7 +712,7 @@ static int select_step(struct widget *widget, struct frame *frame, struct view *
 
     style_font_init(&data->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&data->color, &color_text);
-    style_box_init(&data->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, h, 0);
+    style_box_init(&data->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
     {
@@ -740,7 +740,7 @@ static int select_step(struct widget *widget, struct frame *frame, struct view *
     else
         style_color_clone(&label->color, &color_line);
 
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, h, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
 
     if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
     {
@@ -763,7 +763,7 @@ static int select_step(struct widget *widget, struct frame *frame, struct view *
     else
         style_color_clone(&border->color, &color_line);
 
-    style_box_init(&border->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, h, 4);
+    style_box_init(&border->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 4);
     style_box_shrink(&border->box, view->marginw, view->marginh);
 
     return border->box.h + view->marginh * 2;
@@ -843,7 +843,6 @@ static int table_step(struct widget *widget, struct frame *frame, struct view *v
     unsigned int i;
     int cx = frame->bounds.x;
     int cy = frame->bounds.y;
-    int h = 0;
 
     if (strlen(payload->grid.format))
         gsize = gridfmt_size(payload->grid.format);
@@ -866,7 +865,7 @@ static int table_step(struct widget *widget, struct frame *frame, struct view *v
             animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
             child->frame.bounds.h = child->frame.bounds.h;
-            h = max(h, cy + child->frame.bounds.h - frame->bounds.y);
+            frame->bounds.h = max(frame->bounds.h, cy + child->frame.bounds.h - frame->bounds.y);
 
         }
 
@@ -876,13 +875,13 @@ static int table_step(struct widget *widget, struct frame *frame, struct view *v
         {
 
             cx = frame->bounds.x;
-            cy = frame->bounds.y + h;
+            cy = frame->bounds.y + frame->bounds.h;
 
         }
 
     }
 
-    return h;
+    return frame->bounds.h;
 
 }
 
@@ -1021,7 +1020,6 @@ static int window_step(struct widget *widget, struct frame *frame, struct view *
     int cx = frame->bounds.x;
     int cy = frame->bounds.y;
     int cw = frame->bounds.w;
-    int h = 0;
 
     while ((child = pool_widget_nextchild(child, widget)))
     {
@@ -1032,13 +1030,13 @@ static int window_step(struct widget *widget, struct frame *frame, struct view *
         animation_step(child, &keyframe, view, u);
         animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
-        h = max(h, cy + child->frame.bounds.h - frame->bounds.y);
+        frame->bounds.h = max(frame->bounds.h, cy + child->frame.bounds.h - frame->bounds.y);
 
     }
 
     style_color_clone(&frame->styles[0].color, &color_background);
 
-    return h;
+    return frame->bounds.h;
 
 }
 
