@@ -74,12 +74,12 @@ static void updateframe(unsigned int type, struct frame *frame, struct frame *ke
 
 }
 
-void animation_initframe(struct frame *frame, int x, int y, int w)
+void animation_initframe(struct frame *frame, int x, int y, int w, int h)
 {
 
     unsigned int i;
 
-    style_box_init(&frame->bounds, x, y, w, 0, 0);
+    style_box_init(&frame->bounds, x, y, w, h, 0);
 
     for (i = 0; i < 8; i++)
         style_init(&frame->styles[i]);
@@ -642,7 +642,7 @@ static int list_step(struct widget *widget, struct frame *frame, struct view *vi
 
         struct frame keyframe;
 
-        animation_initframe(&keyframe, cx, cy, cw);
+        animation_initframe(&keyframe, cx, cy, cw, 0);
         animation_step(child, &keyframe, view, u);
 
         h = max(h, cy + child->frame.bounds.h - frame->bounds.y);
@@ -698,7 +698,7 @@ static int select_step(struct widget *widget, struct frame *frame, struct view *
 
         struct frame keyframe;
 
-        animation_initframe(&keyframe, cx, cy, cw);
+        animation_initframe(&keyframe, cx, cy, cw, 0);
         animation_step(child, &keyframe, view, u);
 
         if (widget->header.state == WIDGET_STATE_FOCUS)
@@ -859,7 +859,7 @@ static int table_step(struct widget *widget, struct frame *frame, struct view *v
 
             struct frame keyframe;
 
-            animation_initframe(&keyframe, cx, cy, cw);
+            animation_initframe(&keyframe, cx, cy, cw, 0);
             animation_step(child, &keyframe, view, u);
 
             child->frame.bounds.h = child->frame.bounds.h;
@@ -1025,7 +1025,7 @@ static int window_step(struct widget *widget, struct frame *frame, struct view *
 
         struct frame keyframe;
 
-        animation_initframe(&keyframe, cx, cy, cw);
+        animation_initframe(&keyframe, cx, cy, cw, 0);
         animation_step(child, &keyframe, view, u);
 
         h = max(h, cy + child->frame.bounds.h - frame->bounds.y);
