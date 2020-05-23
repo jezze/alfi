@@ -74,7 +74,7 @@ static unsigned int compareframe(struct frame *frame, struct frame *keyframe)
 
 }
 
-static int anchor_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int anchor_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_anchor *payload = &widget->payload.anchor;
@@ -82,7 +82,7 @@ static int anchor_step(struct widget *widget, struct frame *frame, int x, int y,
 
     style_font_init(&text->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_focus);
-    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
@@ -112,7 +112,7 @@ static unsigned int anchor_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int button_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int button_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_button *payload = &widget->payload.button;
@@ -128,7 +128,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
     else
         style_color_clone(&text->color, &color_text);
 
-    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->unitw, view->unith);
     style_box_scale(&text->box, text->box.w, render_textheight(text, payload->label.content));
 
@@ -140,7 +140,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
     else
         style_color_clone(&icon->color, &color_text);
 
-    style_box_init(&icon->box, x + view->marginh, y + view->fontsizesmall, w, 0, 0);
+    style_box_init(&icon->box, frame->bounds.x + view->marginh, frame->bounds.y + view->fontsizesmall, frame->bounds.w, 0, 0);
     style_box_shrink(&icon->box, view->unitw, view->unith);
     style_box_scale(&icon->box, view->fontsizesmall, view->fontsizesmall);
 
@@ -154,7 +154,7 @@ static int button_step(struct widget *widget, struct frame *frame, int x, int y,
     else
         style_color_clone(&surface->color, &color_line);
 
-    style_box_init(&surface->box, x, y, w, 0, view->fontsizemedium);
+    style_box_init(&surface->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, view->fontsizemedium);
     style_box_shrink(&surface->box, view->marginw, view->marginh);
     style_box_expand(&surface->box, &text->box, view->unitw - view->marginw, view->unith - view->marginh);
 
@@ -192,7 +192,7 @@ static unsigned int button_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int choice_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int choice_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_choice *payload = &widget->payload.choice;
@@ -201,14 +201,14 @@ static int choice_step(struct widget *widget, struct frame *frame, int x, int y,
 
     style_font_init(&text->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_text);
-    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
     if (widget->header.state == WIDGET_STATE_HOVER)
         style_color_clone(&background->color, &color_line);
 
-    style_box_init(&background->box, x, y, w, 0, 4);
+    style_box_init(&background->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 4);
     style_box_expand(&background->box, &text->box, view->marginw, view->marginh);
 
     return background->box.h;
@@ -237,7 +237,7 @@ static unsigned int choice_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int code_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int code_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_code *payload = &widget->payload.code;
@@ -245,7 +245,7 @@ static int code_step(struct widget *widget, struct frame *frame, int x, int y, i
 
     style_font_init(&text->font, font_mono->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_text);
-    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
@@ -276,7 +276,7 @@ static unsigned int code_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int divider_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int divider_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_divider *payload = &widget->payload.divider;
@@ -285,18 +285,18 @@ static int divider_step(struct widget *widget, struct frame *frame, int x, int y
 
     style_font_init(&text->font, font_regular->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_text);
-    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
 
     if (strlen(payload->label.content))
     {
 
         style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
-        style_box_translate(&text->box, w / 2 - text->box.w / 2, view->unith / 2 + 2);
+        style_box_translate(&text->box, frame->bounds.w / 2 - text->box.w / 2, view->unith / 2 + 2);
 
     }
 
     style_color_clone(&line->color, &color_line);
-    style_box_init(&line->box, x + view->marginw, y + view->unith - 1, w - view->marginw * 2, 2, 0);
+    style_box_init(&line->box, frame->bounds.x + view->marginw, frame->bounds.y + view->unith - 1, frame->bounds.w - view->marginw * 2, 2, 0);
 
     return view->unith * 2;
 
@@ -338,7 +338,7 @@ static unsigned int divider_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int field_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int field_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_field *payload = &widget->payload.field;
@@ -348,7 +348,7 @@ static int field_step(struct widget *widget, struct frame *frame, int x, int y, 
 
     style_font_init(&data->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&data->color, &color_text);
-    style_box_init(&data->box, x, y, w, 0, 0);
+    style_box_init(&data->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
         style_box_shrink(&data->box, view->unitw + view->marginw, view->unith + view->marginh);
@@ -356,7 +356,7 @@ static int field_step(struct widget *widget, struct frame *frame, int x, int y, 
         style_box_shrink(&data->box, view->unitw, view->unith);
 
     style_box_scale(&data->box, data->box.w, render_textheight(data, payload->data.content));
-    style_box_init(&label->box, x, y, w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
 
     if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
         style_font_init(&label->font, font_regular->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
@@ -384,7 +384,7 @@ static int field_step(struct widget *widget, struct frame *frame, int x, int y, 
 
     }
 
-    style_box_init(&border->box, x, y, w, 0, 4);
+    style_box_init(&border->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 4);
     style_box_shrink(&border->box, view->marginw, view->marginh);
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
@@ -458,7 +458,7 @@ static unsigned int field_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int header_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int header_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_header *payload = &widget->payload.header;
@@ -466,7 +466,7 @@ static int header_step(struct widget *widget, struct frame *frame, int x, int y,
 
     style_font_init(&text->font, font_bold->index, view->fontsizexlarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_header);
-    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
@@ -497,7 +497,7 @@ static unsigned int header_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int header2_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int header2_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_header2 *payload = &widget->payload.header2;
@@ -505,7 +505,7 @@ static int header2_step(struct widget *widget, struct frame *frame, int x, int y
 
     style_font_init(&text->font, font_bold->index, view->fontsizelarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_header);
-    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
@@ -536,7 +536,7 @@ static unsigned int header2_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int header3_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int header3_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_header3 *payload = &widget->payload.header3;
@@ -544,7 +544,7 @@ static int header3_step(struct widget *widget, struct frame *frame, int x, int y
 
     style_font_init(&text->font, font_bold->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_header);
-    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
@@ -575,7 +575,7 @@ static unsigned int header3_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int image_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int image_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_image *payload = &widget->payload.image;
@@ -586,14 +586,14 @@ static int image_step(struct widget *widget, struct frame *frame, int x, int y, 
     if (!resource)
         return 0;
 
-    ratio = (float)w / (float)resource->w;
+    ratio = (float)frame->bounds.w / (float)resource->w;
 
-    style_box_init(&surface->box, x, y, resource->w * ratio, resource->h * ratio, 0);
+    style_box_init(&surface->box, frame->bounds.x, frame->bounds.y, resource->w * ratio, resource->h * ratio, 0);
     style_box_shrink(&surface->box, view->marginw, view->marginh);
 
     /* Fixed size */
     /*
-    style_box_init(&surface->box, x, y, resource->w, resource->h, 0);
+    style_box_init(&surface->box, frame->bounds.x, frame->bounds.y, resource->w, resource->h, 0);
     style_box_translate(&surface->box, view->marginw, view->marginh);
     */
 
@@ -615,14 +615,14 @@ static void image_render(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static int list_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int list_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget *child = 0;
     int pw = view->unitw * 1;
-    int cx = x + pw;
-    int cy = y;
-    int cw = w - pw * 2;
+    int cx = frame->bounds.x + pw;
+    int cy = frame->bounds.y;
+    int cw = frame->bounds.w - pw * 2;
     int h = 0;
 
     while ((child = pool_widget_nextchild(child, widget)))
@@ -630,7 +630,7 @@ static int list_step(struct widget *widget, struct frame *frame, int x, int y, i
 
         int ch = animation_step(child, cx, cy, cw, view, u);
 
-        h = max(h, cy + ch - y);
+        h = max(h, cy + ch - frame->bounds.y);
         cy += ch;
 
     }
@@ -665,7 +665,7 @@ static void list_render(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static int select_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int select_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_select *payload = &widget->payload.select;
@@ -673,9 +673,9 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
     struct style *label = &frame->styles[1];
     struct style *data = &frame->styles[2];
     struct widget *child = 0;
-    int cx = x + view->unitw;
-    int cy = y + view->unith * 3;
-    int cw = w - view->unitw * 2;
+    int cx = frame->bounds.x + view->unitw;
+    int cy = frame->bounds.y + view->unith * 3;
+    int cw = frame->bounds.w - view->unitw * 2;
     int h = view->unith * 3;
 
     while ((child = pool_widget_nextchild(child, widget)))
@@ -684,7 +684,7 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
         int ch = animation_step(child, cx, cy, cw, view, u);
 
         if (widget->header.state == WIDGET_STATE_FOCUS)
-            h = max(h, cy + ch - y + view->unith);
+            h = max(h, cy + ch - frame->bounds.y + view->unith);
 
         cy += ch;
 
@@ -692,7 +692,7 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
 
     style_font_init(&data->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&data->color, &color_text);
-    style_box_init(&data->box, x, y, w, h, 0);
+    style_box_init(&data->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, h, 0);
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
     {
@@ -720,7 +720,7 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
     else
         style_color_clone(&label->color, &color_line);
 
-    style_box_init(&label->box, x, y, w, h, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, h, 0);
 
     if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
     {
@@ -743,7 +743,7 @@ static int select_step(struct widget *widget, struct frame *frame, int x, int y,
     else
         style_color_clone(&border->color, &color_line);
 
-    style_box_init(&border->box, x, y, w, h, 4);
+    style_box_init(&border->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, h, 4);
     style_box_shrink(&border->box, view->marginw, view->marginh);
 
     return border->box.h + view->marginh * 2;
@@ -814,15 +814,15 @@ static unsigned int select_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int table_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int table_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_table *payload = &widget->payload.table;
     unsigned int gsize;
     struct widget *child = 0;
     unsigned int i;
-    int cx = x;
-    int cy = y;
+    int cx = frame->bounds.x;
+    int cy = frame->bounds.y;
     int h = 0;
 
     if (strlen(payload->grid.format))
@@ -831,27 +831,27 @@ static int table_step(struct widget *widget, struct frame *frame, int x, int y, 
     for (i = 0; (child = pool_widget_nextchild(child, widget)); i++)
     {
 
-        int cw = w;
+        int cw = frame->bounds.w;
 
         if (strlen(payload->grid.format))
             cw = gridfmt_colsize(payload->grid.format, i % gsize) * view->unitw * 2;
 
-        if (cx + cw <= x + w)
+        if (cx + cw <= frame->bounds.x + frame->bounds.w)
         {
 
             int ch = animation_step(child, cx, cy, cw, view, u);
 
-            h = max(h, cy + ch - y);
+            h = max(h, cy + ch - frame->bounds.y);
 
         }
 
         cx += cw;
 
-        if (cx >= x + w)
+        if (cx >= frame->bounds.x + frame->bounds.w)
         {
 
-            cx = x;
-            cy = y + h;
+            cx = frame->bounds.x;
+            cy = frame->bounds.y + h;
 
         }
 
@@ -871,7 +871,7 @@ static void table_render(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static int text_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int text_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_text *payload = &widget->payload.text;
@@ -879,7 +879,7 @@ static int text_step(struct widget *widget, struct frame *frame, int x, int y, i
 
     style_font_init(&text->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_text);
-    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
@@ -910,7 +910,7 @@ static unsigned int text_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int toggle_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int toggle_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_toggle *payload = &widget->payload.toggle;
@@ -920,7 +920,7 @@ static int toggle_step(struct widget *widget, struct frame *frame, int x, int y,
     struct style *ihandle = &frame->styles[3];
 
     style_color_clone(&ihandle->color, &color_background);
-    style_box_init(&ihandle->box, x, y, view->unitw * 2 - view->unitw / 2, view->fontsizemedium, 14);
+    style_box_init(&ihandle->box, frame->bounds.x, frame->bounds.y, view->unitw * 2 - view->unitw / 2, view->fontsizemedium, 14);
     style_box_translate(&ihandle->box, view->marginw * 2, view->marginh * 2 + 4);
 
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
@@ -931,7 +931,7 @@ static int toggle_step(struct widget *widget, struct frame *frame, int x, int y,
     else
         style_color_clone(&ohandle->color, &color_text);
 
-    style_box_init(&ohandle->box, x, y, view->unitw * 2 - view->unitw / 2, view->fontsizemedium, 16);
+    style_box_init(&ohandle->box, frame->bounds.x, frame->bounds.y, view->unitw * 2 - view->unitw / 2, view->fontsizemedium, 16);
     style_box_translate(&ohandle->box, view->marginw * 2, view->marginh * 2 + 4);
 
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
@@ -939,7 +939,7 @@ static int toggle_step(struct widget *widget, struct frame *frame, int x, int y,
 
     style_font_init(&text->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&text->color, &color_text);
-    style_box_init(&text->box, x, y, w, 0, 0);
+    style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, 3 * view->unitw + view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
@@ -948,7 +948,7 @@ static int toggle_step(struct widget *widget, struct frame *frame, int x, int y,
     else
         style_color_clone(&groove->color, &color_line);
 
-    style_box_init(&groove->box, x, y, 2 * view->unitw, view->fontsizemedium, 8);
+    style_box_init(&groove->box, frame->bounds.x, frame->bounds.y, 2 * view->unitw, view->fontsizemedium, 8);
     style_box_translate(&groove->box, view->marginw, view->marginh);
     style_box_shrink(&groove->box, 4, 4);
 
@@ -989,13 +989,13 @@ static unsigned int toggle_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int window_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+static int window_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget *child = 0;
-    int cx = x;
-    int cy = y;
-    int cw = w;
+    int cx = frame->bounds.x;
+    int cy = frame->bounds.y;
+    int cw = frame->bounds.w;
     int h = 0;
 
     while ((child = pool_widget_nextchild(child, widget)))
@@ -1003,7 +1003,7 @@ static int window_step(struct widget *widget, struct frame *frame, int x, int y,
 
         int ch = animation_step(child, cx, cy, cw, view, u);
 
-        h = max(h, cy + ch - y);
+        h = max(h, cy + ch - frame->bounds.y);
 
     }
 
@@ -1034,82 +1034,82 @@ int animation_step(struct widget *widget, int x, int y, int w, struct view *view
     {
 
     case WIDGET_TYPE_ANCHOR:
-        keyframe.bounds.h = anchor_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = anchor_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_BUTTON:
-        keyframe.bounds.h = button_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = button_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_CHOICE:
-        keyframe.bounds.h = choice_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = choice_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_CODE:
-        keyframe.bounds.h = code_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = code_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_DIVIDER:
-        keyframe.bounds.h = divider_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = divider_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_FIELD:
-        keyframe.bounds.h = field_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = field_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_HEADER:
-        keyframe.bounds.h = header_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = header_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_HEADER2:
-        keyframe.bounds.h = header2_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = header2_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_HEADER3:
-        keyframe.bounds.h = header3_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = header3_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_IMAGE:
-        keyframe.bounds.h = image_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = image_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_LIST:
-        keyframe.bounds.h = list_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = list_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_SELECT:
-        keyframe.bounds.h = select_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = select_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_TABLE:
-        keyframe.bounds.h = table_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = table_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_TEXT:
-        keyframe.bounds.h = text_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = text_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_TOGGLE:
-        keyframe.bounds.h = toggle_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = toggle_step(widget, &keyframe, view, u);
 
         break;
 
     case WIDGET_TYPE_WINDOW:
-        keyframe.bounds.h = window_step(widget, &keyframe, x, y, w, view, u);
+        keyframe.bounds.h = window_step(widget, &keyframe, view, u);
 
         break;
 
