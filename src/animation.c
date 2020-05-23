@@ -18,7 +18,7 @@ struct call
 
     int (*step)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u);
     void (*render)(struct widget *widget, struct frame *frame, struct view *view);
-    unsigned int (*getcursor)(struct widget *widget, struct frame *frame, int x, int y);
+    unsigned int (*getcursor)(struct frame *frame, int x, int y);
 
 };
 
@@ -66,7 +66,7 @@ static void anchor_render(struct widget *widget, struct frame *frame, struct vie
 
 }
 
-static unsigned int anchor_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int anchor_getcursor(struct frame *frame, int x, int y)
 {
 
     struct style *text = &frame->styles[0];
@@ -146,7 +146,7 @@ static void button_render(struct widget *widget, struct frame *frame, struct vie
 
 }
 
-static unsigned int button_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int button_getcursor(struct frame *frame, int x, int y)
 {
 
     struct style *surface = &frame->styles[0];
@@ -196,7 +196,7 @@ static void choice_render(struct widget *widget, struct frame *frame, struct vie
 
 }
 
-static unsigned int choice_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int choice_getcursor(struct frame *frame, int x, int y)
 {
 
     return ANIMATION_CURSOR_HAND;
@@ -230,7 +230,7 @@ static void code_render(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static unsigned int code_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int code_getcursor(struct frame *frame, int x, int y)
 {
 
     struct style *text = &frame->styles[0];
@@ -292,7 +292,7 @@ static void divider_render(struct widget *widget, struct frame *frame, struct vi
 
 }
 
-static unsigned int divider_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int divider_getcursor(struct frame *frame, int x, int y)
 {
 
     struct style *text = &frame->styles[1];
@@ -412,7 +412,7 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static unsigned int field_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int field_getcursor(struct frame *frame, int x, int y)
 {
 
     struct style *data = &frame->styles[2];
@@ -451,7 +451,7 @@ static void header_render(struct widget *widget, struct frame *frame, struct vie
 
 }
 
-static unsigned int header_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int header_getcursor(struct frame *frame, int x, int y)
 {
 
     struct style *text = &frame->styles[0];
@@ -490,7 +490,7 @@ static void header2_render(struct widget *widget, struct frame *frame, struct vi
 
 }
 
-static unsigned int header2_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int header2_getcursor(struct frame *frame, int x, int y)
 {
 
     struct style *text = &frame->styles[0];
@@ -529,7 +529,7 @@ static void header3_render(struct widget *widget, struct frame *frame, struct vi
 
 }
 
-static unsigned int header3_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int header3_getcursor(struct frame *frame, int x, int y)
 {
 
     struct style *text = &frame->styles[0];
@@ -581,7 +581,7 @@ static void image_render(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static unsigned int image_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int image_getcursor(struct frame *frame, int x, int y)
 {
 
     return ANIMATION_CURSOR_ARROW;
@@ -638,7 +638,7 @@ static void list_render(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static unsigned int list_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int list_getcursor(struct frame *frame, int x, int y)
 {
 
     return ANIMATION_CURSOR_ARROW;
@@ -782,7 +782,7 @@ static void select_render(struct widget *widget, struct frame *frame, struct vie
 
 }
 
-static unsigned int select_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int select_getcursor(struct frame *frame, int x, int y)
 {
 
     struct style *border = &frame->styles[0];
@@ -851,7 +851,7 @@ static void table_render(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static unsigned int table_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int table_getcursor(struct frame *frame, int x, int y)
 {
 
     return ANIMATION_CURSOR_ARROW;
@@ -885,7 +885,7 @@ static void text_render(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static unsigned int text_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int text_getcursor(struct frame *frame, int x, int y)
 {
 
     struct style *text = &frame->styles[0];
@@ -961,7 +961,7 @@ static void toggle_render(struct widget *widget, struct frame *frame, struct vie
 
 }
 
-static unsigned int toggle_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int toggle_getcursor(struct frame *frame, int x, int y)
 {
 
     struct style *groove = &frame->styles[0];
@@ -1010,7 +1010,7 @@ static void window_render(struct widget *widget, struct frame *frame, struct vie
 
 }
 
-static unsigned int window_getcursor(struct widget *widget, struct frame *frame, int x, int y)
+static unsigned int window_getcursor(struct frame *frame, int x, int y)
 {
 
     return ANIMATION_CURSOR_ARROW;
@@ -1085,18 +1085,14 @@ int animation_step(struct widget *widget, int x, int y, int w, struct view *view
 void animation_render(struct widget *widget, struct view *view)
 {
 
-    struct frame *frame = &widget->frame;
-
-    calls[widget->header.type].render(widget, frame, view);
+    calls[widget->header.type].render(widget, &widget->frame, view);
 
 }
 
 unsigned int animation_getcursor(struct widget *widget, int x, int y)
 {
 
-    struct frame *frame = &widget->frame;
-
-    return calls[widget->header.type].getcursor(widget, frame, x, y);
+    return calls[widget->header.type].getcursor(&widget->frame, x, y);
 
 }
 
@@ -1138,7 +1134,7 @@ void animation_settheme(unsigned int type)
 
 }
 
-static void setcallback(unsigned int type, int (*step)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u), void (*render)(struct widget *widget, struct frame *frame, struct view *view), unsigned int (*getcursor)(struct widget *widget, struct frame *frame, int x, int y))
+static void setcallback(unsigned int type, int (*step)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u), void (*render)(struct widget *widget, struct frame *frame, struct view *view), unsigned int (*getcursor)(struct frame *frame, int x, int y))
 {
 
     calls[type].step = step;
