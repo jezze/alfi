@@ -461,9 +461,9 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
 static unsigned int field_getcursor(struct frame *frame, int x, int y)
 {
 
-    struct style *data = &frame->styles[2];
+    struct style *border = &frame->styles[0];
 
-    if (style_box_istouching(&data->box, x, y))
+    if (style_box_istouching(&border->box, x, y))
         return ANIMATION_CURSOR_IBEAM;
     else
         return ANIMATION_CURSOR_ARROW;
