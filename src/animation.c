@@ -702,9 +702,12 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
         animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
         if (widget->header.state == WIDGET_STATE_FOCUS)
-            frame->bounds.h = max(frame->bounds.h, cy + child->frame.bounds.h - frame->bounds.y + view->unith);
+        {
 
-        cy += child->frame.bounds.h;
+            frame->bounds.h = max(frame->bounds.h, cy + child->frame.bounds.h - frame->bounds.y + view->unith);
+            cy += child->frame.bounds.h;
+
+        }
 
     }
 
@@ -862,7 +865,6 @@ static void table_step(struct widget *widget, struct frame *frame, struct view *
             animation_step(child, &keyframe, view, u);
             animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
-            child->frame.bounds.h = child->frame.bounds.h;
             frame->bounds.h = max(frame->bounds.h, cy + child->frame.bounds.h - frame->bounds.y);
 
         }
