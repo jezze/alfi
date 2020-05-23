@@ -108,7 +108,8 @@ static void anchor_render(struct widget *widget, struct frame *frame, struct vie
     struct widget_payload_anchor *payload = &widget->payload.anchor;
     struct style *text = &frame->styles[0];
 
-    render_filltext(text, payload->label.content);
+    if (strlen(payload->label.content))
+        render_filltext(text, payload->label.content);
 
 }
 
@@ -384,21 +385,11 @@ static void field_step(struct widget *widget, struct frame *frame, struct view *
         style_color_clone(&label->color, &color_line);
 
     if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
-    {
-
         style_box_shrink(&label->box, view->unitw, view->marginh - label->font.size / 2);
-        style_box_scale(&label->box, render_textwidth(label, payload->label.content), render_textheight(label, payload->label.content));
-
-    }
-
     else
-    {
-
         style_box_shrink(&label->box, view->unitw, view->unith);
-        style_box_scale(&label->box, label->box.w, render_textheight(label, payload->label.content));
 
-    }
-
+    style_box_scale(&label->box, render_textwidth(label, payload->label.content), render_textheight(label, payload->label.content));
     style_box_init(&border->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 4);
     style_box_shrink(&border->box, view->marginw, view->marginh);
 
@@ -454,10 +445,15 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
 
     }
 
-    if (widget->header.state == WIDGET_STATE_FOCUS)
-        render_filltextinput(data, payload->data.content, payload->data.offset, &border->color);
-    else
-        render_filltext(data, payload->data.content);
+    if (strlen(payload->data.content))
+    {
+
+        if (widget->header.state == WIDGET_STATE_FOCUS)
+            render_filltextinput(data, payload->data.content, payload->data.offset, &border->color);
+        else
+            render_filltext(data, payload->data.content);
+
+    }
 
 }
 
@@ -638,6 +634,7 @@ static void list_step(struct widget *widget, struct frame *frame, struct view *v
     int cx = frame->bounds.x + pw;
     int cy = frame->bounds.y;
     int cw = frame->bounds.w - pw * 2;
+    int ch = 0;
 
     while ((child = pool_widget_nextchild(child, widget)))
     {
@@ -648,10 +645,12 @@ static void list_step(struct widget *widget, struct frame *frame, struct view *v
         animation_step(child, &keyframe, view, u);
         animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
-        frame->bounds.h = max(frame->bounds.h, cy + child->frame.bounds.h - frame->bounds.y);
+        ch = max(ch, cy + child->frame.bounds.h - frame->bounds.y);
         cy += child->frame.bounds.h;
 
     }
+
+    frame->bounds.h = ch;
 
 }
 
@@ -692,8 +691,7 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
     int cx = frame->bounds.x + view->unitw;
     int cy = frame->bounds.y + view->unith * 3;
     int cw = frame->bounds.w - view->unitw * 2;
-
-    frame->bounds.h = view->unith * 3;
+    int ch = 0;
 
     while ((child = pool_widget_nextchild(child, widget)))
     {
@@ -707,7 +705,7 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
         if (widget->header.state == WIDGET_STATE_FOCUS)
         {
 
-            frame->bounds.h = max(frame->bounds.h, cy + child->frame.bounds.h - frame->bounds.y + view->unith);
+            ch = max(ch, cy + child->frame.bounds.h - frame->bounds.y);
             cy += child->frame.bounds.h;
 
         }
@@ -716,7 +714,7 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
 
     style_font_init(&data->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&data->color, &color_text);
-    style_box_init(&data->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
+    style_box_init(&data->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
     {
@@ -734,6 +732,8 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
 
     }
 
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+
     if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
         style_font_init(&label->font, font_regular->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     else
@@ -744,31 +744,36 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
     else
         style_color_clone(&label->color, &color_line);
 
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
-
     if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
-    {
-
-        style_box_translate(&label->box, view->unitw, 0);
-        style_box_scale(&label->box, render_textwidth(label, payload->label.content), render_textheight(label, payload->label.content));
-
-    }
-
+        style_box_shrink(&label->box, view->unitw, view->marginh - label->font.size / 2);
     else
-    {
+        style_box_shrink(&label->box, view->unitw, view->unith);
 
-        style_box_translate(&label->box, view->unitw, view->unith);
-        style_box_scale(&label->box, label->box.w, render_textheight(label, payload->label.content));
-
-    }
+    style_box_scale(&label->box, render_textwidth(label, payload->label.content), render_textheight(label, payload->label.content));
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
         style_color_clone(&border->color, &color_focus);
     else
         style_color_clone(&border->color, &color_line);
 
-    style_box_init(&border->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 4);
+    style_box_init(&border->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 4);
     style_box_shrink(&border->box, view->marginw, view->marginh);
+
+    if (widget->header.state == WIDGET_STATE_FOCUS)
+    {
+
+        style_box_expand(&border->box, &data->box, view->unitw, view->unith);
+
+        border->box.h += ch - view->unith * 2 - view->marginh;
+
+    }
+
+    else
+    {
+
+        style_box_expand(&border->box, &data->box, view->unitw - view->marginw, view->unith - view->marginh);
+
+    }
 
     frame->bounds.h = border->box.h + view->marginh * 2;
 
@@ -847,6 +852,7 @@ static void table_step(struct widget *widget, struct frame *frame, struct view *
     unsigned int i;
     int cx = frame->bounds.x;
     int cy = frame->bounds.y;
+    int ch = 0;
 
     if (strlen(payload->grid.format))
         gsize = gridfmt_size(payload->grid.format);
@@ -868,7 +874,7 @@ static void table_step(struct widget *widget, struct frame *frame, struct view *
             animation_step(child, &keyframe, view, u);
             animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
-            frame->bounds.h = max(frame->bounds.h, cy + child->frame.bounds.h - frame->bounds.y);
+            ch = max(ch, cy + child->frame.bounds.h - frame->bounds.y);
 
         }
 
@@ -878,11 +884,13 @@ static void table_step(struct widget *widget, struct frame *frame, struct view *
         {
 
             cx = frame->bounds.x;
-            cy = frame->bounds.y + frame->bounds.h;
+            cy = frame->bounds.y + ch;
 
         }
 
     }
+
+    frame->bounds.h = ch;
 
 }
 
@@ -1021,6 +1029,7 @@ static void window_step(struct widget *widget, struct frame *frame, struct view 
     int cx = frame->bounds.x;
     int cy = frame->bounds.y;
     int cw = frame->bounds.w;
+    int ch = 0;
 
     while ((child = pool_widget_nextchild(child, widget)))
     {
@@ -1031,11 +1040,13 @@ static void window_step(struct widget *widget, struct frame *frame, struct view 
         animation_step(child, &keyframe, view, u);
         animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
-        frame->bounds.h = max(frame->bounds.h, cy + child->frame.bounds.h - frame->bounds.y);
+        ch = max(ch, cy + child->frame.bounds.h - frame->bounds.y);
 
     }
 
     style_color_clone(&frame->styles[0].color, &color_background);
+
+    frame->bounds.h = ch;
 
 }
 

@@ -420,7 +420,7 @@ float render_textwidth(struct style *style, char *text)
 
     }
 
-    return w;
+    return w + 2;
 
 }
 
@@ -434,7 +434,7 @@ float render_textheight(struct style *style, char *text)
 
     for (i = 0; (current = calcline(&style->font, style->box.w, current, end, &row)); i++);
 
-    return i * style->font.size;
+    return i * style->font.size + 2;
 
 }
 
