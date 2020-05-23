@@ -182,7 +182,10 @@ static void button_render(struct widget *widget, struct frame *frame, struct vie
     struct style *text = &frame->styles[1];
     struct style *icon = &frame->styles[2];
 
-    render_fillrect(surface);
+    if (payload->mode.type == ATTRIBUTE_MODE_ON)
+        render_fillrect(surface);
+    else
+        render_fillrectborder(surface, 2.0);
 
     if (strlen(payload->label.content))
         render_filltext(text, payload->label.content);
@@ -235,7 +238,7 @@ static void choice_render(struct widget *widget, struct frame *frame, struct vie
     struct style *text = &frame->styles[1];
 
     if (widget->header.state == WIDGET_STATE_HOVER)
-        render_fillrect(background);
+        render_fillrectborder(background, 2.0);
 
     if (strlen(payload->label.content))
         render_filltext(text, payload->label.content);
