@@ -614,6 +614,7 @@ static void urlself(char *url, unsigned int count, void *data)
         loadresources();
         animation_initframe(&keyframe, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24, 0);
         animation_step(widget_root, &keyframe, &view, 1.0);
+        animation_updateframe(widget_root->header.type, &widget_root->frame, &keyframe, 1.0);
 
         updatetitle = 1;
 
@@ -1309,6 +1310,7 @@ static void render(float u)
         view_adjust(&view, widget_root->frame.bounds.w, widget_root->frame.bounds.h);
         animation_initframe(&keyframe, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24, 0);
         animation_step(widget_root, &keyframe, &view, u);
+        animation_updateframe(widget_root->header.type, &widget_root->frame, &keyframe, u);
         animation_render(widget_root, &view);
 
     }

@@ -62,7 +62,7 @@ static unsigned int compareframe(struct frame *frame, struct frame *keyframe)
 
 }
 
-static void updateframe(unsigned int type, struct frame *frame, struct frame *keyframe, float u)
+void animation_updateframe(unsigned int type, struct frame *frame, struct frame *keyframe, float u)
 {
 
     if (type == WIDGET_TYPE_WINDOW)
@@ -644,6 +644,7 @@ static int list_step(struct widget *widget, struct frame *frame, struct view *vi
 
         animation_initframe(&keyframe, cx, cy, cw, 0);
         animation_step(child, &keyframe, view, u);
+        animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
         h = max(h, cy + child->frame.bounds.h - frame->bounds.y);
         cy += child->frame.bounds.h;
@@ -700,6 +701,7 @@ static int select_step(struct widget *widget, struct frame *frame, struct view *
 
         animation_initframe(&keyframe, cx, cy, cw, 0);
         animation_step(child, &keyframe, view, u);
+        animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
         if (widget->header.state == WIDGET_STATE_FOCUS)
             h = max(h, cy + child->frame.bounds.h - frame->bounds.y + view->unith);
@@ -861,6 +863,7 @@ static int table_step(struct widget *widget, struct frame *frame, struct view *v
 
             animation_initframe(&keyframe, cx, cy, cw, 0);
             animation_step(child, &keyframe, view, u);
+            animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
             child->frame.bounds.h = child->frame.bounds.h;
             h = max(h, cy + child->frame.bounds.h - frame->bounds.y);
@@ -1027,6 +1030,7 @@ static int window_step(struct widget *widget, struct frame *frame, struct view *
 
         animation_initframe(&keyframe, cx, cy, cw, 0);
         animation_step(child, &keyframe, view, u);
+        animation_updateframe(child->header.type, &child->frame, &keyframe, u);
 
         h = max(h, cy + child->frame.bounds.h - frame->bounds.y);
 
@@ -1135,8 +1139,6 @@ void animation_step(struct widget *widget, struct frame *frame, struct view *vie
         break;
 
     }
-
-    updateframe(widget->header.type, &widget->frame, frame, u);
 
 }
 
