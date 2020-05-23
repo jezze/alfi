@@ -86,7 +86,7 @@ void animation_initframe(struct frame *frame, int x, int y, int w, int h)
 
 }
 
-static int anchor_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void anchor_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_anchor *payload = &widget->payload.anchor;
@@ -98,7 +98,7 @@ static int anchor_step(struct widget *widget, struct frame *frame, struct view *
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    return text->box.h + view->marginh * 2;
+    frame->bounds.h = text->box.h + view->marginh * 2;
 
 }
 
@@ -124,7 +124,7 @@ static unsigned int anchor_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int button_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void button_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_button *payload = &widget->payload.button;
@@ -170,7 +170,7 @@ static int button_step(struct widget *widget, struct frame *frame, struct view *
     style_box_shrink(&surface->box, view->marginw, view->marginh);
     style_box_expand(&surface->box, &text->box, view->unitw - view->marginw, view->unith - view->marginh);
 
-    return surface->box.h + 2 * view->marginh;
+    frame->bounds.h = surface->box.h + 2 * view->marginh;
 
 }
 
@@ -204,7 +204,7 @@ static unsigned int button_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int choice_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void choice_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_choice *payload = &widget->payload.choice;
@@ -223,7 +223,7 @@ static int choice_step(struct widget *widget, struct frame *frame, struct view *
     style_box_init(&background->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 4);
     style_box_expand(&background->box, &text->box, view->marginw, view->marginh);
 
-    return background->box.h;
+    frame->bounds.h = background->box.h;
 
 }
 
@@ -249,7 +249,7 @@ static unsigned int choice_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int code_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void code_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_code *payload = &widget->payload.code;
@@ -261,7 +261,7 @@ static int code_step(struct widget *widget, struct frame *frame, struct view *vi
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    return text->box.h + view->marginh * 2;
+    frame->bounds.h = text->box.h + view->marginh * 2;
 
 }
 
@@ -288,7 +288,7 @@ static unsigned int code_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int divider_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void divider_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_divider *payload = &widget->payload.divider;
@@ -310,7 +310,7 @@ static int divider_step(struct widget *widget, struct frame *frame, struct view 
     style_color_clone(&line->color, &color_line);
     style_box_init(&line->box, frame->bounds.x + view->marginw, frame->bounds.y + view->unith - 1, frame->bounds.w - view->marginw * 2, 2, 0);
 
-    return view->unith * 2;
+    frame->bounds.h = view->unith * 2;
 
 }
 
@@ -350,7 +350,7 @@ static unsigned int divider_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int field_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void field_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_field *payload = &widget->payload.field;
@@ -409,7 +409,7 @@ static int field_step(struct widget *widget, struct frame *frame, struct view *v
     else
         style_box_expand(&border->box, &data->box, view->unitw - view->marginw, view->unith - view->marginh);
 
-    return border->box.h + view->marginh * 2;
+    frame->bounds.h = border->box.h + view->marginh * 2;
 
 }
 
@@ -470,7 +470,7 @@ static unsigned int field_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int header_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void header_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_header *payload = &widget->payload.header;
@@ -482,7 +482,7 @@ static int header_step(struct widget *widget, struct frame *frame, struct view *
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    return text->box.h + view->marginh * 2;
+    frame->bounds.h = text->box.h + view->marginh * 2;
 
 }
 
@@ -509,7 +509,7 @@ static unsigned int header_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int header2_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void header2_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_header2 *payload = &widget->payload.header2;
@@ -521,7 +521,7 @@ static int header2_step(struct widget *widget, struct frame *frame, struct view 
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    return text->box.h + view->marginh * 2;
+    frame->bounds.h = text->box.h + view->marginh * 2;
 
 }
 
@@ -548,7 +548,7 @@ static unsigned int header2_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int header3_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void header3_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_header3 *payload = &widget->payload.header3;
@@ -560,7 +560,7 @@ static int header3_step(struct widget *widget, struct frame *frame, struct view 
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    return text->box.h + view->marginh * 2;
+    frame->bounds.h = text->box.h + view->marginh * 2;
 
 }
 
@@ -587,7 +587,7 @@ static unsigned int header3_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int image_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void image_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_image *payload = &widget->payload.image;
@@ -596,7 +596,7 @@ static int image_step(struct widget *widget, struct frame *frame, struct view *v
     float ratio;
 
     if (!resource)
-        return 0;
+        return;
 
     ratio = (float)frame->bounds.w / (float)resource->w;
 
@@ -609,7 +609,7 @@ static int image_step(struct widget *widget, struct frame *frame, struct view *v
     style_box_translate(&surface->box, view->marginw, view->marginh);
     */
 
-    return surface->box.h + view->marginh * 2;
+    frame->bounds.h = surface->box.h + view->marginh * 2;
 
 }
 
@@ -627,7 +627,7 @@ static void image_render(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static int list_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void list_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget *child = 0;
@@ -649,8 +649,6 @@ static int list_step(struct widget *widget, struct frame *frame, struct view *vi
         cy += child->frame.bounds.h;
 
     }
-
-    return frame->bounds.h;
 
 }
 
@@ -680,7 +678,7 @@ static void list_render(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static int select_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void select_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_select *payload = &widget->payload.select;
@@ -766,7 +764,7 @@ static int select_step(struct widget *widget, struct frame *frame, struct view *
     style_box_init(&border->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 4);
     style_box_shrink(&border->box, view->marginw, view->marginh);
 
-    return border->box.h + view->marginh * 2;
+    frame->bounds.h = border->box.h + view->marginh * 2;
 
 }
 
@@ -834,7 +832,7 @@ static unsigned int select_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int table_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void table_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_table *payload = &widget->payload.table;
@@ -881,8 +879,6 @@ static int table_step(struct widget *widget, struct frame *frame, struct view *v
 
     }
 
-    return frame->bounds.h;
-
 }
 
 static void table_render(struct widget *widget, struct frame *frame, struct view *view)
@@ -895,7 +891,7 @@ static void table_render(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static int text_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void text_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_text *payload = &widget->payload.text;
@@ -907,7 +903,7 @@ static int text_step(struct widget *widget, struct frame *frame, struct view *vi
     style_box_shrink(&text->box, view->marginw, view->marginh);
     style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
 
-    return text->box.h + view->marginh * 2;
+    frame->bounds.h = text->box.h + view->marginh * 2;
 
 }
 
@@ -934,7 +930,7 @@ static unsigned int text_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int toggle_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void toggle_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget_payload_toggle *payload = &widget->payload.toggle;
@@ -976,7 +972,7 @@ static int toggle_step(struct widget *widget, struct frame *frame, struct view *
     style_box_translate(&groove->box, view->marginw, view->marginh);
     style_box_shrink(&groove->box, 4, 4);
 
-    return text->box.h + view->marginh * 2;
+    frame->bounds.h = text->box.h + view->marginh * 2;
 
 }
 
@@ -1013,7 +1009,7 @@ static unsigned int toggle_getcursor(struct frame *frame, int x, int y)
 
 }
 
-static int window_step(struct widget *widget, struct frame *frame, struct view *view, float u)
+static void window_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
     struct widget *child = 0;
@@ -1036,8 +1032,6 @@ static int window_step(struct widget *widget, struct frame *frame, struct view *
 
     style_color_clone(&frame->styles[0].color, &color_background);
 
-    return frame->bounds.h;
-
 }
 
 static void window_render(struct widget *widget, struct frame *frame, struct view *view)
@@ -1057,82 +1051,82 @@ void animation_step(struct widget *widget, struct frame *frame, struct view *vie
     {
 
     case WIDGET_TYPE_ANCHOR:
-        frame->bounds.h = anchor_step(widget, frame, view, u);
+        anchor_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_BUTTON:
-        frame->bounds.h = button_step(widget, frame, view, u);
+        button_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_CHOICE:
-        frame->bounds.h = choice_step(widget, frame, view, u);
+        choice_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_CODE:
-        frame->bounds.h = code_step(widget, frame, view, u);
+        code_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_DIVIDER:
-        frame->bounds.h = divider_step(widget, frame, view, u);
+        divider_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_FIELD:
-        frame->bounds.h = field_step(widget, frame, view, u);
+        field_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_HEADER:
-        frame->bounds.h = header_step(widget, frame, view, u);
+        header_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_HEADER2:
-        frame->bounds.h = header2_step(widget, frame, view, u);
+        header2_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_HEADER3:
-        frame->bounds.h = header3_step(widget, frame, view, u);
+        header3_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_IMAGE:
-        frame->bounds.h = image_step(widget, frame, view, u);
+        image_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_LIST:
-        frame->bounds.h = list_step(widget, frame, view, u);
+        list_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_SELECT:
-        frame->bounds.h = select_step(widget, frame, view, u);
+        select_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_TABLE:
-        frame->bounds.h = table_step(widget, frame, view, u);
+        table_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_TEXT:
-        frame->bounds.h = text_step(widget, frame, view, u);
+        text_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_TOGGLE:
-        frame->bounds.h = toggle_step(widget, frame, view, u);
+        toggle_step(widget, frame, view, u);
 
         break;
 
     case WIDGET_TYPE_WINDOW:
-        frame->bounds.h = window_step(widget, frame, view, u);
+        window_step(widget, frame, view, u);
 
         break;
 
