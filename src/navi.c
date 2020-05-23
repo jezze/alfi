@@ -1386,7 +1386,6 @@ int main(int argc, char **argv)
     render_create();
     parser_init(&parser, parser_fail, pool_widget_find, parser_create, parser_destroy, parser_clear);
     pool_setup();
-    animation_setup();
     animation_setupfonts();
     animation_settheme(ANIMATION_THEME_LIGHT);
     create("Navi 0.1");

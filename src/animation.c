@@ -13,15 +13,6 @@
 #include "pool.h"
 #include "render.h"
 
-struct call
-{
-
-    int (*step)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u);
-    void (*render)(struct widget *widget, struct frame *frame, struct view *view);
-
-};
-
-static struct call calls[64];
 static struct resource *font_regular;
 static struct resource *font_bold;
 static struct resource *font_mono;
@@ -1032,31 +1023,173 @@ static void window_render(struct widget *widget, struct frame *frame, struct vie
 
 }
 
+static int step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
+{
+
+    switch (widget->header.type)
+    {
+
+    case WIDGET_TYPE_ANCHOR:
+        return anchor_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_BUTTON:
+        return button_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_CHOICE:
+        return choice_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_CODE:
+        return code_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_DIVIDER:
+        return divider_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_FIELD:
+        return field_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_HEADER:
+        return header_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_HEADER2:
+        return header2_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_HEADER3:
+        return header3_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_IMAGE:
+        return image_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_LIST:
+        return list_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_SELECT:
+        return select_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_TABLE:
+        return table_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_TEXT:
+        return text_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_TOGGLE:
+        return toggle_step(widget, frame, x, y, w, view, u);
+
+    case WIDGET_TYPE_WINDOW:
+        return window_step(widget, frame, x, y, w, view, u);
+
+    }
+
+    return 0;
+
+}
+
 int animation_step(struct widget *widget, int x, int y, int w, struct view *view, float u)
 {
 
-    struct frame *frame = &widget->frame;
     struct frame keyframe;
 
     initframe(&keyframe, x, y, w);
 
-    keyframe.bounds.h = calls[widget->header.type].step(widget, &keyframe, x, y, w, view, u);
+    keyframe.bounds.h = step(widget, &keyframe, x, y, w, view, u);
 
     if (widget->header.type == WIDGET_TYPE_WINDOW)
-        tweenframe(frame, &keyframe, 1.0);
+        tweenframe(&widget->frame, &keyframe, 1.0);
     else
-        tweenframe(frame, &keyframe, u);
+        tweenframe(&widget->frame, &keyframe, u);
 
-    frame->animating = compareframe(frame, &keyframe);
+    widget->frame.animating = compareframe(&widget->frame, &keyframe);
 
-    return frame->bounds.h;
+    return widget->frame.bounds.h;
 
 }
 
 void animation_render(struct widget *widget, struct view *view)
 {
 
-    calls[widget->header.type].render(widget, &widget->frame, view);
+    switch (widget->header.type)
+    {
+
+    case WIDGET_TYPE_ANCHOR:
+        anchor_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_BUTTON:
+        button_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_CHOICE:
+        choice_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_CODE:
+        code_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_DIVIDER:
+        divider_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_FIELD:
+        field_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_HEADER:
+        header_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_HEADER2:
+        header2_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_HEADER3:
+        header3_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_IMAGE:
+        image_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_LIST:
+        list_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_SELECT:
+        select_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_TABLE:
+        table_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_TEXT:
+        text_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_TOGGLE:
+        toggle_render(widget, &widget->frame, view);
+
+        break;
+
+    case WIDGET_TYPE_WINDOW:
+        window_render(widget, &widget->frame, view);
+
+        break;
+
+    }
 
 }
 
@@ -1143,36 +1276,6 @@ void animation_settheme(unsigned int type)
         break;
 
     }
-
-}
-
-static void setcallback(unsigned int type, int (*step)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u), void (*render)(struct widget *widget, struct frame *frame, struct view *view))
-{
-
-    calls[type].step = step;
-    calls[type].render = render;
-
-}
-
-void animation_setup(void)
-{
-
-    setcallback(WIDGET_TYPE_ANCHOR, anchor_step, anchor_render);
-    setcallback(WIDGET_TYPE_BUTTON, button_step, button_render);
-    setcallback(WIDGET_TYPE_CHOICE, choice_step, choice_render);
-    setcallback(WIDGET_TYPE_CODE, code_step, code_render);
-    setcallback(WIDGET_TYPE_DIVIDER, divider_step, divider_render);
-    setcallback(WIDGET_TYPE_FIELD, field_step, field_render);
-    setcallback(WIDGET_TYPE_HEADER, header_step, header_render);
-    setcallback(WIDGET_TYPE_HEADER2, header2_step, header2_render);
-    setcallback(WIDGET_TYPE_HEADER3, header3_step, header3_render);
-    setcallback(WIDGET_TYPE_IMAGE, image_step, image_render);
-    setcallback(WIDGET_TYPE_LIST, list_step, list_render);
-    setcallback(WIDGET_TYPE_SELECT, select_step, select_render);
-    setcallback(WIDGET_TYPE_TABLE, table_step, table_render);
-    setcallback(WIDGET_TYPE_TEXT, text_step, text_render);
-    setcallback(WIDGET_TYPE_TOGGLE, toggle_step, toggle_render);
-    setcallback(WIDGET_TYPE_WINDOW, window_step, window_render);
 
 }
 
