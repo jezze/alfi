@@ -74,6 +74,18 @@ static unsigned int compareframe(struct frame *frame, struct frame *keyframe)
 
 }
 
+static void updateframe(unsigned int type, struct frame *frame, struct frame *keyframe, float u)
+{
+
+    if (type == WIDGET_TYPE_WINDOW)
+        tweenframe(frame, keyframe, 1.0);
+    else
+        tweenframe(frame, keyframe, u);
+
+    frame->animating = compareframe(frame, keyframe);
+
+}
+
 static int anchor_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
@@ -1115,12 +1127,7 @@ int animation_step(struct widget *widget, int x, int y, int w, struct view *view
 
     }
 
-    if (widget->header.type == WIDGET_TYPE_WINDOW)
-        tweenframe(&widget->frame, &keyframe, 1.0);
-    else
-        tweenframe(&widget->frame, &keyframe, u);
-
-    widget->frame.animating = compareframe(&widget->frame, &keyframe);
+    updateframe(widget->header.type, &widget->frame, &keyframe, u);
 
     return widget->frame.bounds.h;
 
