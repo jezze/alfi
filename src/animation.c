@@ -18,7 +18,6 @@ struct call
 
     int (*step)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u);
     void (*render)(struct widget *widget, struct frame *frame, struct view *view);
-    unsigned int (*getcursor)(struct frame *frame, int x, int y);
 
 };
 
@@ -625,13 +624,6 @@ static void image_render(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static unsigned int image_getcursor(struct frame *frame, int x, int y)
-{
-
-    return ANIMATION_CURSOR_ARROW;
-
-}
-
 static int list_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
@@ -679,13 +671,6 @@ static void list_render(struct widget *widget, struct frame *frame, struct view 
         }
 
     }
-
-}
-
-static unsigned int list_getcursor(struct frame *frame, int x, int y)
-{
-
-    return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -895,13 +880,6 @@ static void table_render(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static unsigned int table_getcursor(struct frame *frame, int x, int y)
-{
-
-    return ANIMATION_CURSOR_ARROW;
-
-}
-
 static int text_step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
 {
 
@@ -1054,13 +1032,6 @@ static void window_render(struct widget *widget, struct frame *frame, struct vie
 
 }
 
-static unsigned int window_getcursor(struct frame *frame, int x, int y)
-{
-
-    return ANIMATION_CURSOR_ARROW;
-
-}
-
 int animation_step(struct widget *widget, int x, int y, int w, struct view *view, float u)
 {
 
@@ -1092,7 +1063,48 @@ void animation_render(struct widget *widget, struct view *view)
 unsigned int animation_getcursor(struct widget *widget, int x, int y)
 {
 
-    return calls[widget->header.type].getcursor(&widget->frame, x, y);
+    switch (widget->header.type)
+    {
+
+    case WIDGET_TYPE_ANCHOR:
+        return anchor_getcursor(&widget->frame, x, y);
+
+    case WIDGET_TYPE_BUTTON:
+        return button_getcursor(&widget->frame, x, y);
+
+    case WIDGET_TYPE_CHOICE:
+        return choice_getcursor(&widget->frame, x, y);
+
+    case WIDGET_TYPE_CODE:
+        return code_getcursor(&widget->frame, x, y);
+
+    case WIDGET_TYPE_DIVIDER:
+        return divider_getcursor(&widget->frame, x, y);
+
+    case WIDGET_TYPE_FIELD:
+        return field_getcursor(&widget->frame, x, y);
+
+    case WIDGET_TYPE_HEADER:
+        return header_getcursor(&widget->frame, x, y);
+
+    case WIDGET_TYPE_HEADER2:
+        return header2_getcursor(&widget->frame, x, y);
+
+    case WIDGET_TYPE_HEADER3:
+        return header3_getcursor(&widget->frame, x, y);
+
+    case WIDGET_TYPE_SELECT:
+        return select_getcursor(&widget->frame, x, y);
+
+    case WIDGET_TYPE_TEXT:
+        return text_getcursor(&widget->frame, x, y);
+
+    case WIDGET_TYPE_TOGGLE:
+        return toggle_getcursor(&widget->frame, x, y);
+
+    }
+
+    return ANIMATION_CURSOR_ARROW;
 
 }
 
@@ -1134,34 +1146,33 @@ void animation_settheme(unsigned int type)
 
 }
 
-static void setcallback(unsigned int type, int (*step)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u), void (*render)(struct widget *widget, struct frame *frame, struct view *view), unsigned int (*getcursor)(struct frame *frame, int x, int y))
+static void setcallback(unsigned int type, int (*step)(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u), void (*render)(struct widget *widget, struct frame *frame, struct view *view))
 {
 
     calls[type].step = step;
     calls[type].render = render;
-    calls[type].getcursor = getcursor;
 
 }
 
 void animation_setup(void)
 {
 
-    setcallback(WIDGET_TYPE_ANCHOR, anchor_step, anchor_render, anchor_getcursor);
-    setcallback(WIDGET_TYPE_BUTTON, button_step, button_render, button_getcursor);
-    setcallback(WIDGET_TYPE_CHOICE, choice_step, choice_render, choice_getcursor);
-    setcallback(WIDGET_TYPE_CODE, code_step, code_render, code_getcursor);
-    setcallback(WIDGET_TYPE_DIVIDER, divider_step, divider_render, divider_getcursor);
-    setcallback(WIDGET_TYPE_FIELD, field_step, field_render, field_getcursor);
-    setcallback(WIDGET_TYPE_HEADER, header_step, header_render, header_getcursor);
-    setcallback(WIDGET_TYPE_HEADER2, header2_step, header2_render, header2_getcursor);
-    setcallback(WIDGET_TYPE_HEADER3, header3_step, header3_render, header3_getcursor);
-    setcallback(WIDGET_TYPE_IMAGE, image_step, image_render, image_getcursor);
-    setcallback(WIDGET_TYPE_LIST, list_step, list_render, list_getcursor);
-    setcallback(WIDGET_TYPE_SELECT, select_step, select_render, select_getcursor);
-    setcallback(WIDGET_TYPE_TABLE, table_step, table_render, table_getcursor);
-    setcallback(WIDGET_TYPE_TEXT, text_step, text_render, text_getcursor);
-    setcallback(WIDGET_TYPE_TOGGLE, toggle_step, toggle_render, toggle_getcursor);
-    setcallback(WIDGET_TYPE_WINDOW, window_step, window_render, window_getcursor);
+    setcallback(WIDGET_TYPE_ANCHOR, anchor_step, anchor_render);
+    setcallback(WIDGET_TYPE_BUTTON, button_step, button_render);
+    setcallback(WIDGET_TYPE_CHOICE, choice_step, choice_render);
+    setcallback(WIDGET_TYPE_CODE, code_step, code_render);
+    setcallback(WIDGET_TYPE_DIVIDER, divider_step, divider_render);
+    setcallback(WIDGET_TYPE_FIELD, field_step, field_render);
+    setcallback(WIDGET_TYPE_HEADER, header_step, header_render);
+    setcallback(WIDGET_TYPE_HEADER2, header2_step, header2_render);
+    setcallback(WIDGET_TYPE_HEADER3, header3_step, header3_render);
+    setcallback(WIDGET_TYPE_IMAGE, image_step, image_render);
+    setcallback(WIDGET_TYPE_LIST, list_step, list_render);
+    setcallback(WIDGET_TYPE_SELECT, select_step, select_render);
+    setcallback(WIDGET_TYPE_TABLE, table_step, table_render);
+    setcallback(WIDGET_TYPE_TEXT, text_step, text_render);
+    setcallback(WIDGET_TYPE_TOGGLE, toggle_step, toggle_render);
+    setcallback(WIDGET_TYPE_WINDOW, window_step, window_render);
 
 }
 
