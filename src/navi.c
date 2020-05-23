@@ -605,13 +605,15 @@ static void urlself(char *url, unsigned int count, void *data)
     {
 
         struct urlinfo *info = history_get(0);
+        struct frame keyframe;
 
         if (info)
             url_set(info, temp.urlinfo.url);
 
         parser_parse(&parser, "main", temp.count, temp.data);
         loadresources();
-        animation_step(widget_root, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24, &view, 1.0);
+        animation_initframe(&keyframe, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24);
+        animation_step(widget_root, &keyframe, &view, 1.0);
 
         updatetitle = 1;
 
@@ -1302,8 +1304,11 @@ static void render(float u)
     if (widget_root)
     {
 
+        struct frame keyframe;
+
         view_adjust(&view, widget_root->frame.bounds.w, widget_root->frame.bounds.h);
-        animation_step(widget_root, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24, &view, u);
+        animation_initframe(&keyframe, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24);
+        animation_step(widget_root, &keyframe, &view, u);
         animation_render(widget_root, &view);
 
     }
