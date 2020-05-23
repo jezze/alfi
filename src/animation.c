@@ -108,8 +108,7 @@ static void anchor_render(struct widget *widget, struct frame *frame, struct vie
     struct widget_payload_anchor *payload = &widget->payload.anchor;
     struct style *text = &frame->styles[0];
 
-    if (strlen(payload->label.content))
-        render_filltext(text, payload->label.content);
+    render_filltext(text, payload->label.content);
 
 }
 
@@ -188,8 +187,7 @@ static void button_render(struct widget *widget, struct frame *frame, struct vie
     else
         render_fillrectborder(surface, 2.0);
 
-    if (strlen(payload->label.content))
-        render_filltext(text, payload->label.content);
+    render_filltext(text, payload->label.content);
 
     if (payload->icon.type)
         render_fillicon(icon, payload->icon.type);
@@ -241,8 +239,7 @@ static void choice_render(struct widget *widget, struct frame *frame, struct vie
     if (widget->header.state == WIDGET_STATE_HOVER)
         render_fillrectborder(background, 2.0);
 
-    if (strlen(payload->label.content))
-        render_filltext(text, payload->label.content);
+    render_filltext(text, payload->label.content);
 
 }
 
@@ -275,8 +272,7 @@ static void code_render(struct widget *widget, struct frame *frame, struct view 
     struct widget_payload_code *payload = &widget->payload.code;
     struct style *text = &frame->styles[0];
 
-    if (strlen(payload->label.content))
-        render_filltext(text, payload->label.content);
+    render_filltext(text, payload->label.content);
 
 }
 
@@ -439,21 +435,14 @@ static void field_render(struct widget *widget, struct frame *frame, struct view
     {
 
         render_fillrectborder(border, 2.0);
-
-        if (strlen(payload->label.content))
-            render_filltext(label, payload->label.content);
+        render_filltext(label, payload->label.content);
 
     }
 
-    if (strlen(payload->data.content))
-    {
-
-        if (widget->header.state == WIDGET_STATE_FOCUS)
-            render_filltextinput(data, payload->data.content, payload->data.offset, &border->color);
-        else
-            render_filltext(data, payload->data.content);
-
-    }
+    if (widget->header.state == WIDGET_STATE_FOCUS)
+        render_filltextinput(data, payload->data.content, payload->data.offset, &border->color);
+    else
+        render_filltext(data, payload->data.content);
 
 }
 
@@ -491,8 +480,7 @@ static void header_render(struct widget *widget, struct frame *frame, struct vie
     struct widget_payload_header *payload = &widget->payload.header;
     struct style *text = &frame->styles[0];
 
-    if (strlen(payload->label.content))
-        render_filltext(text, payload->label.content);
+    render_filltext(text, payload->label.content);
 
 }
 
@@ -530,8 +518,7 @@ static void header2_render(struct widget *widget, struct frame *frame, struct vi
     struct widget_payload_header2 *payload = &widget->payload.header2;
     struct style *text = &frame->styles[0];
 
-    if (strlen(payload->label.content))
-        render_filltext(text, payload->label.content);
+    render_filltext(text, payload->label.content);
 
 }
 
@@ -569,8 +556,7 @@ static void header3_render(struct widget *widget, struct frame *frame, struct vi
     struct widget_payload_header3 *payload = &widget->payload.header3;
     struct style *text = &frame->styles[0];
 
-    if (strlen(payload->label.content))
-        render_filltext(text, payload->label.content);
+    render_filltext(text, payload->label.content);
 
 }
 
@@ -812,14 +798,11 @@ static void select_render(struct widget *widget, struct frame *frame, struct vie
     {
 
         render_fillrectborder(border, 2.0);
-
-        if (strlen(payload->label.content))
-            render_filltext(label, payload->label.content);
+        render_filltext(label, payload->label.content);
 
     }
 
-    if (strlen(payload->data.content))
-        render_filltext(data, payload->data.content);
+    render_filltext(data, payload->data.content);
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
     {
@@ -926,8 +909,7 @@ static void text_render(struct widget *widget, struct frame *frame, struct view 
     struct widget_payload_text *payload = &widget->payload.text;
     struct style *text = &frame->styles[0];
 
-    if (strlen(payload->label.content))
-        render_filltext(text, payload->label.content);
+    render_filltext(text, payload->label.content);
 
 }
 
@@ -1001,9 +983,7 @@ static void toggle_render(struct widget *widget, struct frame *frame, struct vie
     render_fillrect(groove);
     render_fillcircle(ohandle);
     render_fillcircle(ihandle);
-
-    if (strlen(payload->label.content))
-        render_filltext(text, payload->label.content);
+    render_filltext(text, payload->label.content);
 
 }
 
