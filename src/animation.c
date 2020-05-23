@@ -1023,66 +1023,6 @@ static void window_render(struct widget *widget, struct frame *frame, struct vie
 
 }
 
-static int step(struct widget *widget, struct frame *frame, int x, int y, int w, struct view *view, float u)
-{
-
-    switch (widget->header.type)
-    {
-
-    case WIDGET_TYPE_ANCHOR:
-        return anchor_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_BUTTON:
-        return button_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_CHOICE:
-        return choice_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_CODE:
-        return code_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_DIVIDER:
-        return divider_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_FIELD:
-        return field_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_HEADER:
-        return header_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_HEADER2:
-        return header2_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_HEADER3:
-        return header3_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_IMAGE:
-        return image_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_LIST:
-        return list_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_SELECT:
-        return select_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_TABLE:
-        return table_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_TEXT:
-        return text_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_TOGGLE:
-        return toggle_step(widget, frame, x, y, w, view, u);
-
-    case WIDGET_TYPE_WINDOW:
-        return window_step(widget, frame, x, y, w, view, u);
-
-    }
-
-    return 0;
-
-}
-
 int animation_step(struct widget *widget, int x, int y, int w, struct view *view, float u)
 {
 
@@ -1090,7 +1030,90 @@ int animation_step(struct widget *widget, int x, int y, int w, struct view *view
 
     initframe(&keyframe, x, y, w);
 
-    keyframe.bounds.h = step(widget, &keyframe, x, y, w, view, u);
+    switch (widget->header.type)
+    {
+
+    case WIDGET_TYPE_ANCHOR:
+        keyframe.bounds.h = anchor_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_BUTTON:
+        keyframe.bounds.h = button_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_CHOICE:
+        keyframe.bounds.h = choice_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_CODE:
+        keyframe.bounds.h = code_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_DIVIDER:
+        keyframe.bounds.h = divider_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_FIELD:
+        keyframe.bounds.h = field_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_HEADER:
+        keyframe.bounds.h = header_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_HEADER2:
+        keyframe.bounds.h = header2_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_HEADER3:
+        keyframe.bounds.h = header3_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_IMAGE:
+        keyframe.bounds.h = image_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_LIST:
+        keyframe.bounds.h = list_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_SELECT:
+        keyframe.bounds.h = select_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_TABLE:
+        keyframe.bounds.h = table_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_TEXT:
+        keyframe.bounds.h = text_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_TOGGLE:
+        keyframe.bounds.h = toggle_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    case WIDGET_TYPE_WINDOW:
+        keyframe.bounds.h = window_step(widget, &keyframe, x, y, w, view, u);
+
+        break;
+
+    }
 
     if (widget->header.type == WIDGET_TYPE_WINDOW)
         tweenframe(&widget->frame, &keyframe, 1.0);
