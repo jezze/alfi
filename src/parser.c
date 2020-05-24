@@ -17,7 +17,7 @@
 #define COMMANDS                        5
 #define ATTRIBUTES                      12
 #define WIDGETS                         16
-#define ICONS                           3
+#define ICONS                           60
 #define MODES                           3
 #define ONCLICKS                        3
 #define TARGETS                         2
@@ -60,10 +60,68 @@ static const struct tokword t_attribute_onclick[] = {
     {ATTRIBUTE_ONCLICK_POST, "post"}
 };
 
+
 static const struct tokword t_attribute_icon[] = {
+    {ATTRIBUTE_ICON_ALARM, "alarm"},
+    {ATTRIBUTE_ICON_AT, "at"},
+    {ATTRIBUTE_ICON_ATTACHMENT, "attachment"},
+    {ATTRIBUTE_ICON_AUDIO, "audio"},
+    {ATTRIBUTE_ICON_BAN, "ban"},
+    {ATTRIBUTE_ICON_BIN, "bin"},
+    {ATTRIBUTE_ICON_BOOKMARK, "bookmark"},
+    {ATTRIBUTE_ICON_BUG, "bug"},
+    {ATTRIBUTE_ICON_CART, "cart"},
+    {ATTRIBUTE_ICON_CHAT, "chat"},
     {ATTRIBUTE_ICON_CHECK, "check"},
+    {ATTRIBUTE_ICON_CLIP, "clip"},
+    {ATTRIBUTE_ICON_CLOCK, "clock"},
     {ATTRIBUTE_ICON_CLOSE, "close"},
-    {ATTRIBUTE_ICON_SEARCH, "search"}
+    {ATTRIBUTE_ICON_COMMENT, "comment"},
+    {ATTRIBUTE_ICON_COMPASS, "compass"},
+    {ATTRIBUTE_ICON_COMPUTER, "computer"},
+    {ATTRIBUTE_ICON_CONSOLE, "console"},
+    {ATTRIBUTE_ICON_DOWNLOAD, "download"},
+    {ATTRIBUTE_ICON_EARTH, "earth"},
+    {ATTRIBUTE_ICON_EDIT, "edit"},
+    {ATTRIBUTE_ICON_ENVELOPE, "envelope"},
+    {ATTRIBUTE_ICON_ERROR, "error"},
+    {ATTRIBUTE_ICON_EXCLAMATION, "exclamation"},
+    {ATTRIBUTE_ICON_EYE, "eye"},
+    {ATTRIBUTE_ICON_FAVOURITE, "favourite"},
+    {ATTRIBUTE_ICON_FLAG, "flag"},
+    {ATTRIBUTE_ICON_HEART, "heart"},
+    {ATTRIBUTE_ICON_HISTORY, "history"},
+    {ATTRIBUTE_ICON_IMAGE, "image"},
+    {ATTRIBUTE_ICON_INFO, "info"},
+    {ATTRIBUTE_ICON_KEY, "key"},
+    {ATTRIBUTE_ICON_LIKE, "like"},
+    {ATTRIBUTE_ICON_LINK, "link"},
+    {ATTRIBUTE_ICON_LOCK, "lock"},
+    {ATTRIBUTE_ICON_LOGIN, "login"},
+    {ATTRIBUTE_ICON_LOGOUT, "logout"},
+    {ATTRIBUTE_ICON_MAGNET, "magnet"},
+    {ATTRIBUTE_ICON_MARKER, "marker"},
+    {ATTRIBUTE_ICON_MENU, "menu"},
+    {ATTRIBUTE_ICON_MINUS, "minus"},
+    {ATTRIBUTE_ICON_OPTIONS, "options"},
+    {ATTRIBUTE_ICON_PLUS, "plus"},
+    {ATTRIBUTE_ICON_POWER, "power"},
+    {ATTRIBUTE_ICON_PRINT, "print"},
+    {ATTRIBUTE_ICON_QUESTION, "question"},
+    {ATTRIBUTE_ICON_REFRESH, "refresh"},
+    {ATTRIBUTE_ICON_REPLY, "reply"},
+    {ATTRIBUTE_ICON_REPLYALL, "replyall"},
+    {ATTRIBUTE_ICON_RETWEET, "retweet"},
+    {ATTRIBUTE_ICON_SEARCH, "search"},
+    {ATTRIBUTE_ICON_SHARE, "share"},
+    {ATTRIBUTE_ICON_SORT, "sort"},
+    {ATTRIBUTE_ICON_TAG, "tag"},
+    {ATTRIBUTE_ICON_TAGS, "tags"},
+    {ATTRIBUTE_ICON_THUMBDOWN, "thumbdown"},
+    {ATTRIBUTE_ICON_THUMBUP, "thumbup"},
+    {ATTRIBUTE_ICON_UNLOCK, "unlock"},
+    {ATTRIBUTE_ICON_UPLOAD, "upload"},
+    {ATTRIBUTE_ICON_WARNING, "warning"}
 };
 
 static const struct tokword t_attribute_mode[] = {

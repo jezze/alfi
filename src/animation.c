@@ -134,41 +134,33 @@ static void button_step(struct widget *widget, struct frame *frame, struct view 
 
     /* Text */
     style_font_init(&text->font, font_bold->index, view->fontsizemedium, STYLE_ALIGN_CENTER | STYLE_ALIGN_TOP);
-
-    if (payload->mode.type == ATTRIBUTE_MODE_ON)
-        style_color_clone(&text->color, &color_background);
-    else
-        style_color_clone(&text->color, &color_focus);
-
+    style_color_clone(&text->color, &color_focus);
     style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->unitw, view->unith);
     style_box_scale(&text->box, text->box.w, render_textheight(text, payload->label.content));
 
+    if (payload->mode.type == ATTRIBUTE_MODE_ON)
+        style_color_clone(&text->color, &color_background);
+
     /* Icon */
-    style_font_init(&icon->font, font_icon->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_font_init(&icon->font, font_icon->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
+    style_color_clone(&icon->color, &color_focus);
+    style_box_init(&icon->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_shrink(&icon->box, view->unitw, view->unith);
+    style_box_scale(&icon->box, view->fontsizemedium, view->fontsizemedium);
+    style_box_translate(&icon->box, 0, 24);
 
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
         style_color_clone(&icon->color, &color_background);
-    else
-        style_color_clone(&icon->color, &color_focus);
-
-    style_box_init(&icon->box, frame->bounds.x + view->marginh, frame->bounds.y + view->fontsizesmall, frame->bounds.w, 0, 0);
-    style_box_shrink(&icon->box, view->unitw, view->unith);
-    style_box_scale(&icon->box, view->fontsizesmall, view->fontsizesmall);
-
-    /*
-    style_box_init(&icon->box, text->box.x, text->box.y, view->fontsizemedium * 2, view->fontsizemedium * 2, 0);
-    */
 
     /* Surface */
-    if (payload->mode.type == ATTRIBUTE_MODE_ON)
-        style_color_clone(&surface->color, &color_focus);
-    else
-        style_color_clone(&surface->color, &color_line);
-
     style_box_init(&surface->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 32);
+    style_color_clone(&surface->color, &color_line);
     style_box_shrink(&surface->box, view->marginw, view->marginh);
     style_box_expand(&surface->box, &text->box, view->unitw - view->marginw, view->unith - view->marginh);
+
+    if (payload->mode.type == ATTRIBUTE_MODE_ON)
+        style_color_clone(&surface->color, &color_focus);
 
     frame->bounds.h = surface->box.h + 2 * view->marginh;
 
