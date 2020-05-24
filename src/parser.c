@@ -15,10 +15,11 @@
 #define COMMAND_INSERT                  3
 #define COMMAND_UPDATE                  4
 #define COMMANDS                        5
-#define ATTRIBUTES                      11
+#define ATTRIBUTES                      12
 #define WIDGETS                         16
 #define ICONS                           3
 #define MODES                           3
+#define ONCLICKS                        3
 #define TARGETS                         2
 #define TYPES                           2
 
@@ -47,9 +48,16 @@ static const struct tokword t_attribute[] = {
     {ATTRIBUTE_LABEL, "label"},
     {ATTRIBUTE_LINK, "link"},
     {ATTRIBUTE_MODE, "mode"},
+    {ATTRIBUTE_ONCLICK, "onclick"},
     {ATTRIBUTE_RANGE, "range"},
     {ATTRIBUTE_TARGET, "target"},
     {ATTRIBUTE_TYPE, "type"}
+};
+
+static const struct tokword t_attribute_onclick[] = {
+    {ATTRIBUTE_ONCLICK_GET, "get"},
+    {ATTRIBUTE_ONCLICK_POST, "post"},
+    {ATTRIBUTE_ONCLICK_ALFI, "alfi"}
 };
 
 static const struct tokword t_attribute_icon[] = {
@@ -405,6 +413,17 @@ static void parse_attribute_mode(struct parser *parser, struct attribute_mode *a
 
 }
 
+static void parse_attribute_onclick(struct parser *parser, struct attribute_onclick *attribute)
+{
+
+    unsigned int type = parsetoken(parser, t_attribute_onclick, ONCLICKS);
+    char data[RESOURCE_PAGESIZE];
+
+    readword(parser, data, RESOURCE_PAGESIZE);
+    attribute_onclick_create(attribute, type, data);
+
+}
+
 static void parse_attribute_range(struct parser *parser, struct attribute_range *attribute)
 {
 
@@ -457,8 +476,8 @@ static void parse_payload_anchor(struct parser *parser, struct widget_header *he
 
             break;
 
-        case ATTRIBUTE_LINK:
-            parse_attribute_link(parser, &payload->link);
+        case ATTRIBUTE_ONCLICK:
+            parse_attribute_onclick(parser, &payload->onclick);
 
             break;
 
@@ -507,13 +526,13 @@ static void parse_payload_button(struct parser *parser, struct widget_header *he
 
             break;
 
-        case ATTRIBUTE_LINK:
-            parse_attribute_link(parser, &payload->link);
+        case ATTRIBUTE_MODE:
+            parse_attribute_mode(parser, &payload->mode);
 
             break;
 
-        case ATTRIBUTE_MODE:
-            parse_attribute_mode(parser, &payload->mode);
+        case ATTRIBUTE_ONCLICK:
+            parse_attribute_onclick(parser, &payload->onclick);
 
             break;
 

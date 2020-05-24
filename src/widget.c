@@ -32,7 +32,7 @@ void widget_payload_anchor_create(struct widget_payload_anchor *payload)
 {
 
     attribute_label_create(&payload->label, "");
-    attribute_link_create(&payload->link, "");
+    attribute_onclick_create(&payload->onclick, ATTRIBUTE_ONCLICK_NONE, "");
     attribute_target_create(&payload->target, ATTRIBUTE_TARGET_BLANK);
 
 }
@@ -41,7 +41,7 @@ void widget_payload_anchor_destroy(struct widget_payload_anchor *payload)
 {
 
     attribute_label_destroy(&payload->label);
-    attribute_link_destroy(&payload->link);
+    attribute_onclick_destroy(&payload->onclick);
     attribute_target_destroy(&payload->target);
 
 }
@@ -51,9 +51,9 @@ void widget_payload_button_create(struct widget_payload_button *payload)
 
     attribute_icon_create(&payload->icon, ATTRIBUTE_ICON_NONE);
     attribute_label_create(&payload->label, "");
-    attribute_link_create(&payload->link, "");
-    attribute_target_create(&payload->target, ATTRIBUTE_TARGET_BLANK);
     attribute_mode_create(&payload->mode, ATTRIBUTE_MODE_OFF);
+    attribute_onclick_create(&payload->onclick, ATTRIBUTE_ONCLICK_NONE, "");
+    attribute_target_create(&payload->target, ATTRIBUTE_TARGET_BLANK);
 
 }
 
@@ -62,9 +62,9 @@ void widget_payload_button_destroy(struct widget_payload_button *payload)
 
     attribute_icon_destroy(&payload->icon);
     attribute_label_destroy(&payload->label);
-    attribute_link_destroy(&payload->link);
-    attribute_target_destroy(&payload->target);
     attribute_mode_destroy(&payload->mode);
+    attribute_onclick_destroy(&payload->onclick);
+    attribute_target_destroy(&payload->target);
 
 }
 

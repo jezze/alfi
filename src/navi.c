@@ -983,19 +983,19 @@ static void onclick_anchor(struct widget *widget, float x, float y)
     if (!style_box_istouching(&frame->styles[0].box, x, y))
         return;
 
-    if (!strlen(payload->link.url))
+    if (!strlen(payload->onclick.data))
         return;
 
     switch (payload->target.type)
     {
 
     case ATTRIBUTE_TARGET_SELF:
-        loadself(payload->link.url, 0, 0);
+        loadself(payload->onclick.data, 0, 0);
 
         break;
 
     case ATTRIBUTE_TARGET_BLANK:
-        loadblank(payload->link.url, 0, 0);
+        loadblank(payload->onclick.data, 0, 0);
 
         break;
 
@@ -1015,19 +1015,19 @@ static void onclick_button(struct widget *widget, float x, float y)
 
     setfocus(widget);
 
-    if (!strlen(payload->link.url))
+    if (!strlen(payload->onclick.data))
         return;
 
     switch (payload->target.type)
     {
 
     case ATTRIBUTE_TARGET_SELF:
-        loadself(payload->link.url, builddata(data, RESOURCE_PAGESIZE), data);
+        loadself(payload->onclick.data, builddata(data, RESOURCE_PAGESIZE), data);
 
         break;
 
     case ATTRIBUTE_TARGET_BLANK:
-        loadblank(payload->link.url, builddata(data, RESOURCE_PAGESIZE), data);
+        loadblank(payload->onclick.data, builddata(data, RESOURCE_PAGESIZE), data);
 
         break;
 

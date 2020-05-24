@@ -36,7 +36,7 @@
 + text in list2 label "Item 2-2"
 
 # An anchor link to another site
-+ anchor label "This is a link" link "http://www.blunder.se/"
++ anchor label "This is a link" onclick "get" "http://www.blunder.se/"
 
 # A row of images
 + table id gallery grid "02:04"

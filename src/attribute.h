@@ -13,11 +13,16 @@
 #define ATTRIBUTE_MODE_OFF              0
 #define ATTRIBUTE_MODE_ON               1
 #define ATTRIBUTE_MODE_DISABLED         2
-#define ATTRIBUTE_RANGE                 9
-#define ATTRIBUTE_TARGET                10
+#define ATTRIBUTE_ONCLICK               9
+#define ATTRIBUTE_ONCLICK_NONE          0
+#define ATTRIBUTE_ONCLICK_GET           1
+#define ATTRIBUTE_ONCLICK_POST          1
+#define ATTRIBUTE_ONCLICK_ALFI          2
+#define ATTRIBUTE_RANGE                 10
+#define ATTRIBUTE_TARGET                11
 #define ATTRIBUTE_TARGET_BLANK          0
 #define ATTRIBUTE_TARGET_SELF           1
-#define ATTRIBUTE_TYPE                  11
+#define ATTRIBUTE_TYPE                  12
 #define ATTRIBUTE_TYPE_REGULAR          0
 #define ATTRIBUTE_TYPE_PASSWORD         1
 
@@ -79,6 +84,14 @@ struct attribute_mode
 
 };
 
+struct attribute_onclick
+{
+
+    unsigned int type;
+    char *data;
+
+};
+
 struct attribute_range
 {
 
@@ -103,6 +116,8 @@ struct attribute_type
 
 void attribute_data_create(struct attribute_data *attribute, char *content);
 void attribute_data_destroy(struct attribute_data *attribute);
+void attribute_onclick_create(struct attribute_onclick *attribute, unsigned int type, char *data);
+void attribute_onclick_destroy(struct attribute_onclick *attribute);
 void attribute_grid_create(struct attribute_grid *attribute, char *format);
 void attribute_grid_destroy(struct attribute_grid *attribute);
 void attribute_icon_create(struct attribute_icon *attribute, unsigned int type);

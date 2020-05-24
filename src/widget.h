@@ -39,7 +39,7 @@ struct widget_payload_anchor
 {
 
     struct attribute_label label;
-    struct attribute_link link;
+    struct attribute_onclick onclick;
     struct attribute_target target;
 
 };
@@ -56,7 +56,7 @@ struct widget_payload_button
 
     struct attribute_icon icon;
     struct attribute_label label;
-    struct attribute_link link;
+    struct attribute_onclick onclick;
     struct attribute_target target;
     struct attribute_mode mode;
 
