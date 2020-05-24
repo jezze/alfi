@@ -663,6 +663,13 @@ static void onclickevent(struct attribute_onclick *onclick, struct attribute_tar
     switch (onclick->type)
     {
 
+    case ATTRIBUTE_ONCLICK_ALFI:
+        /* Need to unescape instead of strcpy */
+        strcpy(data, onclick->data);
+        parser_parse(&parser, "main", strlen(data) + 1, data);
+
+        break;
+
     case ATTRIBUTE_ONCLICK_GET:
         switch (target->type)
         {
