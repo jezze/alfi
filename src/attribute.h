@@ -15,9 +15,9 @@
 #define ATTRIBUTE_MODE_DISABLED         2
 #define ATTRIBUTE_ONCLICK               9
 #define ATTRIBUTE_ONCLICK_NONE          0
-#define ATTRIBUTE_ONCLICK_GET           1
-#define ATTRIBUTE_ONCLICK_POST          1
-#define ATTRIBUTE_ONCLICK_ALFI          2
+#define ATTRIBUTE_ONCLICK_ALFI          1
+#define ATTRIBUTE_ONCLICK_GET           2
+#define ATTRIBUTE_ONCLICK_POST          3
 #define ATTRIBUTE_RANGE                 10
 #define ATTRIBUTE_TARGET                11
 #define ATTRIBUTE_TARGET_BLANK          0

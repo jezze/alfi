@@ -55,9 +55,9 @@ static const struct tokword t_attribute[] = {
 };
 
 static const struct tokword t_attribute_onclick[] = {
+    {ATTRIBUTE_ONCLICK_ALFI, "alfi"},
     {ATTRIBUTE_ONCLICK_GET, "get"},
-    {ATTRIBUTE_ONCLICK_POST, "post"},
-    {ATTRIBUTE_ONCLICK_ALFI, "alfi"}
+    {ATTRIBUTE_ONCLICK_POST, "post"}
 };
 
 static const struct tokword t_attribute_icon[] = {

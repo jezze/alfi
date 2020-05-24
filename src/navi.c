@@ -655,6 +655,54 @@ static void loadblank(char *url, unsigned int count, void *data)
 
 }
 
+static void onclickevent(struct attribute_onclick *onclick, struct attribute_target *target)
+{
+
+    char data[RESOURCE_PAGESIZE];
+
+    switch (onclick->type)
+    {
+
+    case ATTRIBUTE_ONCLICK_GET:
+        switch (target->type)
+        {
+
+        case ATTRIBUTE_TARGET_SELF:
+            loadself(onclick->data, 0, 0);
+
+            break;
+
+        case ATTRIBUTE_TARGET_BLANK:
+            loadblank(onclick->data, 0, 0);
+
+            break;
+
+        }
+
+        break;
+
+    case ATTRIBUTE_ONCLICK_POST:
+        switch (target->type)
+        {
+
+        case ATTRIBUTE_TARGET_SELF:
+            loadself(onclick->data, builddata(data, RESOURCE_PAGESIZE), data);
+
+            break;
+
+        case ATTRIBUTE_TARGET_BLANK:
+            loadblank(onclick->data, builddata(data, RESOURCE_PAGESIZE), data);
+
+            break;
+
+        }
+
+        break;
+
+    }
+
+}
+
 static void create(char *title)
 {
 
@@ -983,23 +1031,8 @@ static void onclick_anchor(struct widget *widget, float x, float y)
     if (!style_box_istouching(&frame->styles[0].box, x, y))
         return;
 
-    if (!strlen(payload->onclick.data))
-        return;
-
-    switch (payload->target.type)
-    {
-
-    case ATTRIBUTE_TARGET_SELF:
-        loadself(payload->onclick.data, 0, 0);
-
-        break;
-
-    case ATTRIBUTE_TARGET_BLANK:
-        loadblank(payload->onclick.data, 0, 0);
-
-        break;
-
-    }
+    if (payload->onclick.type)
+        onclickevent(&payload->onclick, &payload->target);
 
 }
 
@@ -1008,30 +1041,14 @@ static void onclick_button(struct widget *widget, float x, float y)
 
     struct widget_payload_button *payload = &widget->payload.button;
     struct frame *frame = &widget->frame;
-    char data[RESOURCE_PAGESIZE];
 
     if (!style_box_istouching(&frame->styles[0].box, x, y))
         return;
 
     setfocus(widget);
 
-    if (!strlen(payload->onclick.data))
-        return;
-
-    switch (payload->target.type)
-    {
-
-    case ATTRIBUTE_TARGET_SELF:
-        loadself(payload->onclick.data, builddata(data, RESOURCE_PAGESIZE), data);
-
-        break;
-
-    case ATTRIBUTE_TARGET_BLANK:
-        loadblank(payload->onclick.data, builddata(data, RESOURCE_PAGESIZE), data);
-
-        break;
-
-    }
+    if (payload->onclick.type)
+        onclickevent(&payload->onclick, &payload->target);
 
 }
 
