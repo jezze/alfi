@@ -138,7 +138,7 @@ static void button_step(struct widget *widget, struct frame *frame, struct view 
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
         style_color_clone(&text->color, &color_background);
     else
-        style_color_clone(&text->color, &color_text);
+        style_color_clone(&text->color, &color_focus);
 
     style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->unitw, view->unith);
@@ -150,7 +150,7 @@ static void button_step(struct widget *widget, struct frame *frame, struct view 
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
         style_color_clone(&icon->color, &color_background);
     else
-        style_color_clone(&icon->color, &color_text);
+        style_color_clone(&icon->color, &color_focus);
 
     style_box_init(&icon->box, frame->bounds.x + view->marginh, frame->bounds.y + view->fontsizesmall, frame->bounds.w, 0, 0);
     style_box_shrink(&icon->box, view->unitw, view->unith);
