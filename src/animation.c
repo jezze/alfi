@@ -166,7 +166,7 @@ static void button_step(struct widget *widget, struct frame *frame, struct view 
     else
         style_color_clone(&surface->color, &color_line);
 
-    style_box_init(&surface->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, view->fontsizemedium);
+    style_box_init(&surface->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 32);
     style_box_shrink(&surface->box, view->marginw, view->marginh);
     style_box_expand(&surface->box, &text->box, view->unitw - view->marginw, view->unith - view->marginh);
 
