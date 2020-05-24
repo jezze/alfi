@@ -102,11 +102,11 @@ static void anchor_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void anchor_render(struct widget *widget, struct frame *frame, struct view *view)
+static void anchor_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_anchor *payload = &widget->payload.anchor;
-    struct style *text = &frame->styles[0];
+    struct style *text = &widget->frame.styles[0];
 
     render_filltext(text, payload->label.content);
 
@@ -174,13 +174,13 @@ static void button_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void button_render(struct widget *widget, struct frame *frame, struct view *view)
+static void button_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_button *payload = &widget->payload.button;
-    struct style *surface = &frame->styles[0];
-    struct style *text = &frame->styles[1];
-    struct style *icon = &frame->styles[2];
+    struct style *surface = &widget->frame.styles[0];
+    struct style *text = &widget->frame.styles[1];
+    struct style *icon = &widget->frame.styles[2];
 
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
         render_fillrect(surface);
@@ -229,12 +229,12 @@ static void choice_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void choice_render(struct widget *widget, struct frame *frame, struct view *view)
+static void choice_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_choice *payload = &widget->payload.choice;
-    struct style *background = &frame->styles[0];
-    struct style *text = &frame->styles[1];
+    struct style *background = &widget->frame.styles[0];
+    struct style *text = &widget->frame.styles[1];
 
     if (widget->header.state == WIDGET_STATE_HOVER)
         render_fillrectborder(background, 2.0);
@@ -266,11 +266,11 @@ static void code_step(struct widget *widget, struct frame *frame, struct view *v
 
 }
 
-static void code_render(struct widget *widget, struct frame *frame, struct view *view)
+static void code_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_code *payload = &widget->payload.code;
-    struct style *text = &frame->styles[0];
+    struct style *text = &widget->frame.styles[0];
 
     render_filltext(text, payload->label.content);
 
@@ -314,12 +314,12 @@ static void divider_step(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static void divider_render(struct widget *widget, struct frame *frame, struct view *view)
+static void divider_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_divider *payload = &widget->payload.divider;
-    struct style *line = &frame->styles[0];
-    struct style *text = &frame->styles[1];
+    struct style *line = &widget->frame.styles[0];
+    struct style *text = &widget->frame.styles[1];
 
     if (strlen(payload->label.content))
     {
@@ -403,13 +403,13 @@ static void field_step(struct widget *widget, struct frame *frame, struct view *
 
 }
 
-static void field_render(struct widget *widget, struct frame *frame, struct view *view)
+static void field_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_field *payload = &widget->payload.field;
-    struct style *border = &frame->styles[0];
-    struct style *label = &frame->styles[1];
-    struct style *data = &frame->styles[2];
+    struct style *border = &widget->frame.styles[0];
+    struct style *label = &widget->frame.styles[1];
+    struct style *data = &widget->frame.styles[2];
 
     if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
     {
@@ -474,11 +474,11 @@ static void header_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void header_render(struct widget *widget, struct frame *frame, struct view *view)
+static void header_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_header *payload = &widget->payload.header;
-    struct style *text = &frame->styles[0];
+    struct style *text = &widget->frame.styles[0];
 
     render_filltext(text, payload->label.content);
 
@@ -512,11 +512,11 @@ static void header2_step(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static void header2_render(struct widget *widget, struct frame *frame, struct view *view)
+static void header2_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_header2 *payload = &widget->payload.header2;
-    struct style *text = &frame->styles[0];
+    struct style *text = &widget->frame.styles[0];
 
     render_filltext(text, payload->label.content);
 
@@ -550,11 +550,11 @@ static void header3_step(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static void header3_render(struct widget *widget, struct frame *frame, struct view *view)
+static void header3_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_header3 *payload = &widget->payload.header3;
-    struct style *text = &frame->styles[0];
+    struct style *text = &widget->frame.styles[0];
 
     render_filltext(text, payload->label.content);
 
@@ -598,12 +598,12 @@ static void image_step(struct widget *widget, struct frame *frame, struct view *
 
 }
 
-static void image_render(struct widget *widget, struct frame *frame, struct view *view)
+static void image_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_image *payload = &widget->payload.image;
     struct resource *resource = pool_resource_find(payload->link.url);
-    struct style *surface = &frame->styles[0];
+    struct style *surface = &widget->frame.styles[0];
 
     if (!resource)
         return;
@@ -640,7 +640,7 @@ static void list_step(struct widget *widget, struct frame *frame, struct view *v
 
 }
 
-static void list_render(struct widget *widget, struct frame *frame, struct view *view)
+static void list_render(struct widget *widget, struct view *view)
 {
 
     struct widget *child = 0;
@@ -765,13 +765,13 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void select_render(struct widget *widget, struct frame *frame, struct view *view)
+static void select_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_select *payload = &widget->payload.select;
-    struct style *border = &frame->styles[0];
-    struct style *label = &frame->styles[1];
-    struct style *data = &frame->styles[2];
+    struct style *border = &widget->frame.styles[0];
+    struct style *label = &widget->frame.styles[1];
+    struct style *data = &widget->frame.styles[2];
     struct widget *child = 0;
 
     if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
@@ -877,7 +877,7 @@ static void table_step(struct widget *widget, struct frame *frame, struct view *
 
 }
 
-static void table_render(struct widget *widget, struct frame *frame, struct view *view)
+static void table_render(struct widget *widget, struct view *view)
 {
 
     struct widget *child = 0;
@@ -903,11 +903,11 @@ static void text_step(struct widget *widget, struct frame *frame, struct view *v
 
 }
 
-static void text_render(struct widget *widget, struct frame *frame, struct view *view)
+static void text_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_text *payload = &widget->payload.text;
-    struct style *text = &frame->styles[0];
+    struct style *text = &widget->frame.styles[0];
 
     render_filltext(text, payload->label.content);
 
@@ -971,14 +971,14 @@ static void toggle_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void toggle_render(struct widget *widget, struct frame *frame, struct view *view)
+static void toggle_render(struct widget *widget, struct view *view)
 {
 
     struct widget_payload_toggle *payload = &widget->payload.toggle;
-    struct style *groove = &frame->styles[0];
-    struct style *text = &frame->styles[1];
-    struct style *ohandle = &frame->styles[2];
-    struct style *ihandle = &frame->styles[3];
+    struct style *groove = &widget->frame.styles[0];
+    struct style *text = &widget->frame.styles[1];
+    struct style *ohandle = &widget->frame.styles[2];
+    struct style *ihandle = &widget->frame.styles[3];
 
     render_fillrect(groove);
     render_fillcircle(ohandle);
@@ -1030,7 +1030,7 @@ static void window_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void window_render(struct widget *widget, struct frame *frame, struct view *view)
+static void window_render(struct widget *widget, struct view *view)
 {
 
     struct widget *child = 0;
@@ -1137,82 +1137,82 @@ void animation_render(struct widget *widget, struct view *view)
     {
 
     case WIDGET_TYPE_ANCHOR:
-        anchor_render(widget, &widget->frame, view);
+        anchor_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_BUTTON:
-        button_render(widget, &widget->frame, view);
+        button_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_CHOICE:
-        choice_render(widget, &widget->frame, view);
+        choice_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_CODE:
-        code_render(widget, &widget->frame, view);
+        code_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_DIVIDER:
-        divider_render(widget, &widget->frame, view);
+        divider_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_FIELD:
-        field_render(widget, &widget->frame, view);
+        field_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_HEADER:
-        header_render(widget, &widget->frame, view);
+        header_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_HEADER2:
-        header2_render(widget, &widget->frame, view);
+        header2_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_HEADER3:
-        header3_render(widget, &widget->frame, view);
+        header3_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_IMAGE:
-        image_render(widget, &widget->frame, view);
+        image_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_LIST:
-        list_render(widget, &widget->frame, view);
+        list_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_SELECT:
-        select_render(widget, &widget->frame, view);
+        select_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_TABLE:
-        table_render(widget, &widget->frame, view);
+        table_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_TEXT:
-        text_render(widget, &widget->frame, view);
+        text_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_TOGGLE:
-        toggle_render(widget, &widget->frame, view);
+        toggle_render(widget, view);
 
         break;
 
     case WIDGET_TYPE_WINDOW:
-        window_render(widget, &widget->frame, view);
+        window_render(widget, view);
 
         break;
 
