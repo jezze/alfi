@@ -303,14 +303,14 @@ static void divider_step(struct widget *widget, struct frame *frame, struct view
     {
 
         style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
-        style_box_translate(&text->box, frame->bounds.w / 2 - text->box.w / 2, view->unith / 2 + 2);
+        style_box_translate(&text->box, frame->bounds.w / 2 - text->box.w / 2, view->marginh - view->fontsizesmall / 2);
 
     }
 
     style_color_clone(&line->color, &color_line);
-    style_box_init(&line->box, frame->bounds.x + view->marginw, frame->bounds.y + view->unith - 1, frame->bounds.w - view->marginw * 2, 2, 0);
+    style_box_init(&line->box, frame->bounds.x + view->marginw, frame->bounds.y + view->marginh, frame->bounds.w - view->marginw * 2, 2, 0);
 
-    frame->bounds.h = view->unith * 2;
+    frame->bounds.h = line->box.h + view->marginh * 2;
 
 }
 
