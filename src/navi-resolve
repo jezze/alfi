@@ -11,7 +11,7 @@ resolve_navi_bookmarks() {
             label=$(echo $line | cut -d ',' -f 1 | tr -d '"')
             link=$(echo $line | cut -d ',' -f 2 | tr -d '"')
 
-            echo "+ anchor label \"$label\" link \"$link\" \"text/alfi\""
+            echo "+ anchor label \"$label\" onclick \"get\" \"$link\""
         done
     else
         echo "+ text label \"No bookmarks found.\""
@@ -30,7 +30,7 @@ resolve_navi_history() {
             label=$(echo $line | cut -d ',' -f 1 | tr -d '"')
             link=$(echo $line | cut -d ',' -f 2 | tr -d '"')
 
-            echo "+ anchor label \"$label\" link \"$link\" \"text/alfi\""
+            echo "+ anchor label \"$label\" onclick \"get\" \"$link\""
         done
     else
         echo "+ text label \"No history found.\""
@@ -80,7 +80,7 @@ resolve_file() {
             modified=$(stat --printf="%Y" "$entry")
             modified=$(date -d @$modified)
 
-            echo "+ anchor in table1 label \"$name/\" link \"file://$entry\" \"text/alfi\""
+            echo "+ anchor in table1 label \"$name/\" onclick \"get\" \"file://$entry\""
             echo "+ text in table1 label \"$size\""
             echo "+ text in table1 label \"$modified\""
         done
@@ -96,7 +96,7 @@ resolve_file() {
 
             case "$name" in
             *.alfi)
-                echo "+ anchor in table1 label \"$name\" link \"file://$entry\" \"text/alfi\""
+                echo "+ anchor in table1 label \"$name\" onclick \"get\" \"file://$entry\""
                 ;;
             *)
                 echo "+ text in table1 label \"$name\""
