@@ -71,10 +71,6 @@
 #define ATTRIBUTE_MODE_ON               1
 #define ATTRIBUTE_MODE_DISABLED         2
 #define ATTRIBUTE_ONCLICK               9
-#define ATTRIBUTE_ONCLICK_NONE          0
-#define ATTRIBUTE_ONCLICK_ALFI          1
-#define ATTRIBUTE_ONCLICK_GET           2
-#define ATTRIBUTE_ONCLICK_POST          3
 #define ATTRIBUTE_RANGE                 10
 #define ATTRIBUTE_TARGET                11
 #define ATTRIBUTE_TARGET_BLANK          0
@@ -82,6 +78,10 @@
 #define ATTRIBUTE_TYPE                  12
 #define ATTRIBUTE_TYPE_REGULAR          0
 #define ATTRIBUTE_TYPE_PASSWORD         1
+#define FUNCTION_NONE                   0
+#define FUNCTION_ALFI                   1
+#define FUNCTION_GET                    2
+#define FUNCTION_POST                   3
 
 struct attribute_data
 {

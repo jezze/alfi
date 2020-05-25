@@ -655,32 +655,32 @@ static void loadblank(char *url, unsigned int count, void *data)
 
 }
 
-static void onclickevent(struct attribute_onclick *onclick, struct attribute_target *target)
+static void loadfunction(unsigned int type, char *data, unsigned int target)
 {
 
-    char data[RESOURCE_PAGESIZE];
+    char pdata[RESOURCE_PAGESIZE];
 
-    switch (onclick->type)
+    switch (type)
     {
 
-    case ATTRIBUTE_ONCLICK_ALFI:
+    case FUNCTION_ALFI:
         /* Need to unescape instead of strcpy */
-        strcpy(data, onclick->data);
-        parser_parse(&parser, "main", strlen(data) + 1, data);
+        strcpy(pdata, data);
+        parser_parse(&parser, "main", strlen(pdata) + 1, pdata);
 
         break;
 
-    case ATTRIBUTE_ONCLICK_GET:
-        switch (target->type)
+    case FUNCTION_GET:
+        switch (target)
         {
 
         case ATTRIBUTE_TARGET_SELF:
-            loadself(onclick->data, 0, 0);
+            loadself(data, 0, 0);
 
             break;
 
         case ATTRIBUTE_TARGET_BLANK:
-            loadblank(onclick->data, 0, 0);
+            loadblank(data, 0, 0);
 
             break;
 
@@ -688,17 +688,17 @@ static void onclickevent(struct attribute_onclick *onclick, struct attribute_tar
 
         break;
 
-    case ATTRIBUTE_ONCLICK_POST:
-        switch (target->type)
+    case FUNCTION_POST:
+        switch (target)
         {
 
         case ATTRIBUTE_TARGET_SELF:
-            loadself(onclick->data, builddata(data, RESOURCE_PAGESIZE), data);
+            loadself(data, builddata(pdata, RESOURCE_PAGESIZE), pdata);
 
             break;
 
         case ATTRIBUTE_TARGET_BLANK:
-            loadblank(onclick->data, builddata(data, RESOURCE_PAGESIZE), data);
+            loadblank(data, builddata(pdata, RESOURCE_PAGESIZE), pdata);
 
             break;
 
@@ -1039,7 +1039,7 @@ static void onclick_anchor(struct widget *widget, float x, float y)
         return;
 
     if (payload->onclick.type)
-        onclickevent(&payload->onclick, &payload->target);
+        loadfunction(payload->onclick.type, payload->onclick.data, payload->target.type);
 
 }
 
@@ -1055,7 +1055,7 @@ static void onclick_button(struct widget *widget, float x, float y)
     setfocus(widget);
 
     if (payload->onclick.type)
-        onclickevent(&payload->onclick, &payload->target);
+        loadfunction(payload->onclick.type, payload->onclick.data, payload->target.type);
 
 }
 

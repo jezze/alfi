@@ -55,11 +55,10 @@ static const struct tokword t_attribute[] = {
 };
 
 static const struct tokword t_attribute_onclick[] = {
-    {ATTRIBUTE_ONCLICK_ALFI, "alfi"},
-    {ATTRIBUTE_ONCLICK_GET, "get"},
-    {ATTRIBUTE_ONCLICK_POST, "post"}
+    {FUNCTION_ALFI, "alfi"},
+    {FUNCTION_GET, "get"},
+    {FUNCTION_POST, "post"}
 };
-
 
 static const struct tokword t_attribute_icon[] = {
     {ATTRIBUTE_ICON_ALARM, "alarm"},

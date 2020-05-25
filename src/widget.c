@@ -32,7 +32,7 @@ void widget_payload_anchor_create(struct widget_payload_anchor *payload)
 {
 
     attribute_label_create(&payload->label, "");
-    attribute_onclick_create(&payload->onclick, ATTRIBUTE_ONCLICK_NONE, "");
+    attribute_onclick_create(&payload->onclick, FUNCTION_NONE, "");
     attribute_target_create(&payload->target, ATTRIBUTE_TARGET_BLANK);
 
 }
@@ -52,7 +52,7 @@ void widget_payload_button_create(struct widget_payload_button *payload)
     attribute_icon_create(&payload->icon, ATTRIBUTE_ICON_NONE);
     attribute_label_create(&payload->label, "");
     attribute_mode_create(&payload->mode, ATTRIBUTE_MODE_OFF);
-    attribute_onclick_create(&payload->onclick, ATTRIBUTE_ONCLICK_NONE, "");
+    attribute_onclick_create(&payload->onclick, FUNCTION_NONE, "");
     attribute_target_create(&payload->target, ATTRIBUTE_TARGET_BLANK);
 
 }
