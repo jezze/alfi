@@ -50,16 +50,6 @@ struct style
 
 };
 
-struct frame
-{
-
-    struct style_box bounds;
-    struct style styles[8];
-    unsigned int nstyles;
-    unsigned int animating;
-
-};
-
 void style_box_init(struct style_box *box, float x, float y, float w, float h, float r);
 void style_box_clone(struct style_box *box, struct style_box *target);
 void style_box_move(struct style_box *box, float x, float y);

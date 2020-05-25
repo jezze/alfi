@@ -7,10 +7,13 @@
 #include "attribute.h"
 #include "widget.h"
 #include "entity.h"
+#include "view.h"
+#include "animation.h"
 
 #define NWIDGETS                        512
 #define NRESOURCES                      128
 
+static struct frame frames[NWIDGETS];
 static struct widget widgets[NWIDGETS];
 static struct resource resources[NRESOURCES];
 static struct list freewidgets;
@@ -105,6 +108,13 @@ struct widget *pool_widget_destroy(struct widget *widget)
     list_move(&freewidgets, &usedwidgets, &widget->item);
 
     return 0;
+
+}
+
+struct frame *pool_getframe(unsigned int index)
+{
+
+    return &frames[index];
 
 }
 
@@ -207,6 +217,8 @@ void pool_setup(void)
 
     for (i = 0; i < NWIDGETS; i++)
     {
+
+        widgets[i].index = i;
 
         list_inititem(&widgets[i].item, &widgets[i]);
         list_add(&freewidgets, &widgets[i].item);

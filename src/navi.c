@@ -50,10 +50,11 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 {
 
     struct widget *widget = pool_widget_create();
+    struct frame *frame = pool_getframe(widget->index);
 
     memset(&widget->header, 0, sizeof (struct widget_header));
     memset(&widget->payload, 0, sizeof (union widget_payload));
-    memset(&widget->frame, 0, sizeof (struct frame));
+    memset(frame, 0, sizeof (struct frame));
     widget_header_create(&widget->header, type, id, in);
 
     switch (widget->header.type)
@@ -320,7 +321,9 @@ static struct widget *findtouchingwidget(struct widget *widget, float x, float y
     while ((child = pool_widget_nextchild(child, widget)))
     {
 
-        if (style_box_istouching(&child->frame.bounds, x, y))
+        struct frame *frame = pool_getframe(child->index);
+
+        if (style_box_istouching(&frame->bounds, x, y))
             return findtouchingwidget(child, x, y);
 
     }
@@ -574,6 +577,7 @@ static void urlself(char *url, unsigned int count, void *data)
     if (temp.count)
     {
 
+        struct frame *frame = pool_getframe(widget_root->index);
         struct urlinfo *info = history_get(0);
         struct frame keyframe;
 
@@ -584,7 +588,7 @@ static void urlself(char *url, unsigned int count, void *data)
         loadresources();
         animation_initframe(&keyframe, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24, 0);
         animation_step(widget_root, &keyframe, &view, 1.0);
-        animation_updateframe(widget_root->header.type, &widget_root->frame, &keyframe, 1.0);
+        animation_updateframe(widget_root->header.type, frame, &keyframe, 1.0);
 
         updatetitle = 1;
 
@@ -598,9 +602,11 @@ static void urlself(char *url, unsigned int count, void *data)
 static void urlblank(char *url, unsigned int count, void *data)
 {
 
+    struct frame *frame = pool_getframe(widget_root->index);
+
     parser_clear(widget_main);
     view_reset(&view);
-    view_adjust(&view, widget_root->frame.bounds.w, widget_root->frame.bounds.h);
+    view_adjust(&view, frame->bounds.w, frame->bounds.h);
     urlself(url, count, data);
 
 }
@@ -1015,7 +1021,7 @@ static void onclick_anchor(struct widget *widget, float x, float y)
 {
 
     struct widget_payload_anchor *payload = &widget->payload.anchor;
-    struct frame *frame = &widget->frame;
+    struct frame *frame = pool_getframe(widget->index);
 
     if (!style_box_istouching(&frame->styles[0].box, x, y))
         return;
@@ -1029,7 +1035,7 @@ static void onclick_button(struct widget *widget, float x, float y)
 {
 
     struct widget_payload_button *payload = &widget->payload.button;
-    struct frame *frame = &widget->frame;
+    struct frame *frame = pool_getframe(widget->index);
 
     if (!style_box_istouching(&frame->styles[0].box, x, y))
         return;
@@ -1062,7 +1068,7 @@ static void onclick_choice(struct widget *widget, float x, float y)
 static void onclick_field(struct widget *widget, float x, float y)
 {
 
-    struct frame *frame = &widget->frame;
+    struct frame *frame = pool_getframe(widget->index);
 
     if (!style_box_istouching(&frame->styles[0].box, x, y))
         return;
@@ -1074,7 +1080,7 @@ static void onclick_field(struct widget *widget, float x, float y)
 static void onclick_select(struct widget *widget, float x, float y)
 {
 
-    struct frame *frame = &widget->frame;
+    struct frame *frame = pool_getframe(widget->index);
 
     if (!style_box_istouching(&frame->styles[0].box, x, y))
         return;
@@ -1087,7 +1093,7 @@ static void onclick_toggle(struct widget *widget, float x, float y)
 {
 
     struct widget_payload_toggle *payload = &widget->payload.toggle;
-    struct frame *frame = &widget->frame;
+    struct frame *frame = pool_getframe(widget->index);
 
     if (!style_box_istouching(&frame->styles[0].box, x, y))
         return;
@@ -1291,7 +1297,7 @@ static unsigned int checkanimating(void)
     while ((widget = pool_widget_next(widget)))
     {
 
-        struct frame *frame = &widget->frame;
+        struct frame *frame = pool_getframe(widget->index);
 
         if (frame->animating)
             return 1;
@@ -1305,18 +1311,20 @@ static unsigned int checkanimating(void)
 static void render(float u)
 {
 
+    struct frame *frame = pool_getframe(widget_root->index);
+
     render_reset(view.pagew, view.pageh);
-    render_background(view.pagew, view.pageh, &widget_root->frame.styles[0].color);
+    render_background(view.pagew, view.pageh, &frame->styles[0].color);
 
     if (widget_root)
     {
 
         struct frame keyframe;
 
-        view_adjust(&view, widget_root->frame.bounds.w, widget_root->frame.bounds.h);
+        view_adjust(&view, frame->bounds.w, frame->bounds.h);
         animation_initframe(&keyframe, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24, 0);
         animation_step(widget_root, &keyframe, &view, u);
-        animation_updateframe(widget_root->header.type, &widget_root->frame, &keyframe, u);
+        animation_updateframe(widget_root->header.type, frame, &keyframe, u);
         animation_render(widget_root, &view);
 
     }

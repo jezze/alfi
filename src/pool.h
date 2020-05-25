@@ -4,6 +4,7 @@ struct widget *pool_widget_find(char *name);
 struct widget *pool_widget_nextchild(struct widget *widget, struct widget *parent);
 struct widget *pool_widget_create(void);
 struct widget *pool_widget_destroy(struct widget *widget);
+struct frame *pool_getframe(unsigned int index);
 struct resource *pool_resource_find(char *url);
 struct resource *pool_resource_create(void);
 struct resource *pool_resource_destroy(struct resource *resource);

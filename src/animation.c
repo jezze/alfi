@@ -102,11 +102,11 @@ static void anchor_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void anchor_render(struct widget *widget, struct view *view)
+static void anchor_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_anchor *payload = &widget->payload.anchor;
-    struct style *text = &widget->frame.styles[0];
+    struct style *text = &frame->styles[0];
 
     render_filltext(text, payload->label.content);
 
@@ -166,13 +166,13 @@ static void button_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void button_render(struct widget *widget, struct view *view)
+static void button_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_button *payload = &widget->payload.button;
-    struct style *surface = &widget->frame.styles[0];
-    struct style *text = &widget->frame.styles[1];
-    struct style *icon = &widget->frame.styles[2];
+    struct style *surface = &frame->styles[0];
+    struct style *text = &frame->styles[1];
+    struct style *icon = &frame->styles[2];
 
     if (payload->mode.type == ATTRIBUTE_MODE_ON)
         render_fillrect(surface);
@@ -221,12 +221,12 @@ static void choice_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void choice_render(struct widget *widget, struct view *view)
+static void choice_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_choice *payload = &widget->payload.choice;
-    struct style *background = &widget->frame.styles[0];
-    struct style *text = &widget->frame.styles[1];
+    struct style *background = &frame->styles[0];
+    struct style *text = &frame->styles[1];
 
     if (widget->header.state == WIDGET_STATE_HOVER)
         render_fillrectborder(background, 2.0);
@@ -258,11 +258,11 @@ static void code_step(struct widget *widget, struct frame *frame, struct view *v
 
 }
 
-static void code_render(struct widget *widget, struct view *view)
+static void code_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_code *payload = &widget->payload.code;
-    struct style *text = &widget->frame.styles[0];
+    struct style *text = &frame->styles[0];
 
     render_filltext(text, payload->label.content);
 
@@ -306,12 +306,12 @@ static void divider_step(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static void divider_render(struct widget *widget, struct view *view)
+static void divider_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_divider *payload = &widget->payload.divider;
-    struct style *line = &widget->frame.styles[0];
-    struct style *text = &widget->frame.styles[1];
+    struct style *line = &frame->styles[0];
+    struct style *text = &frame->styles[1];
 
     if (strlen(payload->label.content))
     {
@@ -395,13 +395,13 @@ static void field_step(struct widget *widget, struct frame *frame, struct view *
 
 }
 
-static void field_render(struct widget *widget, struct view *view)
+static void field_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_field *payload = &widget->payload.field;
-    struct style *border = &widget->frame.styles[0];
-    struct style *label = &widget->frame.styles[1];
-    struct style *data = &widget->frame.styles[2];
+    struct style *border = &frame->styles[0];
+    struct style *label = &frame->styles[1];
+    struct style *data = &frame->styles[2];
 
     if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
     {
@@ -466,11 +466,11 @@ static void header_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void header_render(struct widget *widget, struct view *view)
+static void header_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_header *payload = &widget->payload.header;
-    struct style *text = &widget->frame.styles[0];
+    struct style *text = &frame->styles[0];
 
     render_filltext(text, payload->label.content);
 
@@ -504,11 +504,11 @@ static void header2_step(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static void header2_render(struct widget *widget, struct view *view)
+static void header2_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_header2 *payload = &widget->payload.header2;
-    struct style *text = &widget->frame.styles[0];
+    struct style *text = &frame->styles[0];
 
     render_filltext(text, payload->label.content);
 
@@ -542,11 +542,11 @@ static void header3_step(struct widget *widget, struct frame *frame, struct view
 
 }
 
-static void header3_render(struct widget *widget, struct view *view)
+static void header3_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_header3 *payload = &widget->payload.header3;
-    struct style *text = &widget->frame.styles[0];
+    struct style *text = &frame->styles[0];
 
     render_filltext(text, payload->label.content);
 
@@ -590,12 +590,12 @@ static void image_step(struct widget *widget, struct frame *frame, struct view *
 
 }
 
-static void image_render(struct widget *widget, struct view *view)
+static void image_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_image *payload = &widget->payload.image;
     struct resource *resource = pool_resource_find(payload->link.url);
-    struct style *surface = &widget->frame.styles[0];
+    struct style *surface = &frame->styles[0];
 
     if (!resource)
         return;
@@ -617,14 +617,15 @@ static void list_step(struct widget *widget, struct frame *frame, struct view *v
     while ((child = pool_widget_nextchild(child, widget)))
     {
 
+        struct frame *cframe = pool_getframe(child->index);
         struct frame keyframe;
 
         animation_initframe(&keyframe, cx, cy, cw, 0);
         animation_step(child, &keyframe, view, u);
-        animation_updateframe(child->header.type, &child->frame, &keyframe, u);
+        animation_updateframe(child->header.type, cframe, &keyframe, u);
 
-        ch = max(ch, cy + child->frame.bounds.h - frame->bounds.y);
-        cy += child->frame.bounds.h;
+        ch = max(ch, cy + cframe->bounds.h - frame->bounds.y);
+        cy += cframe->bounds.h;
 
     }
 
@@ -632,7 +633,7 @@ static void list_step(struct widget *widget, struct frame *frame, struct view *v
 
 }
 
-static void list_render(struct widget *widget, struct view *view)
+static void list_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget *child = 0;
@@ -645,11 +646,12 @@ static void list_render(struct widget *widget, struct view *view)
         if (child->header.type != WIDGET_TYPE_LIST)
         {
 
+            struct frame *cframe = pool_getframe(child->index);
             struct style dot;
 
             style_init(&dot);
             style_color_clone(&dot.color, &color_header);
-            style_box_init(&dot.box, child->frame.bounds.x - view->unitw / 2 + view->marginw, child->frame.bounds.y + child->frame.bounds.h / 2, 0, 0, 3);
+            style_box_init(&dot.box, cframe->bounds.x - view->unitw / 2 + view->marginw, cframe->bounds.y + cframe->bounds.h / 2, 0, 0, 3);
             render_fillcircle(&dot);
 
         }
@@ -674,17 +676,18 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
     while ((child = pool_widget_nextchild(child, widget)))
     {
 
+        struct frame *cframe = pool_getframe(child->index);
         struct frame keyframe;
 
         animation_initframe(&keyframe, cx, cy, cw, 0);
         animation_step(child, &keyframe, view, u);
-        animation_updateframe(child->header.type, &child->frame, &keyframe, u);
+        animation_updateframe(child->header.type, cframe, &keyframe, u);
 
         if (widget->header.state == WIDGET_STATE_FOCUS)
         {
 
-            ch = max(ch, cy + child->frame.bounds.h - frame->bounds.y);
-            cy += child->frame.bounds.h;
+            ch = max(ch, cy + cframe->bounds.h - frame->bounds.y);
+            cy += cframe->bounds.h;
 
         }
 
@@ -757,13 +760,13 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void select_render(struct widget *widget, struct view *view)
+static void select_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_select *payload = &widget->payload.select;
-    struct style *border = &widget->frame.styles[0];
-    struct style *label = &widget->frame.styles[1];
-    struct style *data = &widget->frame.styles[2];
+    struct style *border = &frame->styles[0];
+    struct style *label = &frame->styles[1];
+    struct style *data = &frame->styles[2];
     struct widget *child = 0;
 
     if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
@@ -843,13 +846,14 @@ static void table_step(struct widget *widget, struct frame *frame, struct view *
         if (cx + cw <= frame->bounds.x + frame->bounds.w)
         {
 
+            struct frame *cframe = pool_getframe(child->index);
             struct frame keyframe;
 
             animation_initframe(&keyframe, cx, cy, cw, 0);
             animation_step(child, &keyframe, view, u);
-            animation_updateframe(child->header.type, &child->frame, &keyframe, u);
+            animation_updateframe(child->header.type, cframe, &keyframe, u);
 
-            ch = max(ch, cy + child->frame.bounds.h - frame->bounds.y);
+            ch = max(ch, cy + cframe->bounds.h - frame->bounds.y);
 
         }
 
@@ -869,7 +873,7 @@ static void table_step(struct widget *widget, struct frame *frame, struct view *
 
 }
 
-static void table_render(struct widget *widget, struct view *view)
+static void table_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget *child = 0;
@@ -895,11 +899,11 @@ static void text_step(struct widget *widget, struct frame *frame, struct view *v
 
 }
 
-static void text_render(struct widget *widget, struct view *view)
+static void text_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_text *payload = &widget->payload.text;
-    struct style *text = &widget->frame.styles[0];
+    struct style *text = &frame->styles[0];
 
     render_filltext(text, payload->label.content);
 
@@ -963,14 +967,14 @@ static void toggle_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void toggle_render(struct widget *widget, struct view *view)
+static void toggle_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget_payload_toggle *payload = &widget->payload.toggle;
-    struct style *groove = &widget->frame.styles[0];
-    struct style *text = &widget->frame.styles[1];
-    struct style *ohandle = &widget->frame.styles[2];
-    struct style *ihandle = &widget->frame.styles[3];
+    struct style *groove = &frame->styles[0];
+    struct style *text = &frame->styles[1];
+    struct style *ohandle = &frame->styles[2];
+    struct style *ihandle = &frame->styles[3];
 
     render_fillrect(groove);
     render_fillcircle(ohandle);
@@ -1006,13 +1010,14 @@ static void window_step(struct widget *widget, struct frame *frame, struct view 
     while ((child = pool_widget_nextchild(child, widget)))
     {
 
+        struct frame *cframe = pool_getframe(child->index);
         struct frame keyframe;
 
         animation_initframe(&keyframe, cx, cy, cw, 0);
         animation_step(child, &keyframe, view, u);
-        animation_updateframe(child->header.type, &child->frame, &keyframe, u);
+        animation_updateframe(child->header.type, cframe, &keyframe, u);
 
-        ch = max(ch, cy + child->frame.bounds.h - frame->bounds.y);
+        ch = max(ch, cy + cframe->bounds.h - frame->bounds.y);
 
     }
 
@@ -1022,7 +1027,7 @@ static void window_step(struct widget *widget, struct frame *frame, struct view 
 
 }
 
-static void window_render(struct widget *widget, struct view *view)
+static void window_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
     struct widget *child = 0;
@@ -1125,86 +1130,88 @@ void animation_step(struct widget *widget, struct frame *frame, struct view *vie
 void animation_render(struct widget *widget, struct view *view)
 {
 
+    struct frame *frame = pool_getframe(widget->index);
+
     switch (widget->header.type)
     {
 
     case WIDGET_TYPE_ANCHOR:
-        anchor_render(widget, view);
+        anchor_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_BUTTON:
-        button_render(widget, view);
+        button_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_CHOICE:
-        choice_render(widget, view);
+        choice_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_CODE:
-        code_render(widget, view);
+        code_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_DIVIDER:
-        divider_render(widget, view);
+        divider_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_FIELD:
-        field_render(widget, view);
+        field_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_HEADER:
-        header_render(widget, view);
+        header_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_HEADER2:
-        header2_render(widget, view);
+        header2_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_HEADER3:
-        header3_render(widget, view);
+        header3_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_IMAGE:
-        image_render(widget, view);
+        image_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_LIST:
-        list_render(widget, view);
+        list_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_SELECT:
-        select_render(widget, view);
+        select_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_TABLE:
-        table_render(widget, view);
+        table_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_TEXT:
-        text_render(widget, view);
+        text_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_TOGGLE:
-        toggle_render(widget, view);
+        toggle_render(widget, frame, view);
 
         break;
 
     case WIDGET_TYPE_WINDOW:
-        window_render(widget, view);
+        window_render(widget, frame, view);
 
         break;
 
@@ -1215,44 +1222,46 @@ void animation_render(struct widget *widget, struct view *view)
 unsigned int animation_getcursor(struct widget *widget, int x, int y)
 {
 
+    struct frame *frame = pool_getframe(widget->index);
+
     switch (widget->header.type)
     {
 
     case WIDGET_TYPE_ANCHOR:
-        return anchor_getcursor(&widget->frame, x, y);
+        return anchor_getcursor(frame, x, y);
 
     case WIDGET_TYPE_BUTTON:
-        return button_getcursor(&widget->frame, x, y);
+        return button_getcursor(frame, x, y);
 
     case WIDGET_TYPE_CHOICE:
-        return choice_getcursor(&widget->frame, x, y);
+        return choice_getcursor(frame, x, y);
 
     case WIDGET_TYPE_CODE:
-        return code_getcursor(&widget->frame, x, y);
+        return code_getcursor(frame, x, y);
 
     case WIDGET_TYPE_DIVIDER:
-        return divider_getcursor(&widget->frame, x, y);
+        return divider_getcursor(frame, x, y);
 
     case WIDGET_TYPE_FIELD:
-        return field_getcursor(&widget->frame, x, y);
+        return field_getcursor(frame, x, y);
 
     case WIDGET_TYPE_HEADER:
-        return header_getcursor(&widget->frame, x, y);
+        return header_getcursor(frame, x, y);
 
     case WIDGET_TYPE_HEADER2:
-        return header2_getcursor(&widget->frame, x, y);
+        return header2_getcursor(frame, x, y);
 
     case WIDGET_TYPE_HEADER3:
-        return header3_getcursor(&widget->frame, x, y);
+        return header3_getcursor(frame, x, y);
 
     case WIDGET_TYPE_SELECT:
-        return select_getcursor(&widget->frame, x, y);
+        return select_getcursor(frame, x, y);
 
     case WIDGET_TYPE_TEXT:
-        return text_getcursor(&widget->frame, x, y);
+        return text_getcursor(frame, x, y);
 
     case WIDGET_TYPE_TOGGLE:
-        return toggle_getcursor(&widget->frame, x, y);
+        return toggle_getcursor(frame, x, y);
 
     }
 
