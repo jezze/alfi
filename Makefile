@@ -44,11 +44,6 @@ install:
 	mkdir -p /usr/share/navi
 	cp data/icofont.ttf /usr/share/navi/icofont.ttf
 	cp data/roboto-bold.ttf /usr/share/navi/roboto-bold.ttf
-	cp data/roboto-light.ttf /usr/share/navi/roboto-light.ttf
 	cp data/roboto-regular.ttf /usr/share/navi/roboto-regular.ttf
-	cp data/robotomono-bold.ttf /usr/share/navi/robotomono-bold.ttf
-	cp data/robotomono-light.ttf /usr/share/navi/robotomono-light.ttf
 	cp data/robotomono-regular.ttf /usr/share/navi/robotomono-regular.ttf
-	cp data/image6.jpg /usr/share/navi/image6.jpg
-	cp data/example.alfi /usr/share/navi/example.alfi
 
