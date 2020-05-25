@@ -124,7 +124,7 @@ void attribute_mode_destroy(struct attribute_mode *attribute)
 
 }
 
-void attribute_onclick_create(struct attribute_onclick *attribute, unsigned int type, char *data)
+void attribute_onclick_create(struct attribute_event *attribute, unsigned int type, char *data)
 {
 
     attribute->type = type;
@@ -132,7 +132,7 @@ void attribute_onclick_create(struct attribute_onclick *attribute, unsigned int 
 
 }
 
-void attribute_onclick_destroy(struct attribute_onclick *attribute)
+void attribute_onclick_destroy(struct attribute_event *attribute)
 {
 
     attribute->type = 0;

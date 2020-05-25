@@ -19,7 +19,7 @@
 #define WIDGETS                         16
 #define ICONS                           60
 #define MODES                           3
-#define ONCLICKS                        3
+#define EVENTS                          3
 #define TARGETS                         2
 #define TYPES                           2
 
@@ -54,7 +54,7 @@ static const struct tokword t_attribute[] = {
     {ATTRIBUTE_TYPE, "type"}
 };
 
-static const struct tokword t_attribute_onclick[] = {
+static const struct tokword t_attribute_event[] = {
     {FUNCTION_ALFI, "alfi"},
     {FUNCTION_GET, "get"},
     {FUNCTION_POST, "post"}
@@ -470,10 +470,10 @@ static void parse_attribute_mode(struct parser *parser, struct attribute_mode *a
 
 }
 
-static void parse_attribute_onclick(struct parser *parser, struct attribute_onclick *attribute)
+static void parse_attribute_onclick(struct parser *parser, struct attribute_event *attribute)
 {
 
-    unsigned int type = parsetoken(parser, t_attribute_onclick, ONCLICKS);
+    unsigned int type = parsetoken(parser, t_attribute_event, EVENTS);
     char data[RESOURCE_PAGESIZE];
 
     readword(parser, data, RESOURCE_PAGESIZE);

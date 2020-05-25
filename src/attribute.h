@@ -92,6 +92,14 @@ struct attribute_data
 
 };
 
+struct attribute_event
+{
+
+    unsigned int type;
+    char *data;
+
+};
+
 struct attribute_grid
 {
 
@@ -141,14 +149,6 @@ struct attribute_mode
 
 };
 
-struct attribute_onclick
-{
-
-    unsigned int type;
-    char *data;
-
-};
-
 struct attribute_range
 {
 
@@ -173,8 +173,8 @@ struct attribute_type
 
 void attribute_data_create(struct attribute_data *attribute, char *content);
 void attribute_data_destroy(struct attribute_data *attribute);
-void attribute_onclick_create(struct attribute_onclick *attribute, unsigned int type, char *data);
-void attribute_onclick_destroy(struct attribute_onclick *attribute);
+void attribute_onclick_create(struct attribute_event *attribute, unsigned int type, char *data);
+void attribute_onclick_destroy(struct attribute_event *attribute);
 void attribute_grid_create(struct attribute_grid *attribute, char *format);
 void attribute_grid_destroy(struct attribute_grid *attribute);
 void attribute_icon_create(struct attribute_icon *attribute, unsigned int type);
