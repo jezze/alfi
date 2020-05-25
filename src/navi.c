@@ -52,92 +52,9 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 
     memset(&widget->header, 0, sizeof (struct widget_header));
     memset(&widget->payload, 0, sizeof (union widget_payload));
+
     widget_header_create(&widget->header, type, id, in);
-
-    switch (widget->header.type)
-    {
-
-    case WIDGET_TYPE_ANCHOR:
-        widget_payload_anchor_create(&widget->payload.anchor);
-
-        break;
-
-    case WIDGET_TYPE_BUTTON:
-        widget_payload_button_create(&widget->payload.button);
-
-        break;
-
-    case WIDGET_TYPE_CHOICE:
-        widget_payload_choice_create(&widget->payload.choice);
-
-        break;
-
-    case WIDGET_TYPE_CODE:
-        widget_payload_code_create(&widget->payload.code);
-
-        break;
-
-    case WIDGET_TYPE_DIVIDER:
-        widget_payload_divider_create(&widget->payload.divider);
-
-        break;
-
-    case WIDGET_TYPE_FIELD:
-        widget_payload_field_create(&widget->payload.field);
-
-        break;
-
-    case WIDGET_TYPE_HEADER:
-        widget_payload_header_create(&widget->payload.header);
-
-        break;
-
-    case WIDGET_TYPE_HEADER2:
-        widget_payload_header2_create(&widget->payload.header2);
-
-        break;
-
-    case WIDGET_TYPE_HEADER3:
-        widget_payload_header3_create(&widget->payload.header3);
-
-        break;
-
-    case WIDGET_TYPE_IMAGE:
-        widget_payload_image_create(&widget->payload.image);
-
-        break;
-
-    case WIDGET_TYPE_LIST:
-        widget_payload_list_create(&widget->payload.list);
-
-        break;
-
-    case WIDGET_TYPE_SELECT:
-        widget_payload_select_create(&widget->payload.select);
-
-        break;
-
-    case WIDGET_TYPE_TABLE:
-        widget_payload_table_create(&widget->payload.table);
-
-        break;
-
-    case WIDGET_TYPE_TEXT:
-        widget_payload_text_create(&widget->payload.text);
-
-        break;
-
-    case WIDGET_TYPE_TOGGLE:
-        widget_payload_toggle_create(&widget->payload.toggle);
-
-        break;
-
-    case WIDGET_TYPE_WINDOW:
-        widget_payload_window_create(&widget->payload.window);
-
-        break;
-
-    }
+    widget_payload_create(&widget->payload, widget->header.type);
 
     return widget;
 
@@ -146,91 +63,7 @@ static struct widget *parser_create(unsigned int type, char *id, char *in)
 static struct widget *parser_destroy(struct widget *widget)
 {
 
-    switch (widget->header.type)
-    {
-
-    case WIDGET_TYPE_ANCHOR:
-        widget_payload_anchor_destroy(&widget->payload.anchor);
-
-        break;
-
-    case WIDGET_TYPE_BUTTON:
-        widget_payload_button_destroy(&widget->payload.button);
-
-        break;
-
-    case WIDGET_TYPE_CHOICE:
-        widget_payload_choice_destroy(&widget->payload.choice);
-
-        break;
-
-    case WIDGET_TYPE_CODE:
-        widget_payload_code_destroy(&widget->payload.code);
-
-        break;
-
-    case WIDGET_TYPE_DIVIDER:
-        widget_payload_divider_destroy(&widget->payload.divider);
-
-        break;
-
-    case WIDGET_TYPE_FIELD:
-        widget_payload_field_destroy(&widget->payload.field);
-
-        break;
-
-    case WIDGET_TYPE_HEADER:
-        widget_payload_header_destroy(&widget->payload.header);
-
-        break;
-
-    case WIDGET_TYPE_HEADER2:
-        widget_payload_header2_destroy(&widget->payload.header2);
-
-        break;
-
-    case WIDGET_TYPE_HEADER3:
-        widget_payload_header3_destroy(&widget->payload.header3);
-
-        break;
-
-    case WIDGET_TYPE_IMAGE:
-        widget_payload_image_destroy(&widget->payload.image);
-
-        break;
-
-    case WIDGET_TYPE_LIST:
-        widget_payload_list_destroy(&widget->payload.list);
-
-        break;
-
-    case WIDGET_TYPE_SELECT:
-        widget_payload_select_destroy(&widget->payload.select);
-
-        break;
-
-    case WIDGET_TYPE_TABLE:
-        widget_payload_table_destroy(&widget->payload.table);
-
-        break;
-
-    case WIDGET_TYPE_TEXT:
-        widget_payload_text_destroy(&widget->payload.text);
-
-        break;
-
-    case WIDGET_TYPE_TOGGLE:
-        widget_payload_toggle_destroy(&widget->payload.toggle);
-
-        break;
-
-    case WIDGET_TYPE_WINDOW:
-        widget_payload_window_destroy(&widget->payload.window);
-
-        break;
-
-    }
-
+    widget_payload_destroy(&widget->payload, widget->header.type);
     widget_header_destroy(&widget->header);
 
     return pool_widget_destroy(widget);
@@ -414,43 +247,6 @@ static void setcursor(struct GLFWwindow *window, unsigned int type)
 
 }
 
-static unsigned int changestate(struct widget *widget, unsigned int state)
-{
-
-    switch (widget->header.type)
-    {
-
-    case WIDGET_TYPE_BUTTON:
-        widget->header.state = widget_payload_button_changestate(&widget->header, state);
-
-        break;
-
-    case WIDGET_TYPE_FIELD:
-        widget->header.state = widget_payload_field_changestate(&widget->header, state);
-
-        break;
-
-    case WIDGET_TYPE_SELECT:
-        widget->header.state = widget_payload_select_changestate(&widget->header, state);
-
-        break;
-
-    case WIDGET_TYPE_TOGGLE:
-        widget->header.state = widget_payload_toggle_changestate(&widget->header, state);
-
-        break;
-
-    default:
-        widget->header.state = state;
-
-        break;
-
-    }
-
-    return 0;
-
-}
-
 static void setfocus(struct widget *widget)
 {
 
@@ -458,12 +254,12 @@ static void setfocus(struct widget *widget)
     {
 
         if (widget_focus)
-            changestate(widget_focus, WIDGET_STATE_UNFOCUS);
+            widget_changestate(&widget_focus->header, WIDGET_STATE_UNFOCUS);
 
         widget_focus = widget;
 
         if (widget_focus)
-            changestate(widget_focus, WIDGET_STATE_FOCUS);
+            widget_changestate(&widget_focus->header, WIDGET_STATE_FOCUS);
 
     }
 
@@ -476,12 +272,12 @@ static void sethover(struct widget *widget)
     {
 
         if (widget_hover)
-            changestate(widget_hover, WIDGET_STATE_UNHOVER);
+            widget_changestate(&widget_hover->header, WIDGET_STATE_UNHOVER);
 
         widget_hover = widget;
 
         if (widget_hover)
-            changestate(widget_hover, WIDGET_STATE_HOVER);
+            widget_changestate(&widget_hover->header, WIDGET_STATE_HOVER);
 
     }
 
