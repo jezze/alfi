@@ -487,28 +487,28 @@ static void sethover(struct widget *widget)
 
 }
 
-static void loadresources_code(struct widget_payload_code *payload)
+static void loadresources_linklabel(struct attribute_link *link, struct attribute_label *label)
 {
 
     struct resource resource;
     struct urlinfo info;
-    char *data;
 
-    if (!strlen(payload->link.url))
+    if (!strlen(link->url))
         return;
 
-    url_merge(&info, history_geturl(0), payload->link.url);
-    attribute_link_create(&payload->link, info.url);
-    resource_init(&resource, payload->link.url);
+    url_merge(&info, history_geturl(0), link->url);
+    attribute_link_create(link, info.url);
+    resource_init(&resource, link->url);
     resource_load(&resource, 0, 0);
 
     if (resource.count)
     {
 
-        data = resource.data;
+        char *data = resource.data;
+
         data[resource.count - 1] = '\0';
 
-        attribute_label_create(&payload->label, data);
+        attribute_label_create(label, data);
 
     }
 
@@ -517,47 +517,17 @@ static void loadresources_code(struct widget_payload_code *payload)
 
 }
 
-static void loadresources_image(struct widget_payload_image *payload)
+static void loadresources_image(struct attribute_link *link)
 {
 
     struct urlinfo info;
 
-    if (!strlen(payload->link.url))
+    if (!strlen(link->url))
         return;
 
-    url_merge(&info, history_geturl(0), payload->link.url);
-    attribute_link_create(&payload->link, info.url);
-    render_loadimage(payload->link.url);
-
-}
-
-static void loadresources_text(struct widget_payload_text *payload)
-{
-
-    struct resource resource;
-    struct urlinfo info;
-    char *data;
-
-    if (!strlen(payload->link.url))
-        return;
-
-    url_merge(&info, history_geturl(0), payload->link.url);
-    attribute_link_create(&payload->link, info.url);
-    resource_init(&resource, payload->link.url);
-    resource_load(&resource, 0, 0);
-
-    if (resource.count)
-    {
-
-        data = resource.data;
-        data[resource.count - 1] = '\0';
-
-        attribute_label_create(&payload->label, data);
-
-    }
-
-    resource_unload(&resource);
-    resource_destroy(&resource);
+    url_merge(&info, history_geturl(0), link->url);
+    attribute_link_create(link, info.url);
+    render_loadimage(link->url);
 
 }
 
@@ -573,17 +543,17 @@ static void loadresources(void)
         {
 
         case WIDGET_TYPE_CODE:
-            loadresources_code(&widget->payload.code);
+            loadresources_linklabel(&widget->payload.code.link, &widget->payload.code.label);
 
             break;
 
         case WIDGET_TYPE_IMAGE:
-            loadresources_image(&widget->payload.image);
+            loadresources_image(&widget->payload.image.link);
 
             break;
 
         case WIDGET_TYPE_TEXT:
-            loadresources_text(&widget->payload.text);
+            loadresources_linklabel(&widget->payload.text.link, &widget->payload.text.label);
 
             break;
 
