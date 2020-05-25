@@ -137,6 +137,7 @@ void widget_payload_field_create(struct widget_payload_field *payload)
     attribute_data_create(&payload->data, "");
     attribute_icon_create(&payload->icon, ATTRIBUTE_ICON_NONE);
     attribute_label_create(&payload->label, "");
+    attribute_onlinebreak_create(&payload->onlinebreak, FUNCTION_NONE, "");
     attribute_range_create(&payload->range, 1, 1);
     attribute_type_create(&payload->type, ATTRIBUTE_TYPE_REGULAR);
 
@@ -148,6 +149,7 @@ void widget_payload_field_destroy(struct widget_payload_field *payload)
     attribute_data_destroy(&payload->data);
     attribute_icon_destroy(&payload->icon);
     attribute_label_destroy(&payload->label);
+    attribute_onlinebreak_destroy(&payload->onlinebreak);
     attribute_range_destroy(&payload->range);
     attribute_type_destroy(&payload->type);
 

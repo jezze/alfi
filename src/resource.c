@@ -140,7 +140,7 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
         static char *fmt =
             "= window label \"Navi 1.0\"\n"
             "+ table id bar grid \"08:04\"\n"
-            "+ field id \"url\" in bar label \"URL\" data \"%s\"\n"
+            "+ field id \"url\" in bar label \"URL\" data \"%s\" onlinebreak \"post\" \"navi://lookup\"\n"
             "+ button in bar label \"Search\" onclick \"post\" \"navi://lookup\" mode \"on\" icon \"search\"\n"
             "+ divider\n"
             "+ table id maintbl grid \"06\"\n"

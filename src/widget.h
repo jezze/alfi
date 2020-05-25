@@ -91,6 +91,7 @@ struct widget_payload_field
     struct attribute_data data;
     struct attribute_icon icon;
     struct attribute_label label;
+    struct attribute_event onlinebreak;
     struct attribute_range range;
     struct attribute_type type;
 

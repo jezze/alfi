@@ -763,12 +763,24 @@ static void oninput_field(struct widget_payload_field *payload, int key, int sca
             break;
 
         case GLFW_KEY_ENTER:
-            if (payload->data.offset < payload->data.total - 1)
+            if (payload->onlinebreak.type)
             {
 
-                payload->data.content[payload->data.offset] = '\n';
-                payload->data.offset++;
-                payload->data.content[payload->data.offset] = '\0';
+                loadfunction(payload->onlinebreak.type, payload->onlinebreak.data, ATTRIBUTE_TARGET_BLANK);
+
+            }
+
+            else
+            {
+
+                if (payload->data.offset < payload->data.total - 1)
+                {
+
+                    payload->data.content[payload->data.offset] = '\n';
+                    payload->data.offset++;
+                    payload->data.content[payload->data.offset] = '\0';
+
+                }
 
             }
 

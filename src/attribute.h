@@ -71,11 +71,12 @@
 #define ATTRIBUTE_MODE_ON               1
 #define ATTRIBUTE_MODE_DISABLED         2
 #define ATTRIBUTE_ONCLICK               9
-#define ATTRIBUTE_RANGE                 10
-#define ATTRIBUTE_TARGET                11
+#define ATTRIBUTE_ONLINEBREAK           10
+#define ATTRIBUTE_RANGE                 11
+#define ATTRIBUTE_TARGET                12
 #define ATTRIBUTE_TARGET_BLANK          0
 #define ATTRIBUTE_TARGET_SELF           1
-#define ATTRIBUTE_TYPE                  12
+#define ATTRIBUTE_TYPE                  13
 #define ATTRIBUTE_TYPE_REGULAR          0
 #define ATTRIBUTE_TYPE_PASSWORD         1
 #define FUNCTION_NONE                   0
@@ -175,6 +176,8 @@ void attribute_data_create(struct attribute_data *attribute, char *content);
 void attribute_data_destroy(struct attribute_data *attribute);
 void attribute_onclick_create(struct attribute_event *attribute, unsigned int type, char *data);
 void attribute_onclick_destroy(struct attribute_event *attribute);
+void attribute_onlinebreak_create(struct attribute_event *attribute, unsigned int type, char *data);
+void attribute_onlinebreak_destroy(struct attribute_event *attribute);
 void attribute_grid_create(struct attribute_grid *attribute, char *format);
 void attribute_grid_destroy(struct attribute_grid *attribute);
 void attribute_icon_create(struct attribute_icon *attribute, unsigned int type);

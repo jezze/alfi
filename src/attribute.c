@@ -140,6 +140,22 @@ void attribute_onclick_destroy(struct attribute_event *attribute)
 
 }
 
+void attribute_onlinebreak_create(struct attribute_event *attribute, unsigned int type, char *data)
+{
+
+    attribute->type = type;
+    attribute->data = pool_string_create(ATTRIBUTE_ONLINEBREAK, attribute->data, 0, strlen(data) + 1, data);
+
+}
+
+void attribute_onlinebreak_destroy(struct attribute_event *attribute)
+{
+
+    attribute->type = 0;
+    attribute->data = pool_string_destroy(ATTRIBUTE_ONLINEBREAK, attribute->data);
+
+}
+
 void attribute_range_create(struct attribute_range *attribute, unsigned int min, unsigned int max)
 {
 

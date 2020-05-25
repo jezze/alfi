@@ -15,7 +15,7 @@
 #define COMMAND_INSERT                  3
 #define COMMAND_UPDATE                  4
 #define COMMANDS                        5
-#define ATTRIBUTES                      12
+#define ATTRIBUTES                      13
 #define WIDGETS                         16
 #define ICONS                           60
 #define MODES                           3
@@ -49,6 +49,7 @@ static const struct tokword t_attribute[] = {
     {ATTRIBUTE_LINK, "link"},
     {ATTRIBUTE_MODE, "mode"},
     {ATTRIBUTE_ONCLICK, "onclick"},
+    {ATTRIBUTE_ONLINEBREAK, "onlinebreak"},
     {ATTRIBUTE_RANGE, "range"},
     {ATTRIBUTE_TARGET, "target"},
     {ATTRIBUTE_TYPE, "type"}
@@ -481,6 +482,17 @@ static void parse_attribute_onclick(struct parser *parser, struct attribute_even
 
 }
 
+static void parse_attribute_onlinebreak(struct parser *parser, struct attribute_event *attribute)
+{
+
+    unsigned int type = parsetoken(parser, t_attribute_event, EVENTS);
+    char data[RESOURCE_PAGESIZE];
+
+    readword(parser, data, RESOURCE_PAGESIZE);
+    attribute_onlinebreak_create(attribute, type, data);
+
+}
+
 static void parse_attribute_range(struct parser *parser, struct attribute_range *attribute)
 {
 
@@ -755,6 +767,11 @@ static void parse_payload_field(struct parser *parser, struct widget_header *hea
 
         case ATTRIBUTE_LABEL:
             parse_attribute_label(parser, &payload->label);
+
+            break;
+
+        case ATTRIBUTE_ONLINEBREAK:
+            parse_attribute_onlinebreak(parser, &payload->onlinebreak);
 
             break;
 
