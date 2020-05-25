@@ -23,7 +23,6 @@
 #include "view.h"
 #include "attribute.h"
 #include "widget.h"
-#include "entity.h"
 #include "animation.h"
 #include "parser.h"
 #include "pool.h"

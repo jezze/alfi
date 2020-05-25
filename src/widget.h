@@ -202,6 +202,16 @@ union widget_payload
 
 };
 
+struct widget
+{
+
+    unsigned int index;
+    struct list_item item;
+    struct widget_header header;
+    union widget_payload payload;
+
+};
+
 void widget_header_create(struct widget_header *header, unsigned int type, char *id, char *in);
 void widget_header_destroy(struct widget_header *header);
 void widget_payload_anchor_create(struct widget_payload_anchor *payload);

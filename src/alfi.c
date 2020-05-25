@@ -8,7 +8,6 @@
 #include "resource.h"
 #include "attribute.h"
 #include "widget.h"
-#include "entity.h"
 #include "parser.h"
 #include "pool.h"
 

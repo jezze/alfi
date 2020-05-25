@@ -6,7 +6,6 @@
 #include "resource.h"
 #include "attribute.h"
 #include "widget.h"
-#include "entity.h"
 #include "view.h"
 #include "animation.h"
 
