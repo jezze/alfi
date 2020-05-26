@@ -176,6 +176,8 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
             "+ text in instrtbl label \"Quit\"\n"
             "+ text in instrtbl label \"Ctrl+R\"\n"
             "+ text in instrtbl label \"Refresh\"\n"
+            "+ text in instrtbl label \"Ctrl+V\"\n"
+            "+ text in instrtbl label \"Paste from clipboard\"\n"
             "+ text in rtbl label \"* = Needs certain setup to work.\"\n";
 
         resource->count = sprintf(buffer, fmt, "http://");
