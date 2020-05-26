@@ -192,9 +192,11 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
         static char *fmt =
             "= window label \"Not found\"\n"
             "+ header label \"Not found\"\n"
-            "+ text label \"The URL does not seem to exist. Press the right mouse button to go back.\"\n";
+            "+ text label \"The URL does not seem to exist.\"\n"
+            "+ code label \"URL: %s\"\n"
+            "+ text label \"Press the right mouse button to go back.\"\n";
 
-        resource->count = sprintf(buffer, fmt);
+        resource->count = sprintf(buffer, fmt, data);
         resource->data = malloc(resource->count);
 
         strcpy(resource->data, buffer);

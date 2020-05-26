@@ -390,7 +390,7 @@ static void urlself(char *url, unsigned int count, void *data)
     else
     {
 
-        urlself("navi://notfound", strlen(url) + 1, url);
+        urlself("navi://notfound", strlen(temp.urlinfo.url), temp.urlinfo.url);
 
     }
 
