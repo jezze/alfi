@@ -612,6 +612,7 @@ static void image_render(struct widget *widget, struct frame *frame, struct view
 static void list_step(struct widget *widget, struct frame *frame, struct view *view, float u)
 {
 
+    struct style *dot = &frame->styles[0];
     struct widget *child = 0;
     int pw = view->unitw * 1;
     int cx = frame->bounds.x + pw;
@@ -634,6 +635,8 @@ static void list_step(struct widget *widget, struct frame *frame, struct view *v
 
     }
 
+    style_color_clone(&dot->color, &color_header);
+
     frame->bounds.h = ch;
 
 }
@@ -641,6 +644,7 @@ static void list_step(struct widget *widget, struct frame *frame, struct view *v
 static void list_render(struct widget *widget, struct frame *frame, struct view *view)
 {
 
+    struct style *dot = &frame->styles[0];
     struct widget *child = 0;
 
     while ((child = pool_widget_nextchild(child, widget)))
@@ -652,12 +656,9 @@ static void list_render(struct widget *widget, struct frame *frame, struct view 
         {
 
             struct frame *cframe = pool_getframe(child->index);
-            struct style dot;
 
-            style_init(&dot);
-            style_color_clone(&dot.color, &color_header);
-            style_box_init(&dot.box, cframe->bounds.x - view->unitw / 2 + view->marginw, cframe->bounds.y + cframe->bounds.h / 2, 0, 0, 3);
-            render_fillcircle(&dot);
+            style_box_init(&dot->box, cframe->bounds.x - view->unitw / 2 + view->marginw, cframe->bounds.y + cframe->bounds.h / 2, 0, 0, 3);
+            render_fillcircle(dot);
 
         }
 
