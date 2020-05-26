@@ -1285,11 +1285,20 @@ static void parse_command_delete(struct parser *parser)
 
     struct widget *widget = parsewidget(parser);
 
-    if (!widget)
+    if (widget)
+    {
+
+        parser->clear(widget);
+        parser->destroy(widget);
+
+    }
+
+    else
+    {
+
         fail(parser);
 
-    parser->clear(widget);
-    parser->destroy(widget);
+    }
 
 }
 
@@ -1298,10 +1307,10 @@ static void parse_command_insert(struct parser *parser, char *in)
 
     struct widget *widget = parser->create(getwidget(parser), "", in);
 
-    if (!widget)
+    if (widget)
+        parse_payload(parser, widget);
+    else
         fail(parser);
-
-    parse_payload(parser, widget);
 
 }
 
@@ -1310,10 +1319,10 @@ static void parse_command_update(struct parser *parser)
 
     struct widget *widget = parsewidget(parser);
 
-    if (!widget)
+    if (widget)
+        parse_payload(parser, widget);
+    else
         fail(parser);
-
-    parse_payload(parser, widget);
 
 }
 
