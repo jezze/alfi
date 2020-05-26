@@ -8,11 +8,11 @@
 #include "widget.h"
 #include "parser.h"
 
-#define COMMAND_NONE                    0
-#define COMMAND_COMMENT                 1
-#define COMMAND_DELETE                  2
-#define COMMAND_INSERT                  3
-#define COMMAND_UPDATE                  4
+#define COMMAND_NONE                    1
+#define COMMAND_COMMENT                 2
+#define COMMAND_DELETE                  3
+#define COMMAND_INSERT                  4
+#define COMMAND_UPDATE                  5
 #define COMMANDS                        5
 #define ATTRIBUTES                      13
 #define WIDGETS                         16
@@ -166,7 +166,10 @@ static unsigned int gettoken(const struct tokword *items, unsigned int nitems, u
     for (i = 0; i < nitems; i++)
     {
 
-        if (!memcmp(word, items[i].word, count + 1))
+        if (strlen(items[i].word) != count)
+            continue;
+
+        if (!memcmp(items[i].word, word, count))
             return items[i].token;
 
     }
@@ -306,7 +309,7 @@ static unsigned int parsetoken(struct parser *parser, const struct tokword *item
     char word[32];
     unsigned int count = readword(parser, word, 32);
 
-    return (count) ? gettoken(items, nitems, count, word) : 0;
+    return gettoken(items, nitems, count, word);
 
 }
 
