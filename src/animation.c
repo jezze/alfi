@@ -93,7 +93,7 @@ static void anchor_step(struct widget *widget, struct frame *frame, struct view 
 
     style_font_init(&label->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&label->color, &color_focus);
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
     style_box_shrink(&label->box, view->marginw, view->marginh);
     style_box_scale(&label->box, label->box.w, render_textheight(label, payload->label.content));
 
@@ -134,7 +134,7 @@ static void button_step(struct widget *widget, struct frame *frame, struct view 
     /* Label */
     style_font_init(&label->font, font_bold->index, view->fontsizemedium, STYLE_ALIGN_CENTER | STYLE_ALIGN_TOP);
     style_color_clone(&label->color, &color_focus);
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
     style_box_shrink(&label->box, view->unitw, view->unith);
     style_box_scale(&label->box, label->box.w, render_textheight(label, payload->label.content));
 
@@ -144,7 +144,7 @@ static void button_step(struct widget *widget, struct frame *frame, struct view 
     /* Icon */
     style_font_init(&icon->font, font_icon->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&icon->color, &color_focus);
-    style_box_init(&icon->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&icon->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
     style_box_shrink(&icon->box, view->unitw, view->unith);
     style_box_scale(&icon->box, view->fontsizemedium, view->fontsizemedium);
     style_box_translate(&icon->box, 0, 24);
@@ -153,7 +153,7 @@ static void button_step(struct widget *widget, struct frame *frame, struct view 
         style_color_clone(&icon->color, &color_background);
 
     /* Surface */
-    style_box_init(&surface->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 32);
+    style_box_init(&surface->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 32);
     style_color_clone(&surface->color, &color_line);
     style_box_shrink(&surface->box, view->marginw, view->marginh);
     style_box_expand(&surface->box, &label->box, view->unitw - view->marginw, view->unith - view->marginh);
@@ -207,7 +207,7 @@ static void choice_step(struct widget *widget, struct frame *frame, struct view 
     /* Label */
     style_font_init(&label->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&label->color, &color_text);
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
     style_box_shrink(&label->box, view->marginw, view->marginh);
     style_box_scale(&label->box, label->box.w, render_textheight(label, payload->label.content));
 
@@ -215,7 +215,7 @@ static void choice_step(struct widget *widget, struct frame *frame, struct view 
         style_color_clone(&background->color, &color_line);
 
     /* Background */
-    style_box_init(&background->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 4);
+    style_box_init(&background->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 4);
     style_box_expand(&background->box, &label->box, view->marginw, view->marginh);
 
     frame->bounds.h = background->box.h;
@@ -251,7 +251,7 @@ static void code_step(struct widget *widget, struct frame *frame, struct view *v
 
     style_font_init(&label->font, font_mono->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&label->color, &color_text);
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
     style_box_shrink(&label->box, view->marginw, view->marginh);
     style_box_scale(&label->box, label->box.w, render_textheight(label, payload->label.content));
 
@@ -291,7 +291,7 @@ static void divider_step(struct widget *widget, struct frame *frame, struct view
     /* Label */
     style_font_init(&label->font, font_regular->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&label->color, &color_text);
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
 
     if (strlen(payload->label.content))
     {
@@ -303,7 +303,9 @@ static void divider_step(struct widget *widget, struct frame *frame, struct view
 
     /* Line */
     style_color_clone(&line->color, &color_line);
-    style_box_init(&line->box, frame->bounds.x + view->marginw, frame->bounds.y + view->marginh, frame->bounds.w - view->marginw * 2, 2, 0);
+    style_box_init(&line->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
+    style_box_shrink(&line->box, view->marginw, view->marginh);
+    style_box_scale(&line->box, line->box.w, 2);
 
     frame->bounds.h = line->box.h + view->marginh * 2;
 
@@ -356,7 +358,7 @@ static void field_step(struct widget *widget, struct frame *frame, struct view *
     /* Data */
     style_font_init(&data->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&data->color, &color_text);
-    style_box_init(&data->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&data->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
     style_box_shrink(&data->box, view->unitw, view->unith);
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
@@ -367,7 +369,7 @@ static void field_step(struct widget *widget, struct frame *frame, struct view *
     /* Label */
     style_font_init(&label->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&label->color, &color_line);
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
 
     if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
         style_font_init(&label->font, font_regular->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
@@ -384,7 +386,7 @@ static void field_step(struct widget *widget, struct frame *frame, struct view *
 
     /* Border */
     style_color_clone(&border->color, &color_line);
-    style_box_init(&border->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 4);
+    style_box_init(&border->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 4);
     style_box_shrink(&border->box, view->marginw, view->marginh);
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
@@ -462,7 +464,7 @@ static void header_step(struct widget *widget, struct frame *frame, struct view 
 
     style_font_init(&label->font, font_bold->index, view->fontsizexlarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&label->color, &color_header);
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
     style_box_shrink(&label->box, view->marginw, view->marginh);
     style_box_scale(&label->box, label->box.w, render_textheight(label, payload->label.content));
 
@@ -500,7 +502,7 @@ static void header2_step(struct widget *widget, struct frame *frame, struct view
 
     style_font_init(&label->font, font_bold->index, view->fontsizelarge, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&label->color, &color_header);
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
     style_box_shrink(&label->box, view->marginw, view->marginh);
     style_box_scale(&label->box, label->box.w, render_textheight(label, payload->label.content));
 
@@ -538,7 +540,7 @@ static void header3_step(struct widget *widget, struct frame *frame, struct view
 
     style_font_init(&label->font, font_bold->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&label->color, &color_header);
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
     style_box_shrink(&label->box, view->marginw, view->marginh);
     style_box_scale(&label->box, label->box.w, render_textheight(label, payload->label.content));
 
@@ -701,7 +703,7 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
     /* Data */
     style_font_init(&data->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&data->color, &color_text);
-    style_box_init(&data->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&data->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
     style_box_shrink(&data->box, view->unitw, view->unith);
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
@@ -712,7 +714,7 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
     /* Label */
     style_font_init(&label->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&label->color, &color_line);
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
 
     if (widget->header.state == WIDGET_STATE_FOCUS || strlen(payload->data.content))
         style_font_init(&label->font, font_regular->index, view->fontsizesmall, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
@@ -729,7 +731,7 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
 
     /* Border */
     style_color_clone(&border->color, &color_line);
-    style_box_init(&border->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 4);
+    style_box_init(&border->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 4);
     style_box_shrink(&border->box, view->marginw, view->marginh);
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
@@ -886,7 +888,7 @@ static void text_step(struct widget *widget, struct frame *frame, struct view *v
 
     style_font_init(&label->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&label->color, &color_text);
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
     style_box_shrink(&label->box, view->marginw, view->marginh);
     style_box_scale(&label->box, label->box.w, render_textheight(label, payload->label.content));
 
@@ -947,7 +949,7 @@ static void toggle_step(struct widget *widget, struct frame *frame, struct view 
     /* Label */
     style_font_init(&label->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&label->color, &color_text);
-    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_init(&label->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, frame->bounds.h, 0);
     style_box_shrink(&label->box, 3 * view->unitw + view->marginw, view->marginh);
     style_box_scale(&label->box, render_textwidth(label, payload->label.content), render_textheight(label, payload->label.content));
 
