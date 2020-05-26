@@ -84,23 +84,24 @@ static unsigned int _curl_match(struct resource *resource)
 static unsigned int _curl_load(struct resource *resource, unsigned int count, void *data)
 {
 
-    char *q[12];
+    char *q[16];
 
     if (count)
     {
 
         q[0] = "curl";
         q[1] = "-s";
-        q[2] = "-A";
-        q[3] = "Navi/1.0";
-        q[4] = "-X";
-        q[5] = "POST";
-        q[6] = "-H";
-        q[7] = "Content-Type: application/x-www-form-urlencoded";
-        q[8] = "-d";
-        q[9] = data;
-        q[10] = resource->urlinfo.url;
-        q[11] = 0;
+        q[2] = "-L";
+        q[3] = "-A";
+        q[4] = "Navi/1.0";
+        q[5] = "-X";
+        q[6] = "POST";
+        q[7] = "-H";
+        q[8] = "Content-Type: application/x-www-form-urlencoded";
+        q[9] = "-d";
+        q[10] = data;
+        q[11] = resource->urlinfo.url;
+        q[12] = 0;
 
 
     }
@@ -110,12 +111,13 @@ static unsigned int _curl_load(struct resource *resource, unsigned int count, vo
 
         q[0] = "curl";
         q[1] = "-s";
-        q[2] = "-A";
-        q[3] = "Navi/1.0";
-        q[4] = "-X";
-        q[5] = "GET";
-        q[6] = resource->urlinfo.url;
-        q[7] = 0;
+        q[2] = "-L";
+        q[3] = "-A";
+        q[4] = "Navi/1.0";
+        q[5] = "-X";
+        q[6] = "GET";
+        q[7] = resource->urlinfo.url;
+        q[8] = 0;
 
     }
 
