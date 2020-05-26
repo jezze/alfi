@@ -178,6 +178,16 @@ static unsigned int gettoken(const struct tokword *items, unsigned int nitems, u
 
 }
 
+static void addchar(struct parser *parser, char *result, unsigned int count, unsigned int i, char c)
+{
+
+    if (i < count)
+        result[i] = c;
+    else
+        parser->fail();
+
+}
+
 static unsigned int readword(struct parser *parser, char *result, unsigned int count)
 {
 
@@ -197,7 +207,8 @@ static unsigned int readword(struct parser *parser, char *result, unsigned int c
             parser->expr.line++;
             parser->expr.linebreak = 1;
             parser->expr.offset++;
-            result[i] = '\0';
+
+            addchar(parser, result, count, i, '\0');
 
             return i;
 
@@ -212,13 +223,15 @@ static unsigned int readword(struct parser *parser, char *result, unsigned int c
             {
 
             case 'n':
-                result[i] = '\n';
+                addchar(parser, result, count, i, '\n');
+
                 i++;
 
                 break;
 
             default:
-                result[i] = c;
+                addchar(parser, result, count, i, c);
+
                 i++;
 
                 break;
@@ -242,7 +255,8 @@ static unsigned int readword(struct parser *parser, char *result, unsigned int c
                 if (parser->expr.inside)
                 {
 
-                    result[i] = c;
+                    addchar(parser, result, count, i, c);
+
                     i++;
 
                 }
@@ -250,7 +264,7 @@ static unsigned int readword(struct parser *parser, char *result, unsigned int c
                 else
                 {
 
-                    result[i] = '\0';
+                    addchar(parser, result, count, i, '\0');
 
                     if (i == 0)
                         continue;
@@ -269,7 +283,8 @@ static unsigned int readword(struct parser *parser, char *result, unsigned int c
                 break;
 
             default:
-                result[i] = c;
+                addchar(parser, result, count, i, c);
+
                 i++;
 
                 break;
