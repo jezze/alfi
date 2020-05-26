@@ -95,7 +95,7 @@ static void anchor_step(struct widget *widget, struct frame *frame, struct view 
     style_color_clone(&text->color, &color_focus);
     style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
-    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+    style_box_scale(&text->box, text->box.w, render_textheight(text, payload->label.content));
 
     frame->bounds.h = text->box.h + view->marginh * 2;
 
@@ -208,7 +208,7 @@ static void choice_step(struct widget *widget, struct frame *frame, struct view 
     style_color_clone(&text->color, &color_text);
     style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
-    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+    style_box_scale(&text->box, text->box.w, render_textheight(text, payload->label.content));
 
     if (widget->header.state == WIDGET_STATE_HOVER)
         style_color_clone(&background->color, &color_line);
@@ -251,7 +251,7 @@ static void code_step(struct widget *widget, struct frame *frame, struct view *v
     style_color_clone(&text->color, &color_text);
     style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
-    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+    style_box_scale(&text->box, text->box.w, render_textheight(text, payload->label.content));
 
     frame->bounds.h = text->box.h + view->marginh * 2;
 
@@ -459,7 +459,7 @@ static void header_step(struct widget *widget, struct frame *frame, struct view 
     style_color_clone(&text->color, &color_header);
     style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
-    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+    style_box_scale(&text->box, text->box.w, render_textheight(text, payload->label.content));
 
     frame->bounds.h = text->box.h + view->marginh * 2;
 
@@ -497,7 +497,7 @@ static void header2_step(struct widget *widget, struct frame *frame, struct view
     style_color_clone(&text->color, &color_header);
     style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
-    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+    style_box_scale(&text->box, text->box.w, render_textheight(text, payload->label.content));
 
     frame->bounds.h = text->box.h + view->marginh * 2;
 
@@ -535,7 +535,7 @@ static void header3_step(struct widget *widget, struct frame *frame, struct view
     style_color_clone(&text->color, &color_header);
     style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
-    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+    style_box_scale(&text->box, text->box.w, render_textheight(text, payload->label.content));
 
     frame->bounds.h = text->box.h + view->marginh * 2;
 
@@ -892,7 +892,7 @@ static void text_step(struct widget *widget, struct frame *frame, struct view *v
     style_color_clone(&text->color, &color_text);
     style_box_init(&text->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
     style_box_shrink(&text->box, view->marginw, view->marginh);
-    style_box_scale(&text->box, render_textwidth(text, payload->label.content), render_textheight(text, payload->label.content));
+    style_box_scale(&text->box, text->box.w, render_textheight(text, payload->label.content));
 
     frame->bounds.h = text->box.h + view->marginh * 2;
 
