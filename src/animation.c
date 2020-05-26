@@ -357,11 +357,10 @@ static void field_step(struct widget *widget, struct frame *frame, struct view *
     style_font_init(&data->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&data->color, &color_text);
     style_box_init(&data->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_shrink(&data->box, view->unitw, view->unith);
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
-        style_box_shrink(&data->box, view->unitw + view->marginw, view->unith + view->marginh);
-    else
-        style_box_shrink(&data->box, view->unitw, view->unith);
+        style_box_shrink(&data->box, view->marginw, view->marginh);
 
     style_box_scale(&data->box, data->box.w, render_textheight(data, payload->data.content));
 
@@ -703,22 +702,12 @@ static void select_step(struct widget *widget, struct frame *frame, struct view 
     style_font_init(&data->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
     style_color_clone(&data->color, &color_text);
     style_box_init(&data->box, frame->bounds.x, frame->bounds.y, frame->bounds.w, 0, 0);
+    style_box_shrink(&data->box, view->unitw, view->unith);
 
     if (widget->header.state == WIDGET_STATE_FOCUS)
-    {
+        style_box_shrink(&data->box, view->marginw, view->marginh);
 
-        style_box_shrink(&data->box, view->unitw + view->marginw, view->unith + view->marginh);
-        style_box_scale(&data->box, data->box.w, render_textheight(data, payload->data.content));
-
-    }
-
-    else
-    {
-
-        style_box_shrink(&data->box, view->unitw, view->unith);
-        style_box_scale(&data->box, data->box.w, render_textheight(data, payload->data.content));
-
-    }
+    style_box_scale(&data->box, data->box.w, render_textheight(data, payload->data.content));
 
     /* Label */
     style_font_init(&label->font, font_regular->index, view->fontsizemedium, STYLE_ALIGN_LEFT | STYLE_ALIGN_TOP);
