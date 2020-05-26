@@ -694,6 +694,44 @@ static void onkey(GLFWwindow *window, int key, int scancode, int action, int mod
 
             break;
 
+        case GLFW_KEY_V:
+            if (mods & GLFW_MOD_CONTROL)
+            {
+
+                if (widget_focus && widget_focus->header.type == WIDGET_TYPE_FIELD)
+                {
+
+                    struct widget_payload_field *payload = &widget_focus->payload.field;
+                    const char *c = glfwGetClipboardString(window);
+
+                    if (c)
+                    {
+
+                        unsigned int l = strlen(c);
+                        unsigned int i;
+
+                        for (i = 0; i < l; i++)
+                        {
+
+                            if (payload->data.offset < payload->data.total - 1)
+                            {
+
+                                payload->data.content[payload->data.offset] = c[i];
+                                payload->data.offset++;
+                                payload->data.content[payload->data.offset] = '\0';
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+            break;
+
         }
 
     }
