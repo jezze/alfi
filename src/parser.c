@@ -158,6 +158,15 @@ static const struct tokword t_widget[] = {
     {WIDGET_TYPE_WINDOW, "window"}
 };
 
+static void fail(struct parser *parser)
+{
+
+    parser->errors++;
+
+    parser->fail();
+
+}
+
 static unsigned int gettoken(const struct tokword *items, unsigned int nitems, unsigned int count, char *word)
 {
 
@@ -184,7 +193,7 @@ static void addchar(struct parser *parser, char *result, unsigned int count, uns
     if (i < count)
         result[i] = c;
     else
-        parser->fail();
+        fail(parser);
 
 }
 
@@ -377,7 +386,7 @@ static unsigned int parseuint(struct parser *parser, unsigned int base)
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -541,7 +550,7 @@ static void parse_attribute_type(struct parser *parser, struct attribute_type *a
 static void parse_payload_anchor(struct parser *parser, struct widget_header *header, struct widget_payload_anchor *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -573,7 +582,7 @@ static void parse_payload_anchor(struct parser *parser, struct widget_header *he
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -586,7 +595,7 @@ static void parse_payload_anchor(struct parser *parser, struct widget_header *he
 static void parse_payload_button(struct parser *parser, struct widget_header *header, struct widget_payload_button *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -628,7 +637,7 @@ static void parse_payload_button(struct parser *parser, struct widget_header *he
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -641,7 +650,7 @@ static void parse_payload_button(struct parser *parser, struct widget_header *he
 static void parse_payload_choice(struct parser *parser, struct widget_header *header, struct widget_payload_choice *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -668,7 +677,7 @@ static void parse_payload_choice(struct parser *parser, struct widget_header *he
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -681,7 +690,7 @@ static void parse_payload_choice(struct parser *parser, struct widget_header *he
 static void parse_payload_code(struct parser *parser, struct widget_header *header, struct widget_payload_code *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -708,7 +717,7 @@ static void parse_payload_code(struct parser *parser, struct widget_header *head
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -721,7 +730,7 @@ static void parse_payload_code(struct parser *parser, struct widget_header *head
 static void parse_payload_divider(struct parser *parser, struct widget_header *header, struct widget_payload_divider *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -743,7 +752,7 @@ static void parse_payload_divider(struct parser *parser, struct widget_header *h
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -756,7 +765,7 @@ static void parse_payload_divider(struct parser *parser, struct widget_header *h
 static void parse_payload_field(struct parser *parser, struct widget_header *header, struct widget_payload_field *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -798,7 +807,7 @@ static void parse_payload_field(struct parser *parser, struct widget_header *hea
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -811,7 +820,7 @@ static void parse_payload_field(struct parser *parser, struct widget_header *hea
 static void parse_payload_header(struct parser *parser, struct widget_header *header, struct widget_payload_header *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -833,7 +842,7 @@ static void parse_payload_header(struct parser *parser, struct widget_header *he
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -846,7 +855,7 @@ static void parse_payload_header(struct parser *parser, struct widget_header *he
 static void parse_payload_image(struct parser *parser, struct widget_header *header, struct widget_payload_image *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -868,7 +877,7 @@ static void parse_payload_image(struct parser *parser, struct widget_header *hea
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -881,7 +890,7 @@ static void parse_payload_image(struct parser *parser, struct widget_header *hea
 static void parse_payload_list(struct parser *parser, struct widget_header *header, struct widget_payload_list *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -898,7 +907,7 @@ static void parse_payload_list(struct parser *parser, struct widget_header *head
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -911,7 +920,7 @@ static void parse_payload_list(struct parser *parser, struct widget_header *head
 static void parse_payload_select(struct parser *parser, struct widget_header *header, struct widget_payload_select *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -943,7 +952,7 @@ static void parse_payload_select(struct parser *parser, struct widget_header *he
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -956,7 +965,7 @@ static void parse_payload_select(struct parser *parser, struct widget_header *he
 static void parse_payload_header2(struct parser *parser, struct widget_header *header, struct widget_payload_header2 *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -978,7 +987,7 @@ static void parse_payload_header2(struct parser *parser, struct widget_header *h
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -991,7 +1000,7 @@ static void parse_payload_header2(struct parser *parser, struct widget_header *h
 static void parse_payload_header3(struct parser *parser, struct widget_header *header, struct widget_payload_header3 *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -1013,7 +1022,7 @@ static void parse_payload_header3(struct parser *parser, struct widget_header *h
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -1026,7 +1035,7 @@ static void parse_payload_header3(struct parser *parser, struct widget_header *h
 static void parse_payload_table(struct parser *parser, struct widget_header *header, struct widget_payload_table *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -1048,7 +1057,7 @@ static void parse_payload_table(struct parser *parser, struct widget_header *hea
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -1061,7 +1070,7 @@ static void parse_payload_table(struct parser *parser, struct widget_header *hea
 static void parse_payload_text(struct parser *parser, struct widget_header *header, struct widget_payload_text *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -1088,7 +1097,7 @@ static void parse_payload_text(struct parser *parser, struct widget_header *head
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -1101,7 +1110,7 @@ static void parse_payload_text(struct parser *parser, struct widget_header *head
 static void parse_payload_toggle(struct parser *parser, struct widget_header *header, struct widget_payload_toggle *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -1128,7 +1137,7 @@ static void parse_payload_toggle(struct parser *parser, struct widget_header *he
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -1141,7 +1150,7 @@ static void parse_payload_toggle(struct parser *parser, struct widget_header *he
 static void parse_payload_window(struct parser *parser, struct widget_header *header, struct widget_payload_window *payload)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
     {
 
         switch (getattribute(parser))
@@ -1158,7 +1167,7 @@ static void parse_payload_window(struct parser *parser, struct widget_header *he
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -1255,7 +1264,7 @@ static void parse_payload(struct parser *parser, struct widget *widget)
         break;
 
     default:
-        parser->fail();
+        fail(parser);
 
         break;
 
@@ -1266,7 +1275,7 @@ static void parse_payload(struct parser *parser, struct widget *widget)
 static void parse_command_comment(struct parser *parser)
 {
 
-    while (!parser->expr.linebreak)
+    while (!parser->errors && !parser->expr.linebreak)
         parseskip(parser);
 
 }
@@ -1277,7 +1286,7 @@ static void parse_command_delete(struct parser *parser)
     struct widget *widget = parsewidget(parser);
 
     if (!widget)
-        parser->fail();
+        fail(parser);
 
     parser->clear(widget);
     parser->destroy(widget);
@@ -1290,7 +1299,7 @@ static void parse_command_insert(struct parser *parser, char *in)
     struct widget *widget = parser->create(getwidget(parser), "", in);
 
     if (!widget)
-        parser->fail();
+        fail(parser);
 
     parse_payload(parser, widget);
 
@@ -1302,16 +1311,16 @@ static void parse_command_update(struct parser *parser)
     struct widget *widget = parsewidget(parser);
 
     if (!widget)
-        parser->fail();
+        fail(parser);
 
     parse_payload(parser, widget);
 
 }
 
-static void parse(struct parser *parser, char *in)
+static unsigned int parse(struct parser *parser, char *in)
 {
 
-    while (parser->expr.offset < parser->expr.count)
+    while (!parser->errors && parser->expr.offset < parser->expr.count)
     {
 
         parser->expr.linebreak = 0;
@@ -1343,7 +1352,7 @@ static void parse(struct parser *parser, char *in)
             break;
 
         default:
-            parser->fail();
+            fail(parser);
 
             break;
 
@@ -1351,9 +1360,11 @@ static void parse(struct parser *parser, char *in)
 
     }
 
+    return parser->errors;
+
 }
 
-void parser_parse(struct parser *parser, char *in, unsigned int count, void *data)
+unsigned int parser_parse(struct parser *parser, char *in, unsigned int count, void *data)
 {
 
     parser->expr.data = data;
@@ -1364,13 +1375,14 @@ void parser_parse(struct parser *parser, char *in, unsigned int count, void *dat
     parser->expr.inside = 0;
     parser->expr.escaped = 0;
 
-    parse(parser, in);
+    return parse(parser, in);
 
 }
 
 void parser_init(struct parser *parser, void (*fail)(void), struct widget *(*find)(char *name), struct widget *(*create)(unsigned int type, char *id, char *in), struct widget *(*destroy)(struct widget *widget), void (*clear)(struct widget *widget))
 {
 
+    parser->errors = 0;
     parser->fail = fail;
     parser->find = find;
     parser->create = create;

@@ -90,7 +90,6 @@ static void parser_fail(void)
 {
 
     printf("Parsing failed on line %u\n", parser.expr.line + 1);
-    exit(EXIT_FAILURE);
 
 }
 
@@ -377,13 +376,25 @@ static void urlself(char *url, unsigned int count, void *data)
         if (info)
             url_set(info, temp.urlinfo.url);
 
-        parser_parse(&parser, "main", temp.count, temp.data);
-        loadresources();
-        animation_initframe(&keyframe, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24, 0);
-        animation_step(widget_root, &keyframe, &view, 1.0);
-        animation_updateframe(widget_root->header.type, frame, &keyframe, 1.0);
+        if (!parser_parse(&parser, "main", temp.count, temp.data))
+        {
 
-        updatetitle = 1;
+            loadresources();
+            animation_initframe(&keyframe, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24, 0);
+            animation_step(widget_root, &keyframe, &view, 1.0);
+            animation_updateframe(widget_root->header.type, frame, &keyframe, 1.0);
+
+            updatetitle = 1;
+
+        }
+
+        else
+        {
+
+            /* Parsing failed, need to do something */
+
+        }
+
 
     }
 
