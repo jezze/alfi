@@ -52,6 +52,8 @@ static unsigned int resolve(struct resource *resource, const char *name, char * 
 
         close(fd[0]);
 
+        printf("count: %d\n", resource->count);
+
         return resource->count;
 
     }
@@ -183,13 +185,31 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
 
     }
 
+    else if (!strncmp(path, "notfound", 8))
+    {
+
+        char buffer[4096];
+        static char *fmt =
+            "= window label \"Not found\"\n"
+            "+ header label \"Not found\"\n"
+            "+ text label \"The URL does not seem to exist. Press the right mouse button to go back.\"\n";
+
+        resource->count = sprintf(buffer, fmt);
+        resource->data = malloc(resource->count);
+
+        strcpy(resource->data, buffer);
+
+        return resource->count;
+
+    }
+
     else if (!strncmp(path, "error", 5))
     {
 
         char buffer[4096];
         static char *fmt =
             "= window label \"Internal error\"\n"
-            "+ header2 label \"Internal error\"\n"
+            "+ header label \"Internal error\"\n"
             "+ text label \"An internal error occured.\"\n";
 
         resource->count = sprintf(buffer, fmt);

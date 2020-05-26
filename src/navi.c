@@ -387,6 +387,13 @@ static void urlself(char *url, unsigned int count, void *data)
 
     }
 
+    else
+    {
+
+        urlself("navi://notfound", strlen(url) + 1, url);
+
+    }
+
     resource_unload(&temp);
     resource_destroy(&temp);
 
