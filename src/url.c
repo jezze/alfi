@@ -82,7 +82,10 @@ void url_merge(struct urlinfo *info, char *current, char *url)
     {
 
         url_set(info, current);
-        removepath(info->url);
+
+        char *path = strchr(info->url, ':') + 3;
+
+        removepath(path);
         mergepath(info->url, url, url + strlen(url));
 
     }
