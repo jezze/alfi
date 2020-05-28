@@ -143,42 +143,58 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
             "= window label \"Navi 1.0\"\n"
             "+ table id bar grid \"08:04\"\n"
             "+ field id \"url\" in bar label \"URL\" data \"%s\" onlinebreak \"post\" \"navi://lookup\"\n"
-            "+ button in bar label \"Search\" onclick \"post\" \"navi://lookup\" mode \"on\" icon \"search\"\n"
+            "+ button in bar label \"Lookup\" onclick \"post\" \"navi://lookup\" mode \"on\" icon \"earth\"\n"
+            "+ text label \"Notice: Use the right mouse button to go back.\"\n"
             "+ divider\n"
-            "+ table id maintbl grid \"06\"\n"
-            "+ table id ltbl in maintbl\n"
-            "+ table id rtbl in maintbl\n"
-            "+ header2 in ltbl label \"Bookmarks\"\n"
-            "+ text in ltbl label \"No bookmarks\"\n"
-            "+ header2 in rtbl label \"Instructions\"\n"
-            "+ table id instrtbl in rtbl grid \"03\"\n"
-            "+ text in instrtbl label \"Left mouse button\"\n"
-            "+ text in instrtbl label \"Interact\"\n"
-            "+ text in instrtbl label \"Right mouse button\"\n"
-            "+ text in instrtbl label \"Go back\"\n"
-            "+ text in instrtbl label \"Middle mouse button\"\n"
-            "+ text in instrtbl label \"Go home\"\n"
-            "+ text in instrtbl label \"Ctrl+B *\"\n"
-            "+ text in instrtbl label \"Bookmarks view\"\n"
-            "+ text in instrtbl label \"Ctrl+D\"\n"
-            "+ text in instrtbl label \"File view\"\n"
-            "+ text in instrtbl label \"Ctrl+H *\"\n"
-            "+ text in instrtbl label \"History view\"\n"
-            "+ text in instrtbl label \"Ctrl+L\"\n"
-            "+ text in instrtbl label \"Home\"\n"
-            "+ text in instrtbl label \"Ctrl+M\"\n"
-            "+ text in instrtbl label \"Night mode\"\n"
-            "+ text in instrtbl label \"Ctrl+N\"\n"
-            "+ text in instrtbl label \"Light mode\"\n"
-            "+ text in instrtbl label \"Ctrl+Q\"\n"
-            "+ text in instrtbl label \"Quit\"\n"
-            "+ text in instrtbl label \"Ctrl+R\"\n"
-            "+ text in instrtbl label \"Refresh\"\n"
-            "+ text in instrtbl label \"Ctrl+V\"\n"
-            "+ text in instrtbl label \"Paste from clipboard\"\n"
-            "+ text in rtbl label \"* = Needs certain setup to work.\"\n";
+            "+ header2 label \"Bookmarks\"\n"
+            "+ text label \"No bookmarks\"\n"
+            "+ divider\n"
+            "+ button label \"Settings\" onclick \"get\" \"navi://settings\" icon \"options\"\n";
 
         resource->count = sprintf(buffer, fmt, "http://");
+        resource->data = malloc(resource->count);
+
+        strcpy(resource->data, buffer);
+
+        return resource->count;
+
+    }
+
+    else if (!strncmp(path, "settings", 8))
+    {
+
+        char buffer[4096];
+        static char *fmt =
+            "= window label \"Settings\"\n"
+            "+ header label \"Settings\"\n"
+            "+ table id settings grid \"06\"\n"
+            "+ text in settings label \"Left mouse button\"\n"
+            "+ text in settings label \"Interact\"\n"
+            "+ text in settings label \"Right mouse button\"\n"
+            "+ text in settings label \"Go back\"\n"
+            "+ text in settings label \"Middle mouse button\"\n"
+            "+ text in settings label \"Go home\"\n"
+            "+ text in settings label \"Ctrl+B *\"\n"
+            "+ text in settings label \"Bookmarks view\"\n"
+            "+ text in settings label \"Ctrl+D\"\n"
+            "+ text in settings label \"File view\"\n"
+            "+ text in settings label \"Ctrl+H *\"\n"
+            "+ text in settings label \"History view\"\n"
+            "+ text in settings label \"Ctrl+L\"\n"
+            "+ text in settings label \"Home\"\n"
+            "+ text in settings label \"Ctrl+M\"\n"
+            "+ text in settings label \"Night mode\"\n"
+            "+ text in settings label \"Ctrl+N\"\n"
+            "+ text in settings label \"Light mode\"\n"
+            "+ text in settings label \"Ctrl+Q\"\n"
+            "+ text in settings label \"Quit\"\n"
+            "+ text in settings label \"Ctrl+R\"\n"
+            "+ text in settings label \"Refresh\"\n"
+            "+ text in settings label \"Ctrl+V\"\n"
+            "+ text in settings label \"Paste from clipboard\"\n"
+            "+ text label \"* = Needs certain setup to work.\"\n";
+
+        resource->count = sprintf(buffer, fmt, data);
         resource->data = malloc(resource->count);
 
         strcpy(resource->data, buffer);
