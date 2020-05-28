@@ -417,6 +417,8 @@ static void urlblank(char *url, unsigned int count, void *data)
 
     struct frame *frame = pool_getframe(widget_root->index);
 
+    sethover(0);
+    setfocus(0);
     parser_clear(widget_main);
     view_reset(&view);
     view_adjust(&view, frame->bounds.w, frame->bounds.h);
