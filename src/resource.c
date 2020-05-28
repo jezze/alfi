@@ -5,6 +5,7 @@
 #include "list.h"
 #include "url.h"
 #include "resource.h"
+#include "history.h"
 
 static void save(struct resource *resource, unsigned int count, void *data)
 {
@@ -75,7 +76,7 @@ static unsigned int resolve(struct resource *resource, const char *name, char * 
 static unsigned int _curl_match(struct resource *resource)
 {
 
-    return !strncmp(resource->urlinfo.url, "http:", 5) || !strncmp(resource->urlinfo.url, "https:", 6);
+    return !strncmp(resource->url, "http:", 5) || !strncmp(resource->url, "https:", 6);
 
 }
 
@@ -98,7 +99,7 @@ static unsigned int _curl_load(struct resource *resource, unsigned int count, vo
         q[8] = "Content-Type: application/x-www-form-urlencoded";
         q[9] = "-d";
         q[10] = data;
-        q[11] = resource->urlinfo.url;
+        q[11] = resource->url;
         q[12] = 0;
 
 
@@ -114,7 +115,7 @@ static unsigned int _curl_load(struct resource *resource, unsigned int count, vo
         q[4] = "Navi/1.0";
         q[5] = "-X";
         q[6] = "GET";
-        q[7] = resource->urlinfo.url;
+        q[7] = resource->url;
         q[8] = 0;
 
     }
@@ -126,14 +127,14 @@ static unsigned int _curl_load(struct resource *resource, unsigned int count, vo
 static unsigned int _navi_match(struct resource *resource)
 {
 
-    return !strncmp(resource->urlinfo.url, "navi:", 5);
+    return !strncmp(resource->url, "navi:", 5);
 
 }
 
 static unsigned int _navi_load(struct resource *resource, unsigned int count, void *data)
 {
 
-    char *path = resource->urlinfo.url + 7;
+    char *path = resource->url + 7;
 
     if (!strncmp(path, "blank", 5))
     {
@@ -264,10 +265,11 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
     else if (!strncmp(path, "lookup", 6))
     {
 
+        struct history *current = history_get(0);
         char *urlparam = data;
 
-        url_set(&resource->urlinfo, urlparam + 4);
-
+        strcpy(resource->url, urlparam + 4);
+        strcpy(current->url, resource->url);
         resource_load(resource, 0, 0);
 
         return resource->count;
@@ -291,7 +293,7 @@ static unsigned int _external_load(struct resource *resource, unsigned int count
     char *q[4];
 
     q[0] = "navi-resolve";
-    q[1] = resource->urlinfo.url;
+    q[1] = resource->url;
     q[2] = data;
     q[3] = 0;
 
@@ -336,7 +338,7 @@ unsigned int resource_dref(struct resource *resource)
 void resource_init(struct resource *resource, char *url)
 {
 
-    url_set(&resource->urlinfo, url);
+    strcpy(resource->url, url);
 
     resource->data = 0;
     resource->size = 0;
@@ -348,7 +350,7 @@ void resource_init(struct resource *resource, char *url)
 void resource_destroy(struct resource *resource)
 {
 
-    url_unset(&resource->urlinfo);
+    strcpy(resource->url, "");
 
     resource->data = 0;
     resource->size = 0;

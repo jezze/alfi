@@ -134,10 +134,10 @@ struct resource *pool_resource_find(char *url)
     while ((resource = nextresource(&usedresources, resource)))
     {
 
-        if (!strlen(resource->urlinfo.url))
+        if (!strlen(resource->url))
             continue;
 
-        if (!strcmp(resource->urlinfo.url, url))
+        if (!strcmp(resource->url, url))
             return resource;
 
     }

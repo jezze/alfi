@@ -4,7 +4,7 @@ struct resource
 {
 
     struct list_item item;
-    struct urlinfo urlinfo;
+    char url[URL_SIZE];
     void *data;
     unsigned int size;
     unsigned int count;

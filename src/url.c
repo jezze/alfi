@@ -53,40 +53,27 @@ static void mergepath(char *buffer, char *path, char *end)
 
 }
 
-void url_set(struct urlinfo *info, char *url)
-{
-
-    if (info->url != url)
-        strcpy(info->url, url);
-
-}
-
-void url_unset(struct urlinfo *info)
-{
-
-    info->url[0] = '\0';
-
-}
-
-void url_merge(struct urlinfo *info, char *current, char *url)
+void url_merge(char *out, char *current, char *url)
 {
 
     if (strchr(url, ':'))
     {
 
-        url_set(info, url);
+        strcpy(out, url);
 
     }
 
     else
     {
 
-        url_set(info, current);
+        char *path;
 
-        char *path = strchr(info->url, ':') + 3;
+        strcpy(out, current);
+
+        path = strchr(out, ':') + 3;
 
         removepath(path);
-        mergepath(info->url, url, url + strlen(url));
+        mergepath(out, url, url + strlen(url));
 
     }
 

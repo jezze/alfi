@@ -4,17 +4,17 @@
 #include "url.h"
 #include "history.h"
 
-static struct urlinfo stack[32];
+static struct history stack[32];
 static unsigned int historycount;
 
-struct urlinfo *history_get(unsigned int index)
+struct history *history_get(unsigned int index)
 {
 
     return &stack[historycount - index - 1];
 
 }
 
-struct urlinfo *history_push(void)
+struct history *history_push(void)
 {
 
     if (historycount < 31)
@@ -24,7 +24,7 @@ struct urlinfo *history_push(void)
 
 }
 
-struct urlinfo *history_pop(void)
+struct history *history_pop(void)
 {
 
     if (historycount > 1)
@@ -37,7 +37,7 @@ struct urlinfo *history_pop(void)
 char *history_geturl(unsigned int index)
 {
 
-    struct urlinfo *info = history_get(index);
+    struct history *info = history_get(index);
 
     if (info)
         return info->url;

@@ -1326,7 +1326,7 @@ static void parse_command_update(struct parser *parser)
 
 }
 
-static unsigned int parse(struct parser *parser, char *in)
+static void parse(struct parser *parser, char *in)
 {
 
     while (!parser->errors && parser->expr.offset < parser->expr.count)
@@ -1369,11 +1369,9 @@ static unsigned int parse(struct parser *parser, char *in)
 
     }
 
-    return parser->errors;
-
 }
 
-unsigned int parser_parse(struct parser *parser, char *in, unsigned int count, void *data)
+void parser_parse(struct parser *parser, char *in, unsigned int count, void *data)
 {
 
     parser->errors = 0;
@@ -1385,14 +1383,13 @@ unsigned int parser_parse(struct parser *parser, char *in, unsigned int count, v
     parser->expr.inside = 0;
     parser->expr.escaped = 0;
 
-    return parse(parser, in);
+    parse(parser, in);
 
 }
 
 void parser_init(struct parser *parser, void (*fail)(void), struct widget *(*find)(char *name), struct widget *(*create)(unsigned int type, char *id, char *in), struct widget *(*destroy)(struct widget *widget), void (*clear)(struct widget *widget))
 {
 
-    parser->errors = 0;
     parser->fail = fail;
     parser->find = find;
     parser->create = create;

@@ -291,13 +291,13 @@ static void loadresources_linklabel(struct attribute_link *link, struct attribut
 {
 
     struct resource resource;
-    struct urlinfo info;
+    char url[URL_SIZE];
 
     if (!strlen(link->url))
         return;
 
-    url_merge(&info, history_geturl(0), link->url);
-    attribute_link_create(link, info.url);
+    url_merge(url, history_geturl(0), link->url);
+    attribute_link_create(link, url);
     resource_init(&resource, link->url);
     resource_load(&resource, 0, 0);
 
@@ -320,13 +320,13 @@ static void loadresources_linklabel(struct attribute_link *link, struct attribut
 static void loadresources_image(struct attribute_link *link)
 {
 
-    struct urlinfo info;
+    char url[URL_SIZE];
 
     if (!strlen(link->url))
         return;
 
-    url_merge(&info, history_geturl(0), link->url);
-    attribute_link_create(link, info.url);
+    url_merge(url, history_geturl(0), link->url);
+    attribute_link_create(link, url);
     render_loadimage(link->url);
 
 }
@@ -374,15 +374,20 @@ static void urlself(char *url, unsigned int count, void *data)
     if (temp.count)
     {
 
-        struct frame *frame = pool_getframe(widget_root->index);
-        struct urlinfo *info = history_get(0);
-        struct frame keyframe;
+        parser_parse(&parser, "main", temp.count, temp.data);
 
-        if (info)
-            url_set(info, temp.urlinfo.url);
-
-        if (!parser_parse(&parser, "main", temp.count, temp.data))
+        if (parser.errors)
         {
+
+            urlself("navi://syntaxerror", strlen(temp.url), temp.url);
+
+        }
+
+        else
+        {
+
+            struct frame *frame = pool_getframe(widget_root->index);
+            struct frame keyframe;
 
             loadresources();
             animation_initframe(&keyframe, view.scrollx + view.padw, view.scrolly + view.padh, view.unitw * 24, 0);
@@ -393,19 +398,12 @@ static void urlself(char *url, unsigned int count, void *data)
 
         }
 
-        else
-        {
-
-            urlself("navi://syntaxerror", strlen(temp.urlinfo.url), temp.urlinfo.url);
-
-        }
-
     }
 
     else
     {
 
-        urlself("navi://notfound", strlen(temp.urlinfo.url), temp.urlinfo.url);
+        urlself("navi://notfound", strlen(temp.url), temp.url);
 
     }
 
@@ -429,20 +427,21 @@ static void urlblank(char *url, unsigned int count, void *data)
 static void loadself(char *url, unsigned int count, void *data)
 {
 
-    struct urlinfo info;
+    char purl[URL_SIZE];
 
-    url_merge(&info, history_geturl(0), url);
-    urlself(info.url, count, data);
+    url_merge(purl, history_geturl(0), url);
+    urlself(purl, count, data);
 
 }
 
 static void loadblank(char *url, unsigned int count, void *data)
 {
 
-    struct urlinfo *info = history_push();
+    struct history *current = history_get(0);
+    struct history *next = history_push();
 
-    url_merge(info, history_geturl(1), url);
-    urlblank(info->url, count, data);
+    url_merge(next->url, current->url, url);
+    urlblank(next->url, count, data);
 
 }
 
@@ -1052,10 +1051,10 @@ static void onbutton(GLFWwindow *window, int button, int action, int mods)
             else
             {
 
-                struct urlinfo *info = history_pop();
+                struct history *last = history_pop();
 
-                if (info)
-                    urlblank(info->url, 0, 0);
+                if (last)
+                    urlblank(last->url, 0, 0);
 
             }
 
