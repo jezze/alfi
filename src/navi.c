@@ -396,10 +396,9 @@ static void urlself(char *url, unsigned int count, void *data)
         else
         {
 
-            /* Parsing failed, need to do something */
+            urlself("navi://syntaxerror", strlen(temp.urlinfo.url), temp.urlinfo.url);
 
         }
-
 
     }
 

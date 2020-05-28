@@ -52,8 +52,6 @@ static unsigned int resolve(struct resource *resource, const char *name, char * 
 
         close(fd[0]);
 
-        printf("count: %d\n", resource->count);
-
         return resource->count;
 
     }
@@ -197,6 +195,26 @@ static unsigned int _navi_load(struct resource *resource, unsigned int count, vo
             "= window label \"Not found\"\n"
             "+ header label \"Not found\"\n"
             "+ text label \"The URL does not seem to exist.\"\n"
+            "+ code label \"URL: %s\"\n"
+            "+ text label \"Press the right mouse button to go back.\"\n";
+
+        resource->count = sprintf(buffer, fmt, data);
+        resource->data = malloc(resource->count);
+
+        strcpy(resource->data, buffer);
+
+        return resource->count;
+
+    }
+
+    else if (!strncmp(path, "syntaxerror", 8))
+    {
+
+        char buffer[4096];
+        static char *fmt =
+            "= window label \"Syntax error\"\n"
+            "+ header label \"Syntax error\"\n"
+            "+ text label \"This page could not be understood. Maybe it is not an ALFI website?\"\n"
             "+ code label \"URL: %s\"\n"
             "+ text label \"Press the right mouse button to go back.\"\n";
 

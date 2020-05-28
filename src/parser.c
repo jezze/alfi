@@ -1376,6 +1376,7 @@ static unsigned int parse(struct parser *parser, char *in)
 unsigned int parser_parse(struct parser *parser, char *in, unsigned int count, void *data)
 {
 
+    parser->errors = 0;
     parser->expr.data = data;
     parser->expr.count = count;
     parser->expr.offset = 0;
