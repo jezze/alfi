@@ -475,28 +475,26 @@ void render_filltextinput(struct style *style, char *text, int offset, struct st
     struct nvg_paint cursorpaint;
     struct textrow row;
     const char *current = text;
-    const char *last = text;
     const char *end = current + strlen(text) + 1;
+    const char *last = text;
     float x = style->box.x;
     float y = style->box.y;
-    unsigned int i;
 
     nvg_scissor_init(&scissor);
     nvg_paint_color(&textpaint, style->color.r, style->color.g, style->color.b, style->color.a);
     nvg_paint_color(&cursorpaint, frame_color_focus->r, frame_color_focus->g, frame_color_focus->b, frame_color_focus->a);
 
-    for (i = 0; (current = calcline(&style->font, style->box.w, current, end, &row)); i++)
+    while ((current = calcline(&style->font, style->box.w, current, end, &row)))
     {
 
-        int length = row.end - row.start;
-        int chars = (int)(current - last);
-
-        if (offset >= 0 && offset <= length)
+        if (offset >= 0 && offset <= row.end - row.start)
         {
 
-            x = rendertext(&textpaint, &scissor, &style->font, x, y, row.start, row.start + offset);
+            const char *split = row.start + offset;
 
-            rendertext(&textpaint, &scissor, &style->font, x, y, row.start + offset, row.end);
+            x = rendertext(&textpaint, &scissor, &style->font, x, y, row.start, split);
+
+            rendertext(&textpaint, &scissor, &style->font, x, y, split, row.end);
             nvg_path_begin(&ctx);
             nvg_path_roundedrect(&ctx, x, y, 3, style->font.size, 0);
             renderfill(&cursorpaint, &scissor);
@@ -512,7 +510,7 @@ void render_filltextinput(struct style *style, char *text, int offset, struct st
 
         }
 
-        offset -= chars;
+        offset -= (int)(current - last);
         last = current;
         y += style->font.size;
 
