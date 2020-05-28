@@ -475,6 +475,7 @@ void render_filltextinput(struct style *style, char *text, int offset, struct st
     struct nvg_paint cursorpaint;
     struct textrow row;
     const char *current = text;
+    const char *last = text;
     const char *end = current + strlen(text) + 1;
     float x = style->box.x;
     float y = style->box.y;
@@ -488,6 +489,7 @@ void render_filltextinput(struct style *style, char *text, int offset, struct st
     {
 
         int length = row.end - row.start;
+        int chars = (int)(current - last);
 
         if (offset >= 0 && offset <= length)
         {
@@ -510,7 +512,8 @@ void render_filltextinput(struct style *style, char *text, int offset, struct st
 
         }
 
-        offset -= length;
+        offset -= chars;
+        last = current;
         y += style->font.size;
 
     }
