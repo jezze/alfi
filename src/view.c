@@ -24,6 +24,9 @@ void view_init(struct view *view, int w, int h, unsigned int size)
     if (view->unitw < 32)
         view->unitw = 32;
 
+    if (view->unitw > 56)
+        view->unitw = 56;
+
     view->unith = 40;
     view->marginw = 16;
     view->marginh = 16;
